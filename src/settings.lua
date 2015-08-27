@@ -31,10 +31,6 @@ function Settings:readSettings(config_file)
   io.close(fh)
   if (self:isLocal()) then self.config[string.lower(global.loadgen_host)] = nil end
   if (self.config[global.loadgen_wd] == nil) then self.config[global.loadgen_wd] = "/tmp" end
-  local cmd = nil
-  if (self:isLocal()) then cmd = CommandLine.create("mkdir -f " .. self.config[global.loadgen_wd])
-  else cmd = CommandLine.create("ssh root@" .. self.config[global.loadgen_host] .. " \"mkdir -f " .. self.config[global.loadgen_wd] .. "\"") end
-  os.execute(cmd:get())
   self.ports = {}
   for n,connection in pairs(string.split(self:get(global.connection), ",")) do
     local split = string.find(connection, global.ch_connect)
@@ -68,6 +64,12 @@ end
 
 function Settings:verbose()
   return self.config.verbose == "true"
+end
+
+function Settings:check()
+  local cmd = CommandLine.getRunInstance(self:isLocal())
+  cmd:add("mkdir -f " .. self.config[global.loadgen_wd])
+  cmd:execute(false)
 end
 
 function Settings:print()

@@ -29,7 +29,6 @@ local function main()
   end
  
   settings = Settings.create(global.config_file)
-  verbose = settings:verbose()
 
   local parser = ArgParser.create()
   parser:addOption("--setup", "installs MoonGen")
@@ -44,11 +43,14 @@ local function main()
   
   parser:parse(arg)
   if (parser:hasOption("--help")) then parser:printHelp() exit() end
+  
+  settings:check()
+  if (parser:hasOption("--verbose")) then settings.config.verbose = true end
+  if (parser:hasOption("--sim")) then settings.config.simulate = true end
+    
   if (parser:hasOption("--init")) then initMoongen() end
   if (parser:hasOption("--setup")) then setupMoongen() end
   if (parser:hasOption("--check")) then settings.config.checkSetup = true end
-  if (parser:hasOption("--sim")) then settings.config.simulate = true end
-  if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--skipfeature")) then settings.config.skipfeature = true end
   if (parser:hasOption("--testfeature")) then settings.config.testfeature = parser:getOptionValue("--testfeature") end
   if (parser:hasOption("-O")) then settings.config[global.ofVersion] = string.gsub(parser:getOptionValue("-O"), "%.", "") end

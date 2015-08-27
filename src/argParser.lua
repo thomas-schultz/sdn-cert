@@ -79,7 +79,7 @@ end
 function ArgParser:printHelp()
   print("Usage: ./run.sh <benchmark-file>")
   for opt in pairs(self.opts) do
-    local str = string.format("%-24s %s", self.name[opt], self.desc[opt])
+    local str = string.format("  %-24s %s", self.name[opt], self.desc[opt])
     print(str)
   end
 end
