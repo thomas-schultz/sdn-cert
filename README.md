@@ -2,7 +2,7 @@
 OpenFlow Switch certification tool (early alpha)
 
 
-dependencies:
+# dependencies:
 	lua
 	pkill
 	openvwitch
@@ -14,7 +14,7 @@ dependencies:
 		  user  ALL = (root) NOPASSWD:/usr/bin/pkill -SIGINT ovs-ofctl
 		openvswitch deamon should be running, or /var/run/opensvwitch is not present
 
-Start:	
+# start:	
 	make changes in settings.conf
 	configure OpenFlow-Switch to listen on ? Port
 	start local openvswitch deamon
@@ -23,7 +23,7 @@ Start:
 	start benchmark ./run.sh benchmark.cfg
 	(start with --verbose and/or look at sdn-cert.log)
 	
-Info
+# genral info
 	Testcases are defined in multiple layers:
 	Layer 1:
 		benchmark.cfg: Testcase name and variables in form of key=value
