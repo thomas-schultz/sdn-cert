@@ -109,6 +109,10 @@ function printBar()
   print("---------------------------------------------------------")
 end
 
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
+end
+
 function exit(code)
   if code then log("Exit code: " .. code) end
   finalize_logger()

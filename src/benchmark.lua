@@ -122,16 +122,16 @@ end
 function Benchmark:cleanUp()
   printBar()
   printlog("Cleaning up testing system")
-  local cmd = CommandLine.getRunInstance(settings:isLocal())
-  cmd:add("cd " .. settings:get(global.loadgen_wd))
-  cmd:add("mkdir -p " .. global.results)
-  cmd:add("rm -f " .. global.results .. "/*")
-  cmd:add("mkdir -p " .. global.scripts)
-  cmd:add("rm -f " .. global.scripts .. "/*")
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  cmd:addCommand("cd " .. settings:get(global.loadgen_wd))
+  cmd:addCommand("mkdir -p " .. global.results)
+  cmd:addCommand("rm -f " .. global.results .. "/*")
+  cmd:addCommand("mkdir -p " .. global.scripts)
+  cmd:addCommand("rm -f " .. global.scripts .. "/*")
   cmd:execute()
   local cmd = CommandLine.create()
-  cmd:add("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
-  cmd:add("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
+  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
+  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
   cmd:execute(settings.config.verbose)
   ofReset()
   log("Step complete")
@@ -178,12 +178,8 @@ function Benchmark:prepare()
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
         showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
-        local cmd = CommandLine.create()
-        if settings:isLocal() then
-          cmd:add("cp", settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. file .. " " .. settings:get(global.loadgen_wd) .. "/" .. global.scripts)
-        else
-          cmd:add("scp", settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. file .. " root@" .. settings:get(global.loadgen_host) .. ":" .. settings:get(global.loadgen_wd) .. "/" .. global.scripts)
-        end
+        local cmd = SCPCommand.create()
+        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. file, settings:get(global.loadgen_wd) .. "/" .. global.scripts)
         cmd:execute(settings.config.verbose)
       end
       table.insert(testcases, test)
@@ -211,8 +207,10 @@ function Benchmark:run()
     ofReset() 
     -- configure open-flow device
     showIndent("configuring OpenFlow device")
-    local cmd = CommandLine.createBackground(settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. test:getOfCommand())
-    cmd:execute()
+    local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. test:getOfCommand())
+    cmd:sendToBackground()
+    showIndent("Waiting for job to be finished")
+    if (not settings.config.simulate) then sleep(global.timeout) end
     -- start loadgen
     local duration = test:getDuration()
     if (duration) then
@@ -222,9 +220,9 @@ function Benchmark:run()
       duration = " (unknown duration)"
     end
     showIndent("starting measurement" .. duration)
-    local cmd = CommandLine.getRunInstance(settings:isLocal())
-    cmd:add("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
-    cmd:add("./" .. test:getLoadGen(), test:getLgArgs())
+    local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+    cmd:addCommand("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
+    cmd:addCommand("./" .. test:getLoadGen() .. " " .. test:getLgArgs())
     cmd:execute(settings.config.verbose)
     log("done")
   end
@@ -236,12 +234,8 @@ function Benchmark:collect()
   if settings.config.testfeature then return end
   for id,test in pairs(self.testcases) do
     printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
-    local cmd = CommandLine.create()
-    if settings:isLocal() then
-      cmd:add("cp", settings:get(global.loadgen_wd) .. "/" .. global.results .. "/test_" .. id .. "*.csv " .. settings.config.localPath .. "/" .. global.results)
-    else
-      cmd:add("scp root@" .. settings:get(global.loadgen_host) .. ":" .. settings:get(global.loadgen_wd) .. "/" .. global.results .."/test_" .. id .. "*.csv " .. settings.config.localPath .. "/" .. global.results)
-    end
+    local cmd = SCPCommand.create()
+    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgen_wd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
     cmd:execute(settings.config.verbose)
     log("done")
   end

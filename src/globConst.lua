@@ -21,6 +21,8 @@ function Global.create ()
   global.results = "results"
   global.scripts = "scripts"
   
+  global.timeout = 5
+  
   --settings.cfg keywords:
   global.loadgen_host = "loadgenhost"
   global.loadgen_wd   = "loadgenwd"

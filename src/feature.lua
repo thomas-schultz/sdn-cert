@@ -71,12 +71,8 @@ function Feature:runTest()
   local files = self:getLoadGenFiles()
   for i,file in pairs(files) do
     showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
-    local cmd = CommandLine.create()
-    if settings:isLocal() then
-      cmd:add("cp", settings.config.local_path .. "/" .. global.feature_tests .. "/" .. file .. " " ..settings:get(global.loadgen_wd) .. "/" .. global.scripts)
-    else
-      cmd:add("scp", settings.config.local_path .. "/" .. global.feature_tests .. "/" .. file .. " root@" .. settings:get(global.loadgen_host) .. ":" .. settings:get(global.loadgen_wd) .. "/" .. global.scripts)
-    end
+    local cmd = SCPCommand.create()
+    cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.feature_tests .. "/" .. file, settings:get(global.loadgen_wd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
   end
   -- reseting open-flow device
@@ -84,24 +80,22 @@ function Feature:runTest()
   -- configure open-flow device
   local cmd = CommandLine.create(settings.config.local_path .. "/" .. global.feature_tests .. "/" .. self:getOfCommand())
   cmd:execute(settings.config.verbose)
+  showIndent("Waiting for job to be finished")
+  if (not settings.config.simulate) then sleep(global.timeout) end
   -- start loadgen
   showIndent("Starting feature test (~10 sec)")
-  local cmd = CommandLine.getRunInstance(settings:isLocal())
-  cmd:add("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
-  cmd:add("./" .. self:getLoadGen(), self:getLgArgs())
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  cmd:addCommand("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
+  cmd:addCommand("./" .. self:getLoadGen() .. " " .. self:getLgArgs())
   cmd:execute(settings.config.verbose)
   -- check result
   showIndent("Fetching result")
-  local cmd = CommandLine.create()
-  if (settings:isLocal()) then
-    cmd:add("cp", settings:get(global.loadgen_wd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "* " .. settings.config.local_path .. "/" .. global.results)
-  else
-    cmd:add("scp root@" .. settings:get(global.loadgen_host) .. ":" .. settings:get(global.loadgen_wd) .. "/" .. global.results .."/feature_" .. self:getName() .. "* " .. settings.config.local_path .. "/" .. global.results)
-  end
+  local cmd = SCPCommand.create()
+  cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgen_wd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
   cmd:execute(settings.config.verbose)
   showIndent("Checking result")
   local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
-  local out = cmd:capture()
+  local out = cmd:execute()
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true
     else self.reason = out end

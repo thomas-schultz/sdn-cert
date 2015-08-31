@@ -67,8 +67,8 @@ function Settings:verbose()
 end
 
 function Settings:check()
-  local cmd = CommandLine.getRunInstance(self:isLocal())
-  cmd:add("mkdir -f " .. self.config[global.loadgen_wd])
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  cmd:addCommand("mkdir -p " .. self.config[global.loadgen_wd])
   cmd:execute(false)
 end
 

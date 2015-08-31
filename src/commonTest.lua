@@ -12,7 +12,7 @@ function CommonTest.getArgs(args, config)
      line = line .. arg .. " "
     end
   end
-  return line
+  return string.trim(line)
 end
 
 function CommonTest.checkConnectionCount(feature, arg)

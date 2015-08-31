@@ -18,17 +18,22 @@ function setupMoongen()
   exit()
 end
 
-function initMoongen()
-  local cmd = nil
-  if settings:isLocal() then
-    cmd = CommandLine.create()
-    cmd:add(settings:get(global.loadgen_wd) .. "/MoonGen/build.sh")
-    cmd:add(settings:get(global.loadgen_wd) .. "/MoonGen/setup-hugetlbfs.sh")
+function killMoongen()
+  local kill = nil
+  if (settings:isLocal()) then
+    kill = CommandLine.create("pkill -f moongen")
   else
-    cmd = CommandLine.createssh()
-    cmd:add(settings:get(global.loadgen_wd) .. "/MoonGen/build.sh")
-    cmd:add(settings:get(global.loadgen_wd) .. "/MoonGen/setup-hugetlbfs.sh")
+    kill = SSHCommand.create()
+    kill:addCommand("pkill -f moongen")
   end
+  kill:execute()
+  kill:execute()
+end
+
+function initMoongen()
+  local cmd = CommandLine.getRunInstance().create()
+  cmd:addCommand(settings:get(global.loadgen_wd) .. "/MoonGen/build.sh")
+  cmd:addCommand(settings:get(global.loadgen_wd) .. "/MoonGen/setup-hugetlbfs.sh")
   cmd:execute(settings.config.verbose)
   exit()
 end
@@ -36,17 +41,17 @@ end
 function ofReset()
   local cmd = CommandLine.create("ovs-ofctl del-flows tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " 2>&1")
   if (compareVersion("OpenFlow11", settings.config[global.ofVersion]) >= 0) then
-  cmd:add("ovs-ofctl del-groups tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow11 2>&1") end
+  cmd:addCommand("ovs-ofctl del-groups tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow11 2>&1") end
   if (compareVersion("OpenFlow13", settings.config[global.ofVersion]) >= 0) then
-  cmd:add("ovs-ofctl del-meters tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow13 2>&1") end
-  cmd:execute()
+  cmd:addCommand("ovs-ofctl del-meters tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow13 2>&1") end
+  cmd:execute(settings.config.cervose)
 end
 
 function checkOpenFlow()
   printBar()
   printlog("Checking test setup")
   local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " 2>&1")
-  local out = cmd:capture()
+  local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end
   if (string.find(out, error_messages.openflow_socket)) then
     show("OpenFlow device is not reachable!")
@@ -59,9 +64,9 @@ function checkOpenFlow()
   else
     show("Available logical ports on the switch:")
     local ports = ""
-    local find = string.find(out, "\n")
+    local find, find_ = string.find(out, "ports")
     if (not find) then return end
-    out = string.sub(out, find+1, -1)
+    out = string.sub(out, find_+1, -1)
     for n,p in pairs(string.split(out, "\n")) do
       local a = string.find(p, string_matches.openflow_port)
       local z = string.find(p, string_matches.openflow_port_delm)      
@@ -73,18 +78,11 @@ function checkOpenFlow()
 end
 
 function checkMoongen()
-  local cmd = nil
-  local kill = nil
-  if (settings:isLocal()) then
-    cmd = CommandLine.create("cd " .. settings:get(global.loadgen_wd).. "/MoonGen")
-    kill = CommandLine.create("pkill -f moongen")
-  else
-    cmd = CommandLine.createssh("cd " .. settings:get(global.loadgen_wd).. "/MoonGen")
-    kill = CommandLine.createssh("pkill -f moongen")
-  end
-  kill:execute() kill:execute() -- twice needed
-  cmd:add("./moongen ls 2>&1")
-  local out = cmd:capture()
+  killMoongen()
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  cmd:addCommand("cd " .. settings:get(global.loadgen_wd).. "/MoonGen")
+  cmd:addCommand("./moongen ls 2>&1")
+  local out = cmd:execute(false)
   if (out == nil or settings.config.simulate) then
     log_debug("Could not get output of MoonGen to detect available ports")
     return false
