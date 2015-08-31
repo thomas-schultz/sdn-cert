@@ -104,16 +104,6 @@ function compareVersion(ver1, ver2)
   return v2 - v1
 end
 
--- prints held menu
-function printHelp()
-  print("Usage: ./run.sh <benchmark-file>")
-  print("  --setup  installs MoonGen")
-  print("  --init   initializes MoonGen")
-  print("  --sim    all operations are printed, instead of executed")
-  print("  --help   prints this help")
-  os.exit()
-end
-
 -- prints a bar to the command line
 function printBar()
   print("---------------------------------------------------------")
