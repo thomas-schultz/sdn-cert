@@ -1,0 +1,13 @@
+Installing flows:
+
+before feature test:
+NXST_FLOW reply (xid=0x4):
+ cookie=0x0, duration=0.009s, table=0, n_packets=0, n_bytes=0, idle_age=0, priority=0 actions=drop
+ cookie=0x0, duration=0.009s, table=0, n_packets=0, n_bytes=0, idle_age=0, dl_src=aa:00:00:00:00:a1,dl_dst=ff:ff:ff:ff:ff:ff actions=ALL
+ cookie=0x0, duration=0.009s, table=0, n_packets=0, n_bytes=0, idle_age=0, dl_src=aa:00:00:00:00:a2,dl_dst=aa:aa:aa:aa:aa:aa actions=drop
+
+after feature test:
+NXST_FLOW reply (xid=0x4):
+ cookie=0x0, duration=11.731s, table=0, n_packets=0, n_bytes=0, idle_age=11, priority=0 actions=drop
+ cookie=0x0, duration=11.731s, table=0, n_packets=32, n_bytes=2560, idle_age=2, dl_src=aa:00:00:00:00:a1,dl_dst=ff:ff:ff:ff:ff:ff actions=ALL
+ cookie=0x0, duration=11.731s, table=0, n_packets=32, n_bytes=2560, idle_age=2, dl_src=aa:00:00:00:00:a2,dl_dst=aa:aa:aa:aa:aa:aa actions=drop

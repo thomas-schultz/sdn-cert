@@ -1,0 +1,3 @@
+ip, actions=mod_nw_tos=128, ALL
+ipv6, actions=mod_nw_tos=128, ALL
+priority=0, actions=DROP

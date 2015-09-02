@@ -1,7 +1,7 @@
 Feature = {}
 Feature.__index = Feature
 
-    
+ 
 function Feature.create(name)
   local self = setmetatable({}, Feature)
   self.config = {}
@@ -11,17 +11,17 @@ function Feature.create(name)
   self.files = {}
   self.disabled = false
   self.supported = false
-  self:readConfig(global.feature_tests .. "/" .. name .. ".cfg")
+  self:readConfig(global.featureFolder .. "/config/" .. name .. ".cfg")
   return self
 end
 
-function Feature:readConfig(config_file)
-  if not file_exists(config_file) then
-    printlog_warn("Disabled feature '" .. self:get("name") .. "', missing file '" .. config_file .. "'")
+function Feature:readConfig(configFile)
+  if (not localfileExists(configFile)) then
+    printlog_warn("Disabled feature '" .. self:get("name") .. "', missing file '" .. configFile .. "'")
     self.disabled = true
     return
   end
-  local fh = io.open(config_file)
+  local fh = io.open(configFile)
   while true do
     local line = fh:read()
     if line == nil then break end
@@ -42,24 +42,10 @@ function Feature:readConfig(config_file)
     self.disabled = true
   end
   CommonTest.readInOfArgs(self)
-  if (not file_exists(global.feature_tests.. "/" .. self:getOfScript())) then
-    printlog_warn("Disabled feature, OpenFlow script not found '" .. self:getOfScript() .. "'")
-    self.disabled = true
-  end
   CommonTest.readInLgArgs(self)
-  for n,file in pairs(string.split(self:get(global.copy_files), ",")) do
-    file = string.trim(file)
-    if not file_exists(global.feature_tests .. "/" .. file) then
-      log_warn("Disabled feature " .. self:getName() .. ", missing file '" .. file .. "'")
-      self.disabled = true
-    else
-      table.insert(self.files, n, file)
-      self.config["file" .. tonumber(n)] = settings:get(global.loadgen_wd) .. "/" .. global.scripts .. "/" .. file
-    end
-  end
-  self.config.ip = settings:get(global.sdn_ip)
-  self.config.port = settings:get(global.sdn_port)
-  CommonTest.setConnections(self)
+  CommonTest.readInFiles(self, "Disabled feature")
+  CommonTest.setSwitch(self)
+  CommonTest.setLinks(self)
 end
 
 function Feature:get(key)
@@ -72,36 +58,47 @@ function Feature:runTest()
   for i,file in pairs(files) do
     showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
     local cmd = SCPCommand.create()
-    cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.feature_tests .. "/" .. file, settings:get(global.loadgen_wd) .. "/" .. global.scripts)
+    cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.featureFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
   end
-  -- reseting open-flow device
-  ofReset()
   -- configure open-flow device
-  local cmd = CommandLine.create(settings.config.local_path .. "/" .. global.feature_tests .. "/" .. self:getOfCommand())
-  cmd:execute(settings.config.verbose)
-  showIndent("Waiting for job to be finished")
+  showIndent("Configuring OpenFlow device (~5 sec)")
+  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
+  ofDev:reset()
+  local flows = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
+  local output = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
+  ofDev:createFlowFile(flows, output .. "_flows.ovs")
+  local flowDump = io.open(output .. "_flows.dump", "w")
+  flowDump:write("Installing flows:\n" .. ofDev:installFlows(output .. "_flows.ovs") .. "\n")
+  flowDump:write("before feature test:\n" .. ofDev:dumpFlows(self.config[global.requires]) .. "\n")
   if (not settings.config.simulate) then sleep(global.timeout) end
+  
   -- start loadgen
   showIndent("Starting feature test (~10 sec)")
+  local lgDump = io.open(output .. "_loadgen.out", "w")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-  cmd:addCommand("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
+  cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
   cmd:addCommand("./" .. self:getLoadGen() .. " " .. self:getLgArgs())
-  cmd:execute(settings.config.verbose)
+  lgDump:write(cmd:execute(settings.config.verbose))
+  io.close(lgDump)
+  
+  flowDump:write("after feature test:\n" .. ofDev:dumpFlows(self.config[global.requires]))
+  io.close(flowDump)
+  
   -- check result
   showIndent("Fetching result")
   local cmd = SCPCommand.create()
-  cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgen_wd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
+  cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
   cmd:execute(settings.config.verbose)
   showIndent("Checking result")
   local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
   local out = cmd:execute()
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true
-    else self.reason = out end
+    else self.reason = string.trim(string.replaceAll(out, "\n", " ")) end
     log(self:getStatus())  
   end
-  ofReset()
+  ofDev:reset()
 end
 
 function Feature:doSkip()
@@ -124,12 +121,8 @@ function Feature:isSupported()
   return self.supported
 end
 
-function Feature:getOfScript()
-  return self.of_args[1]
-end
-
-function Feature:getOfCommand()
-  return CommonTest.getArgs(self.of_args, self.config)
+function Feature:getOfArgs()
+  return CommonTest.getArgs(self.of_args, self.config, true)
 end
 
 function Feature:getLoadGen()

@@ -1,0 +1,4 @@
+dl_type=2048, actions=ALL
+dl_type=34525, actions=ALL
+dl_type=2114, actions=DROP
+priority=0, actions=DROP

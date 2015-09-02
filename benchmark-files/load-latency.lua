@@ -25,8 +25,7 @@ function master(testId, txPort, rxPort, duration, size, rate, numIP, ...)
   end
   local loops, match = (...)
   loops = loops or 1
-  match = match or "wol"
-  
+  match = match or "wol" 
   txDev = device.config{
     port = txPort,
     rxQueues = 1,
@@ -38,8 +37,6 @@ function master(testId, txPort, rxPort, duration, size, rate, numIP, ...)
     txQueues = 2,
   }
   device.waitForLinks()
-  -- max 1kpps timestamping traffic timestamping
-  -- rate will be somewhat off for high-latency links at low rates
   txDev:getTxQueue(0):setRate(rate - (size + 4) * 8 / 1000)
   for i=1,loops do
     local id = string.format("%d_%0" .. math.ceil(math.log10(loops+1)) .. "d", testId, i)
@@ -49,7 +46,7 @@ function master(testId, txPort, rxPort, duration, size, rate, numIP, ...)
     dpdk.launchLua("nextSlave", txDev:getTxQueue(0), match)
     print("waiting for next iteration")
     dpdk.waitForSlaves()
-    dpdk.sleepMillis(2500)
+    dpdk.sleepMillis(5000)
     numIP = numIP * 2
   end
 end

@@ -20,7 +20,7 @@ end
 function CommandLine:get()
   local line = ""
   for i,cmd in pairs(self.commands) do
-    line = line .. cmd .. "; "
+    line = line .. cmd .. " 2>&1; "
   end
   return string.trim(line)
 end
@@ -41,12 +41,12 @@ function CommandLine:execute(verbose)
   if (settings.config.simulate) then
     show("  " .. self:get())
   else
-    local handle = io.popen(self:get() .. " 2>&1")
+    local handle = io.popen(self:get())
     out = ""
     while (true) do
       local line = handle:read("*l")
       if (not line) then break end
-      out = out .. "\n" .. line
+      out = out .. line .. "\n"
       if (verbose and string.len(line) > 0) then print(line) end
     end
     log_debug("Running " .. self:get() .. ":\n" .. out)
@@ -83,7 +83,7 @@ function SSHCommand.create(user, host)
   self.commands = {}
   if (not user or not host) then 
     user = "root"
-    host = settings:get(global.loadgen_host)
+    host = settings:get(global.loadgenHost)
   end  
   self.line = "ssh " .. user .. "@" .. host
   return self
@@ -126,7 +126,7 @@ function SCPCommand.create(user, host)
   local self = setmetatable({}, SCPCommand)
   if (not user) then self.user = "root"
   else self.user = user end
-  if (not host) then self.host = settings:get(global.loadgen_host)
+  if (not host) then self.host = settings:get(global.loadgenHost)
   else self.host = host end 
   return self
 end

@@ -1,24 +1,34 @@
 CommonTest = {}
 CommonTest.__index = CommonTest
 
-function CommonTest.getArgs(args, config)
-  local line = ""
+function CommonTest.getArgs(args, config, asTable)
+  asTable = asTable ~= nil and asTable
+  local t = {}
   for i=1,#args do
     local arg = args[i]
     local isvar = string.find(arg, global.ch_var)
     if isvar then
-      line = line .. (config[string.replaceAll(string.sub(arg, 1, isvar-1) .. string.sub(arg, isvar+1, -1), "_", "")]) .. " "
+      local key = string.sub(arg, 1, isvar-1) .. string.sub(arg, isvar+1, -1)
+      local value = config[string.replaceAll(key, "_", "")]
+      if (not value) then printlog_err("Could not map variable '" .. key .. "'")
+      else t[i] = value end
     else
-     line = line .. arg .. " "
+     t[i] = arg
     end
+  end
+  if (asTable) then return t end
+  local line = ""
+  if (#t == 0) then return line end
+  for i=1,#t do
+    line = line .. t[i] .. " "
   end
   return string.trim(line)
 end
 
-function CommonTest.checkConnectionCount(feature, arg)
+function CommonTest.checkLinkCount(feature, arg)
   local con_count = tonumber(select(2, string.getKeyValue(arg)))
   if (con_count and con_count > #settings.ports) then
-    printlog_warn("Disabled feature '" .. feature:getName() .. "', not enough connections: " .. tostring(con_count) .. " of " .. tostring(#settings.ports))
+    printlog_warn("Disabled feature '" .. feature:getName() .. "', not enough phyLinks: " .. tostring(con_count) .. " of " .. tostring(#settings.ports))
     feature.disabled = true
   end
 end
@@ -26,9 +36,9 @@ end
 function CommonTest.readInArgs(test, key, arg_table, type)
   for n,of_arg in pairs(string.split(test:get(key), ",")) do
     local arg = string.trim(string.lower(of_arg))
-    if (string.find(arg, "con")) then
-      CommonTest.checkConnectionCount(test, arg)
-      arg = string.replace(arg, "con", type.."con")
+    if (string.find(arg, global.link)) then
+      CommonTest.checkLinkCount(test, arg)
+      arg = string.replace(arg, global.link, type..global.link)
     end
     arg = string.replace(arg, global.ch_equal, "")
     table.insert(arg_table, n, arg)
@@ -41,21 +51,40 @@ end
 
 
 function CommonTest.readInOfArgs(test)
-  CommonTest.readInArgs(test, global.openflow_script, test.of_args, "of")
+  CommonTest.readInArgs(test, global.ofArgs, test.of_args, "of")
 end
 
 function CommonTest.readInLgArgs(test)
-  CommonTest.readInArgs(test, global.loadgen_arg, test.lg_args, "lg")
+  CommonTest.readInArgs(test, global.lgArgs, test.lg_args, "lg")
 end
 
-function CommonTest.setConnections(test)
-  test.config.ip = settings:get(global.sdn_ip)
-  test.config.port = settings:get(global.sdn_port)
-  for n=1,#settings.ports do
-    test.config[global.of_con .. tonumber(n)] = settings.ports[n].of
-    test.config[global.lg_con .. tonumber(n)] = settings.ports[n].lg
+function CommonTest.readInFiles(test, msg)
+  for n,file in pairs(string.split(test:get(global.copy_files), ",")) do
+    file = string.trim(file)
+    if (not localfileExists(global.featureFolder .. "/" .. file)) then
+      log_warn(msg .. " '" .. test:getName() .. "', missing file '" .. file .. "'")
+      test.disabled = true
+    else
+      table.insert(test.files, n, file)
+      test.config["file" .. tonumber(n)] = settings:get(global.loadgenWd) .. "/" .. global.scripts .. "/" .. file
+    end
   end
 end
+
+function CommonTest.setLinks(test)
+  test.config.ip = settings:get(global.switchIP)
+  test.config.port = settings:get(global.switchPort)
+  for n=1,#settings.ports do
+    test.config[global.ofLinks .. tonumber(n)] = settings.ports[n].of
+    test.config[global.lgLinks .. tonumber(n)] = settings.ports[n].lg
+  end
+end
+
+function CommonTest.setSwitch(test)
+  test.config.ip = settings:get(global.switchIP)
+  test.config.port = settings:get(global.switchPort)
+end
+
 
 function CommonTest.normalizeKey(key)
   return string.replaceAll(string.lower(key), "_", "")

@@ -1,3 +1,48 @@
-2015/8/27 - 21:16:41: LOG     Started
-2015/8/27 - 21:16:44: LOG     Finished
+2015/9/2 - 18:49:55: LOG     Started
+2015/9/2 - 18:49:55: LOG     Checking test setup
+2015/9/2 - 18:49:57: LOG     Test setup is ready
+2015/9/2 - 18:49:57: WARNING Skipping test 'simple_throughput', missing file 'load-latency.lua'
+2015/9/2 - 18:49:57: LOG     Cleaning up testing system
+2015/9/2 - 18:49:58: LOG     Step complete
+2015/9/2 - 18:49:58: LOG     Testing feature ( 1 / 15 ): match_inport
+2015/9/2 - 18:50:11: LOG     Test passed
+2015/9/2 - 18:50:11: LOG     Testing feature ( 2 / 15 ): match_ethertype
+2015/9/2 - 18:50:24: LOG     Test passed
+2015/9/2 - 18:50:24: LOG     Testing feature ( 3 / 15 ): match_l2addr
+2015/9/2 - 18:50:37: LOG     Test passed
+2015/9/2 - 18:50:37: LOG     Testing feature ( 4 / 15 ): match_tos
+2015/9/2 - 18:50:50: LOG     Test passed
+2015/9/2 - 18:50:50: LOG     Testing feature ( 5 / 15 ): match_ttl
+2015/9/2 - 18:51:03: LOG     Test passed
+2015/9/2 - 18:51:03: LOG     Testing feature ( 6 / 15 ): match_ipv4
+2015/9/2 - 18:51:15: LOG     Test passed
+2015/9/2 - 18:51:16: LOG     Testing feature ( 7 / 15 ): match_ipv6
+2015/9/2 - 18:51:28: LOG     Test passed
+2015/9/2 - 18:51:28: LOG     Testing feature ( 8 / 15 ): match_l3proto
+2015/9/2 - 18:51:41: LOG     Test passed
+2015/9/2 - 18:51:41: LOG     Testing feature ( 9 / 15 ): match_l4port
+2015/9/2 - 18:51:54: LOG     Test passed
+2015/9/2 - 18:51:54: LOG     Testing feature ( 10 / 15 ): modify_l2addr
+2015/9/2 - 18:52:07: LOG     Test passed
+2015/9/2 - 18:52:07: LOG     Testing feature ( 11 / 15 ): modify_tos
+2015/9/2 - 18:52:20: LOG     Test passed
+2015/9/2 - 18:52:20: LOG     Testing feature ( 12 / 15 ): modify_ttl
+2015/9/2 - 18:52:33: LOG     Test passed
+2015/9/2 - 18:52:33: LOG     Testing feature ( 13 / 15 ): modify_ipv4
+2015/9/2 - 18:52:46: LOG     Test passed
+2015/9/2 - 18:52:46: LOG     Testing feature ( 14 / 15 ): modify_ipv6
+2015/9/2 - 18:52:59: LOG     Test passed
+2015/9/2 - 18:52:59: LOG     Testing feature ( 15 / 15 ): modify_l4port
+2015/9/2 - 18:53:12: LOG     Test passed
+2015/9/2 - 18:53:12: LOG     Step complete
+2015/9/2 - 18:53:12: LOG     Preparing test ( 1 / 1 ): simple_throughput
+2015/9/2 - 18:53:12: LOG     done
+2015/9/2 - 18:53:12: LOG     Step complete
+2015/9/2 - 18:53:12: LOG     Exiting: No tests left
+2015/9/2 - 18:53:12: LOG     Step complete
+2015/9/2 - 18:53:12: LOG     Finished
+
+2015/9/2 - 18:53:53: LOG     Started
+2015/9/2 - 18:53:53: LOG     Archive current results to ./archive
+2015/9/2 - 18:53:54: LOG     Finished
 

@@ -3,46 +3,49 @@ Global.__index = Global
 
 global = {}
 
-function Global.create ()
-  -- main config
-  global.config_file       = "settings.cfg"
-  global.feature_list      = "feature_list.cfg"
-  global.feature_file      = "features.cfg"
-  global.benchmark_configs = "benchmark-configs"
-  global.benchmark_files   = "benchmark-files"
-  global.feature_tests     = "feature-tests"
-  global.moongen_repo      = "https://github.com/emmericp/MoonGen"
+  global.configFile       = "settings.cfg"
+  global.featureList      = "feature_list.cfg"
+  global.featureFile      = "features.cfg"
+  global.benchmarkFolder  = "benchmark-configs"
+  global.benchmarkFiles   = "benchmark-files"
+  global.featureFolder    = "feature-tests"
+  global.tempdir          = "/tmp"
+  
+  global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion         = "openflow"
   
   -- logger
-  global.log_file = "sdn-cert.log"
+  global.logFile = "sdn-cert.log"
   
   -- path settings
   global.results = "results"
+  global.archive = "archive"
   global.scripts = "scripts"
+  global.timeout = 2
   
-  global.timeout = 5
+  -- Keywords are stored lower-case and without underscore
   
   --settings.cfg keywords:
-  global.loadgen_host = "loadgenhost"
-  global.loadgen_wd   = "loadgenwd"
-  global.sdn_ip       = "sdnip"
-  global.sdn_port     = "sdnport"
-  global.connection   = "connections"
-  global.of_con       = "ofcon"
-  global.lg_con       = "lgcon"
+  global.loadgenHost = "loadgenhost"
+  global.loadgenWd   = "loadgenwd"
+  global.switchIP    = "switchip"
+  global.switchPort  = "switchport"
+  global.phyLinks    = "links"
   
   --benchmark keywords
-  global.cfg_filetype    = ".cfg"
+  global.cfgFiletype     = ".cfg"
   global.requires        = "require"
   global.prepare         = "prepare"
   global.name            = "name"
-  global.loop_count      = "loops"
+  global.loopCount       = "loops"
   global.duration        = "duration"
-  global.openflow_script = "ofscript"
+  global.ofArgs          = "ofargs"
+  global.ofLinks         = "oflink"
+  global.lgLinks         = "lglink"
   global.loadgen         = "loadgen"
-  global.loadgen_arg     = "lgargs"
+  global.lgArgs          = "lgargs"
   global.copy_files      = "files"
+  global.link            = "link"
   
   --special characters
   global.ch_var     = "%$"
@@ -62,16 +65,14 @@ function Global.create ()
         # set to true if this host is the load-generator
         local = true
         # ip,name or ssh alias of load-generator host, ignored if local is true
-        load_gen_host = 127.0.0.1
+        loadgenHost = 127.0.0.1
         # working directory on load-gen
-        load_gen_wd = /root
+        loadgenWd = /root/tmp
         
-        # sdn-device configuration
-        sdn_ip = 127.0.0.1
-        sdn_port = 6633
+        # switch configuration
+        switchIP = 127.0.0.1
+        switchPort = 6633
         
-        # moongen rx and tx port
-        rx_port = 0
-        tx_port = 1
+        # physical phyLinks between switch and load-generator
+        Links = switch-MoonGen
   ]]
-end

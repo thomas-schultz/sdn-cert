@@ -6,7 +6,7 @@ function Benchmark.create(config)
   local self = setmetatable({}, Benchmark)
   self.testcases = {}
   self.features = {}
-  self.feature_list = global.feature_list
+  self.featureList = global.featureList
   self.feature_count = 0
   self.config = config
   self:readConfig(config)
@@ -27,33 +27,35 @@ function Benchmark:readConfig(config)
     end
   end
   io.close(fh)
-  self:checkExit()
+  if (self:checkExit()) then exit() end
 end
 
 function Benchmark:checkExit()
   if #self.testcases == 0 then
     printlog("Exiting: No tests left")
-    exit()
+    return true
   end
 end
 
 function Benchmark:getFeatures()
   if settings.config.testfeature then
-    self.feature_list = {}
+    self.featureList = {}
     local feature = Feature.create(settings.config.testfeature)
     if feature:doSkip() then return end
     self.features[settings.config.testfeature] = feature
     if not feature:doSkip() then
       self.feature_count = 1
-      table.insert(self.feature_list, 1, feature)        
+      table.insert(self.featureList, 1, feature)        
       return
     else
       show("No such feature!")
       exit(1)
     end
   end
-  local fh = io.open(settings.config.localPath .. "/" .. global.feature_tests .. "/" .. self.feature_list)
-  self.feature_list = {}
+  local list = settings.config.localPath .. "/" .. global.featureFolder .. "/" .. self.featureList
+  local fh = io.open(list)
+  if (not fh) then printlog_err("Could not open feature list '" .. list .. "'") return end
+  self.featureList = {}
   self.feature_count = 0
   while true do
     local line = fh:read()
@@ -63,7 +65,7 @@ function Benchmark:getFeatures()
       if not feature:doSkip() then
         self.features[line] = feature
         self.feature_count = self.feature_count + 1
-        table.insert(self.feature_list, self.feature_count, feature)    
+        table.insert(self.featureList, self.feature_count, feature)    
         log_debug("added feature " .. line)    
       end
     end
@@ -72,7 +74,7 @@ end
 
 function Benchmark:exportFeatures()
   if settings.config.skipfeature then return end
-  local file = io.open(global.feature_file, "w")
+  local file = io.open(global.featureFile, "w")
   file:write("#Feature status\n#Last update: " .. get_timestamp() .. "\n\n")
   local t = {}
   for name, feature in pairs(self.features) do
@@ -86,10 +88,10 @@ function Benchmark:exportFeatures()
 end
 
 function Benchmark:importFeatures()
-  self.feature_list = {}
+  self.featureList = {}
   self.feature_count = 0
-  if (not file_exists(global.feature_file)) then return end
-  local fh = io.open(global.feature_file)
+  if (not localfileExists(global.featureFile)) then return end
+  local fh = io.open(global.featureFile)
   while true do
     local line = fh:read()
     if line == nil then break end
@@ -102,7 +104,7 @@ function Benchmark:importFeatures()
         if (state == "true") then feature.supported = true end
         self.features[name] = feature    
         self.feature_count = self.feature_count + 1
-        table.insert(self.feature_list, self.feature_count, feature)
+        table.insert(self.featureList, self.feature_count, feature)
         log_debug("imported feature " .. name .. " as " .. state)   
       end
     end
@@ -123,7 +125,7 @@ function Benchmark:cleanUp()
   printBar()
   printlog("Cleaning up testing system")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-  cmd:addCommand("cd " .. settings:get(global.loadgen_wd))
+  cmd:addCommand("cd " .. settings:get(global.loadgenWd))
   cmd:addCommand("mkdir -p " .. global.results)
   cmd:addCommand("rm -f " .. global.results .. "/*")
   cmd:addCommand("mkdir -p " .. global.scripts)
@@ -133,7 +135,8 @@ function Benchmark:cleanUp()
   cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
   cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
   cmd:execute(settings.config.verbose)
-  ofReset()
+  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
+  ofDev:reset()
   log("Step complete")
   printBar()
 end
@@ -147,7 +150,7 @@ function Benchmark:testFeatures()
   if self.feature_count == 0 then
     printlog("No features to test")
   end
-  for i,feature in pairs(self.feature_list) do
+  for i,feature in pairs(self.featureList) do
     printlog("Testing feature ( " .. i .. " / " .. self.feature_count .. " ): " .. feature:getName())
     feature:runTest()
     if not settings.config.simulate then showIndent(feature:getStatus()) end
@@ -179,7 +182,7 @@ function Benchmark:prepare()
       for i,file in pairs(files) do
         showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
         local cmd = SCPCommand.create()
-        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. file, settings:get(global.loadgen_wd) .. "/" .. global.scripts)
+        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFiles .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
         cmd:execute(settings.config.verbose)
       end
       table.insert(testcases, test)
@@ -193,22 +196,21 @@ end
 
 function Benchmark:run()
   if settings.config.testfeature then return end
-  self:checkExit()
+  if (self:checkExit()) then return end
   for id,test in pairs(self.testcases) do
     printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
     test:setId(id)
     if (settings.config.verbose) then test:print() end
     if (test:getPrepareScript()) then
-      showIndent("preparing OpenFlow script (may take a while)")
-      local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. test:getPrepareCommand())
+      showIndent("preparing OpenFlow script (~5 sec)")
+      local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmarkFiles .. "/" .. test:getPrepareCommand())
       cmd:execute(settings.config.verbose)
     end
-    -- reseting open-flow device
-    ofReset() 
     -- configure open-flow device
-    showIndent("configuring OpenFlow device")
-    local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmark_files .. "/" .. test:getOfCommand())
-    cmd:sendToBackground()
+    local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
+    ofDev:reset()
+    -- TODO
+    
     showIndent("Waiting for job to be finished")
     if (not settings.config.simulate) then sleep(global.timeout) end
     -- start loadgen
@@ -219,9 +221,9 @@ function Benchmark:run()
     else
       duration = " (unknown duration)"
     end
-    showIndent("starting measurement" .. duration)
+    showIndent("Starting measurement" .. duration)
     local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-    cmd:addCommand("cd " .. settings:get(global.loadgen_wd) .. "/MoonGen")
+    cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
     cmd:addCommand("./" .. test:getLoadGen() .. " " .. test:getLgArgs())
     cmd:execute(settings.config.verbose)
     log("done")
@@ -235,7 +237,7 @@ function Benchmark:collect()
   for id,test in pairs(self.testcases) do
     printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
     local cmd = SCPCommand.create()
-    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgen_wd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
+    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
     cmd:execute(settings.config.verbose)
     log("done")
   end
@@ -246,9 +248,13 @@ end
 function Benchmark:summary()
   if (not settings.config.skipfeature and not settings.config.simulate) then
     if (self.feature_count == 0) then print("No features tested") end
-    for i,feature in pairs(self.feature_list) do
+    for i,feature in pairs(self.featureList) do
       show(string.format("Feature   %-22s %10s", feature:getName(), feature:getStatus()))
     end
+    printBar()
+  end
+  if (settings.config.archive == true) then
+    acrhiveResults()
     printBar()
   end
 end

@@ -11,7 +11,7 @@ function TestCase.create(cfg)
   self.of_args = {}
   self.files = {}
   self.lg_args = {}
-  self.skip = false
+  self.disabled = false
   self:readConfig(cfg)
   return self
 end
@@ -26,13 +26,13 @@ function TestCase:readConfig(cfg)
   end
   if not self:getName() then
     printlog_warn("Skipping test, no name specified")
-    self.skip = true
+    self.disabled = true
     return
   end
-  self.cfg_file = global.benchmark_configs .. "/" .. self:getName() .. global.cfg_filetype
-  if not file_exists(self.cfg_file) then
+  self.cfg_file = global.benchmarkFolder .. "/" .. self:getName() .. global.cfgFiletype
+  if (not localfileExists(self.cfg_file)) then
     printlog_warn("Skipping test, config file not found '" .. self:getName() .. global.filetype .. "'")
-    self.skip = true 
+    self.disabled = true 
   end
   local fh = io.open(self.cfg_file)
   while true do
@@ -52,24 +52,10 @@ function TestCase:readConfig(cfg)
   io.close(fh)
   CommonTest.readInPrepArgs(self)
   CommonTest.readInOfArgs(self)
-  if not file_exists(global.benchmark_files .. "/" .. self:getOfScript()) then
-    printlog_warn("Skipping test, open-flow script not found '" .. self:getOfScript() .. "'")
-    self.skip = true 
-  end
   CommonTest.readInLgArgs(self)
-  for n,file in pairs(string.split(self:get(global.copy_files), ",")) do
-    file = string.trim(file)
-    if not file_exists(global.benchmark_files .. "/" .. file) then
-      printlog_warn("Skipping test, missing file '" .. file .. "'")
-      self.skip = true
-    else
-      table.insert(self.files, n, file)
-      self.config["file" .. tonumber(n)] = settings:get(global.loadgen_wd) .. "/" .. global.scripts .. "/" .. file
-    end
-  end
-  self.config.ip = settings:get(global.sdn_ip)
-  self.config.port = settings:get(global.sdn_port)
-  CommonTest.setConnections(self)
+  CommonTest.readInFiles(self, "Skipping test")
+  CommonTest.setSwitch(self)
+  CommonTest.setLinks(self)
 end
 
 function TestCase:checkFeatures(benchmark)
@@ -77,7 +63,7 @@ function TestCase:checkFeatures(benchmark)
   for i,requires in pairs(self.require) do
     if (not benchmark:isFeatureSupported(requires)) then
       require = require .. "'" .. requires .. "', "
-      if not simulate then self.skip = true end
+      if not simulate then self.disabled = true end
     end
   end
   if (#require > 0) then
@@ -95,7 +81,7 @@ end
 
 function TestCase:doSkip()
   if (self == nil) then return true end
-  return self.skip
+  return self.disabled
 end
 
 function TestCase:getName()
@@ -107,7 +93,7 @@ function TestCase:getDuration()
 end
 
 function TestCase:getLoopCount()
-  return self.config[global.loop_count]
+  return self.config[global.loopCount]
 end
 
 function TestCase:getPrepareScript()
@@ -119,12 +105,8 @@ function TestCase:getPrepareCommand()
   return CommonTest.getArgs(self.prepare, self.config)
 end
 
-function TestCase:getOfScript()
-  return self.of_args[1]
-end
-
-function TestCase:getOfCommand()
-  return CommonTest.getArgs(self.of_args, self.config)
+function TestCase:getOfArgs()
+  return self.of_args
 end
 
 function TestCase:getLoadGen()

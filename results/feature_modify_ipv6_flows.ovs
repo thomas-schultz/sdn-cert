@@ -1,0 +1,2 @@
+ipv6, actions=set_field:fc00:0000:0000:0000:0000:0000:0002:0001->ipv6_src, set_field:fc00:0000:0000:0000:0000:0000:0002:0001->ipv6_dst, ALL
+priority=0, actions=DROP

@@ -9,10 +9,19 @@ local string_matches = {
   openflow_port_delm = ":",
   moongen_devs       = "usable devices",
   moongen_lua_err    = "Lua error",
+  moongen_build      = "Built target MoonGen",
   }
 
+function acrhiveResults()
+  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive)
+  local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
+  cmd:execute()
+  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. global.results .. "_`date +%Y%m%d_%H%M%S`.tar " .. settings.config.localPath .. "/" .. global.results .. "/*")
+  cmd:execute()
+end
+
 function setupMoongen()
-  local cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh", settings:get(global.loadgen_host), settings:get(global.loadgen_wd), "tools/")
+  local cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh", settings:get(global.loadgenHost), settings:get(global.loadgenWd), "tools/")
   cmd:execute(settings.config.verbose)
   checkMoongen()
   exit()
@@ -32,25 +41,18 @@ end
 
 function initMoongen()
   local cmd = CommandLine.getRunInstance().create()
-  cmd:addCommand(settings:get(global.loadgen_wd) .. "/MoonGen/build.sh")
-  cmd:addCommand(settings:get(global.loadgen_wd) .. "/MoonGen/setup-hugetlbfs.sh")
-  cmd:execute(settings.config.verbose)
+  cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/build.sh")
+  cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/setup-hugetlbfs.sh")
+  local ret = cmd:execute(settings.config.verbose)
+  if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
+  else printlog("Failed to initialize MoonGen") log_debug(ret) end  
   exit()
-end
-
-function ofReset()
-  local cmd = CommandLine.create("ovs-ofctl del-flows tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " 2>&1")
-  if (compareVersion("OpenFlow11", settings.config[global.ofVersion]) >= 0) then
-  cmd:addCommand("ovs-ofctl del-groups tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow11 2>&1") end
-  if (compareVersion("OpenFlow13", settings.config[global.ofVersion]) >= 0) then
-  cmd:addCommand("ovs-ofctl del-meters tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " -O OpenFlow13 2>&1") end
-  cmd:execute(settings.config.cervose)
 end
 
 function checkOpenFlow()
   printBar()
   printlog("Checking test setup")
-  local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.sdn_ip) .. ":" .. settings:get(global.sdn_port) .. " 2>&1")
+  local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.switchIP) .. ":" .. settings:get(global.switchPort))
   local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end
   if (string.find(out, error_messages.openflow_socket)) then
@@ -80,8 +82,8 @@ end
 function checkMoongen()
   killMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-  cmd:addCommand("cd " .. settings:get(global.loadgen_wd).. "/MoonGen")
-  cmd:addCommand("./moongen ls 2>&1")
+  cmd:addCommand("cd " .. settings:get(global.loadgenWd).. "/MoonGen")
+  cmd:addCommand("./moongen ls")
   local out = cmd:execute(false)
   if (out == nil or settings.config.simulate) then
     log_debug("Could not get output of MoonGen to detect available ports")

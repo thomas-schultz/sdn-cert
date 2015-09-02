@@ -2,8 +2,14 @@ string.special_chars = {"^", "$", "(", ")", "%", ".", "[", "]", "*", "+", "-", "
 
 
 -- see if the file exists
-function file_exists(file)
-  local f = io.open(settings.config.local_path .. "/" .. file, "rb")  
+function localfileExists(file)
+  if (not file) then return false end
+  return absfileExists(settings.config.local_path .. "/" .. file)
+end
+
+function absfileExists(file)
+  if (not file) then return false end
+  local f = io.open(file, "rb")  
   if f then f:close() end
   return f ~= nil
 end

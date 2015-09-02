@@ -1,0 +1,3 @@
+ip, udp, tp_src=1234, tp_dst=5678, actions=ALL
+ip, udp, tp_src=4321, tp_dst=8765, actions=DROP
+priority=0, actions=DROP

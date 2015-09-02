@@ -1,0 +1,3 @@
+in_port=1, actions=ALL
+in_port=2, actions=ALL
+priority=0, actions=DROP

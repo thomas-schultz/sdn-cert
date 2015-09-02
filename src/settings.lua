@@ -1,20 +1,22 @@
 Settings = {}
 Settings.__index = Settings
         
-function Settings.create(config_file)
+function Settings.create(configFile)
   local self = setmetatable({}, Settings)
   self.config = {}
-  self:readSettings(config_file)
+  self:readSettings(configFile)
   return self
 end
 
 -- read in the settings file
-function Settings:readSettings(config_file)
+function Settings:readSettings(configFile)
   local f = io.popen("pwd 2>&1")
   self.config.local_path = f:read("*line")
-  local fh = io.open(config_file)
+  local fh = io.open(configFile)
   self.config.localPath    = "."
   self.config.verbose       = false
+  self.config.simulate      = false
+  self.config.archive       = false
   self.config.checkSetup    = false
   self.config.skipfeature   = false
   self.config.skipBenchmark = false
@@ -29,15 +31,15 @@ function Settings:readSettings(config_file)
     end
   end
   io.close(fh)
-  if (self:isLocal()) then self.config[string.lower(global.loadgen_host)] = nil end
-  if (self.config[global.loadgen_wd] == nil) then self.config[global.loadgen_wd] = "/tmp" end
+  if (self:isLocal()) then self.config[string.lower(global.loadgenHost)] = nil end
+  if (self.config[global.loadgenWd] == nil) then self.config[global.loadgenWd] = "/tmp" end
   self.ports = {}
-  for n,connection in pairs(string.split(self:get(global.connection), ",")) do
-    local split = string.find(connection, global.ch_connect)
-    local of_port = tonumber(string.sub(connection, 1, split-1))
-    local lg_port = tonumber(string.sub(connection, split+1, -1))
+  for n,link in pairs(string.split(self:get(global.phyLinks), ",")) do
+    local split = string.find(link, global.ch_connect)
+    local of_port = tonumber(string.sub(link, 1, split-1))
+    local lg_port = tonumber(string.sub(link, split+1, -1))
     if (of_port == nil or lg_port == nil) then
-      printlog("Invalid connection: '" .. connection .. "'")
+      printlog("Invalid link: '" .. link .. "'")
       exit()
     end
     self.ports[n] = {}
@@ -46,11 +48,11 @@ function Settings:readSettings(config_file)
     log_debug("added port " .. of_port .. global.ch_connect .. lg_port)
   end
   if (#self.ports == 0) then
-    printlog("Invalid settings, no connections are assigned")
+    printlog("Invalid settings, no phyLinks are assigned")
     exit()
   end
   if (#self.ports == 1) then
-    printlog_warn("You have configured only a single connection. Most of the features require at least two!")
+    printlog_warn("You have configured only a single link, most of the features require at least two!")
   end
 end
 
@@ -68,7 +70,7 @@ end
 
 function Settings:check()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-  cmd:addCommand("mkdir -p " .. self.config[global.loadgen_wd])
+  cmd:addCommand("mkdir -p " .. self.config[global.loadgenWd])
   cmd:execute(false)
 end
 

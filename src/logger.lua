@@ -1,4 +1,4 @@
-local log_file = nil
+local logFile = nil
 
 function get_timestamp()
   local time = os.date("*t")
@@ -7,20 +7,20 @@ function get_timestamp()
 end
 
 function init_logger(file)
-  log_file = io.open(file, "a")
+  logFile = io.open(file, "a")
   log("Started")
 end
 
 function finalize_logger()
   log("Finished\n")
-  log_file:close()
+  logFile:close()
 end
 
 local function logger_log(type, ...)
-   log_file:write(get_timestamp() ..  ": ")
-   log_file:write(type, ...)
-   log_file:write("\n")
-   log_file:flush ()
+   logFile:write(get_timestamp() ..  ": ")
+   logFile:write(type, ...)
+   logFile:write("\n")
+   logFile:flush ()
 end
 
 local function logger_printlog(type, ...)
