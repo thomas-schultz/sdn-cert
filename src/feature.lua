@@ -63,27 +63,25 @@ function Feature:runTest()
   end
   -- configure open-flow device
   showIndent("Configuring OpenFlow device (~5 sec)")
-  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
+  local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
+  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
-  local flows = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
-  local output = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
-  ofDev:createFlowFile(flows, output .. "_flows.ovs")
-  local flowDump = io.open(output .. "_flows.dump", "w")
-  flowDump:write("Installing flows:\n" .. ofDev:installFlows(output .. "_flows.ovs") .. "\n")
-  flowDump:write("before feature test:\n" .. ofDev:dumpFlows(self.config[global.requires]) .. "\n")
+  local flowDate = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
+  ofDev:createAllFiles(flowDate, path)
+  ofDev:installAllFiles(path, "_ovs.output")
+  ofDev:dumpAll(path .. ".before")
   if (not settings.config.simulate) then sleep(global.timeout) end
   
   -- start loadgen
   showIndent("Starting feature test (~10 sec)")
-  local lgDump = io.open(output .. "_loadgen.out", "w")
+  local lgDump = io.open(path .. "_loadgen.output", "w")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
   cmd:addCommand("./" .. self:getLoadGen() .. " " .. self:getLgArgs())
   lgDump:write(cmd:execute(settings.config.verbose))
   io.close(lgDump)
   
-  flowDump:write("after feature test:\n" .. ofDev:dumpFlows(self.config[global.requires]))
-  io.close(flowDump)
+  ofDev:dumpAll(path .. ".after")
   
   -- check result
   showIndent("Fetching result")
@@ -93,6 +91,8 @@ function Feature:runTest()
   showIndent("Checking result")
   local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
   local out = cmd:execute()
+  if (string.find(out, "cat: " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result:")) then
+    out = "Feature test failed somehow, no result file was created" end
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true
     else self.reason = string.trim(string.replaceAll(out, "\n", " ")) end

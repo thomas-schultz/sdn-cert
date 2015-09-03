@@ -16,6 +16,7 @@ FeatureConfig.enum = {
 }
 
 FeatureConfig.orgPkt = {
+  TX_DEV_ID = 1,
   ETH_TYPE4 = FeatureConfig.enum.ETH_TYPE.ip4,
   ETH_TYPE6 = FeatureConfig.enum.ETH_TYPE.ip6,
   SRC_MAC   = "aa:00:00:00:00:a1",
@@ -56,229 +57,236 @@ function FeatureConfig.createPkt()
 end
 
 FeatureConfig.feature = {
+
   default = {
+    settings = {
+      ip6     = false,        -- test uses IPv6 packets
+      bufSize = 32,           -- buff size for sending
+      pktSize = 80,           -- default packet size in bytes, without crc
+      iterations = 1,         -- how many iterations, each sending bufSize packtes
+      maxDeviation = 0.05,    -- max percental deviation of received packets
+      timeout = 2,            -- timeout in seconds until the receiving device stops
+      txDevs = 1,             -- number of transmitting devices, <= 0 means all available
+      txSteps = 1,            -- number of sending steps, modifyPkt is called after each, <= 0 sets it equal to txDevs
+      firstRxDev = 1          -- sets the first receive device (starts with 1), to make these only tx devices
+    },
     -- default flow rule if nothing else matches
-    flowEntries = function(flows, ...)
-        table.insert(flows, "priority=0, actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "priority=0, actions=DROP")
         end,
     -- implicit counter check if nothing is specified
-    evalCounter = function (ctrs) return ctrs[1] > 0 end,
+    evalCounter = function(ctrs) return ctrs[1] > 0 end,
   },
 
   match_inport = {
     settings = {
-      timeout = 2,
+      txDevs  = 0,
+      txSteps = 0,
     },
-    flowEntries = function(flows, ...)
+    flowEntries = function(flowData, ...)
         if (not ...) then return end
-        for i,v in ipairs({...}) do
-          table.insert(flows, "in_port=" .. v .. ", actions=ALL")
+        local action = "ALL"
+        for i,v in pairs({...}) do
+          table.insert(flowData.flows, "in_port=" .. v .. ", actions=" .. action)
+          action = "DROP"
         end end,
-    modifyPkt = nil,
+    modifyPkt = function()
+        FeatureConfig.pkt.TX_DEV_ID = FeatureConfig.pkt.TX_DEV_ID + 1
+        end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return true end,
+      evalCounter   = function(ctrs, batch, threshold) return (ctrs[1] - batch <= threshold) end,
     }
   },
   
   match_ethertype = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "dl_type=" .. FeatureConfig.orgPkt.ETH_TYPE4 .. ", actions=ALL")
-        table.insert(flows, "dl_type=" .. FeatureConfig.orgPkt.ETH_TYPE6 .. ", actions=ALL")
-        table.insert(flows, "dl_type=" .. FeatureConfig.modPkt.ETH_TYPE .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "dl_type=" .. FeatureConfig.orgPkt.ETH_TYPE4 .. ", actions=ALL")
+        table.insert(flowData.flows, "dl_type=" .. FeatureConfig.orgPkt.ETH_TYPE6 .. ", actions=ALL")
+        table.insert(flowData.flows, "dl_type=" .. FeatureConfig.modPkt.ETH_TYPE .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.ETH_TYPE = FeatureConfig.modPkt.ETH_TYPE
         FeatureConfig.pkt.PROTO = FeatureConfig.enum.PROTO.undef
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }
   },
   
   match_l2addr = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "dl_src=" .. FeatureConfig.orgPkt.SRC_MAC .. ", dl_dst=" .. FeatureConfig.orgPkt.DST_MAC .. ", actions=ALL")
-        table.insert(flows, "dl_src=" .. FeatureConfig.modPkt.SRC_MAC .. ", dl_dst=" .. FeatureConfig.modPkt.DST_MAC .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "dl_src=" .. FeatureConfig.orgPkt.SRC_MAC .. ", dl_dst=" .. FeatureConfig.orgPkt.DST_MAC .. ", actions=ALL")
+        table.insert(flowData.flows, "dl_src=" .. FeatureConfig.modPkt.SRC_MAC .. ", dl_dst=" .. FeatureConfig.modPkt.DST_MAC .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.SRC_MAC = FeatureConfig.modPkt.SRC_MAC
         FeatureConfig.pkt.DST_MAC = FeatureConfig.modPkt.DST_MAC
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },  
   
   match_tos = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, nw_tos=" .. FeatureConfig.orgPkt.TOS .. ", actions=ALL")
-        table.insert(flows, "ip, nw_tos=" .. FeatureConfig.modPkt.TOS .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, nw_tos=" .. FeatureConfig.orgPkt.TOS .. ", actions=ALL")
+        table.insert(flowData.flows, "ip, nw_tos=" .. FeatureConfig.modPkt.TOS .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.TOS = FeatureConfig.modPkt.TOS
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
     
   match_ttl = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, nw_ttl=" .. FeatureConfig.orgPkt.TTL .. ", actions=ALL")
-        table.insert(flows, "ip, nw_ttl=" .. FeatureConfig.modPkt.TTL .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, nw_ttl=" .. FeatureConfig.orgPkt.TTL .. ", actions=ALL")
+        table.insert(flowData.flows, "ip, nw_ttl=" .. FeatureConfig.modPkt.TTL .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.TTL = FeatureConfig.modPkt.TTL
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
     
   match_ipv4 = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, nw_src=" .. FeatureConfig.orgPkt.SRC_IP4 .. ", nw_dst=" .. FeatureConfig.orgPkt.DST_IP4 .. ", actions=ALL")
-        table.insert(flows, "ip, nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ", nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, nw_src=" .. FeatureConfig.orgPkt.SRC_IP4 .. ", nw_dst=" .. FeatureConfig.orgPkt.DST_IP4 .. ", actions=ALL")
+        table.insert(flowData.flows, "ip, nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ", nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.SRC_IP4 = FeatureConfig.modPkt.SRC_IP4
         FeatureConfig.pkt.DST_IP4 = FeatureConfig.modPkt.DST_IP4
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
     
   match_ipv6 = {
     settings = {
       ip6     = true,
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ipv6, ipv6_src=" .. FeatureConfig.orgPkt.SRC_IP6 .. ", ipv6_dst=" .. FeatureConfig.orgPkt.DST_IP6 .. ", actions=ALL")
-        table.insert(flows, "ipv6, ipv6_src=" .. FeatureConfig.modPkt.SRC_IP6 .. ", ipv6_dst=" .. FeatureConfig.modPkt.DST_IP6 .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ipv6, ipv6_src=" .. FeatureConfig.orgPkt.SRC_IP6 .. ", ipv6_dst=" .. FeatureConfig.orgPkt.DST_IP6 .. ", actions=ALL")
+        table.insert(flowData.flows, "ipv6, ipv6_src=" .. FeatureConfig.modPkt.SRC_IP6 .. ", ipv6_dst=" .. FeatureConfig.modPkt.DST_IP6 .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.SRC_IP6 = FeatureConfig.modPkt.SRC_IP6
         FeatureConfig.pkt.DST_IP6 = FeatureConfig.modPkt.DST_IP6
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
   
   match_l3proto = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, nw_proto=" .. FeatureConfig.orgPkt.PROTO .. ", actions=ALL")
-        table.insert(flows, "ip, nw_proto=" .. FeatureConfig.modPkt.PROTO .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, nw_proto=" .. FeatureConfig.orgPkt.PROTO .. ", actions=ALL")
+        table.insert(flowData.flows, "ip, nw_proto=" .. FeatureConfig.modPkt.PROTO .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.PROTO = FeatureConfig.modPkt.PROTO
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
     
   match_l4port = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, udp, tp_src=" .. FeatureConfig.orgPkt.SRC_PORT .. ", tp_dst=" .. FeatureConfig.orgPkt.DST_PORT .. ", actions=ALL")
-        table.insert(flows, "ip, udp, tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", actions=DROP")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, udp, tp_src=" .. FeatureConfig.orgPkt.SRC_PORT .. ", tp_dst=" .. FeatureConfig.orgPkt.DST_PORT .. ", actions=ALL")
+        table.insert(flowData.flows, "ip, udp, tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", actions=DROP")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.SRC_PORT = FeatureConfig.modPkt.SRC_PORT
         FeatureConfig.pkt.DST_PORT = FeatureConfig.modPkt.DST_PORT
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
+      ctrType       = "any",
+      desiredCtr    = 1,
     }      
   },
  
   modify_l2addr = {
-    settings = {
-      timeout = 2,
-    },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "actions=mod_dl_src=" .. FeatureConfig.modPkt.SRC_MAC .. ", mod_dl_dst=" .. FeatureConfig.modPkt.DST_MAC .. ", ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "actions=mod_dl_src=" .. FeatureConfig.modPkt.SRC_MAC .. ", mod_dl_dst=" .. FeatureConfig.modPkt.DST_MAC .. ", ALL")
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
-      pktClassifier  = function(pkt) return (pkt.src_mac == FeatureConfig.modPkt.SRC_MAC and pkt.dst_mac == FeatureConfig.modPkt.DST_MAC) end,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.src_mac == FeatureConfig.modPkt.SRC_MAC and pkt.dst_mac == FeatureConfig.modPkt.DST_MAC) end,
     }      
   },
   
   modify_tos = {
-    settings = {
-      timeout = 2,
-    },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
-        table.insert(flows, "ipv6, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
+        table.insert(flowData.flows, "ipv6, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
-      pktClassifier  = function(pkt) return (pkt.tos == FeatureConfig.modPkt.TOS) end,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.tos == FeatureConfig.modPkt.TOS) end,
     }      
   },
   
   modify_ttl = {
-    settings = {
-      timeout = 2,
-    },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, actions=dec_ttl, ALL")
-        table.insert(flows, "ipv6, actions=dec_ttl, ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
+        table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
-      pktClassifier  = function(pkt) return (pkt.ttl == FeatureConfig.orgPkt.TTL - 1) end,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.ttl == FeatureConfig.orgPkt.TTL - 1) end,
     }      
   },
   
   modify_ipv4 = {
-    settings = {
-      timeout = 2,
-    },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, actions=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ", ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, actions=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ", ALL")
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
-      pktClassifier  = function() return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) end,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) end,
     }      
   },
 
@@ -286,107 +294,143 @@ FeatureConfig.feature = {
   modify_ipv6 = {
     settings = {
       ip6     = true,
-      timeout = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ipv6, actions=set_field:" .. FeatureConfig.modPkt.SRC_IP6 .. "->ipv6_src, set_field:" .. FeatureConfig.modPkt.DST_IP6 .. "->ipv6_dst, ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ipv6, actions=set_field:" .. FeatureConfig.modPkt.SRC_IP6 .. "->ipv6_src, set_field:" .. FeatureConfig.modPkt.DST_IP6 .. "->ipv6_dst, ALL")
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 1,
-      pktClassifier  = function() return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP6 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP6) end,
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP6 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP6) end,
     }      
   },
   
   modify_l4port = {
     settings = {
-      timeout = 2,
+      txSteps = 2,
     },
-    flowEntries = function(flows, ...)
-        table.insert(flows, "ip, udp, actions=mod_tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", mod_tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", ALL")
-        table.insert(flows, "ip, tcp, actions=mod_tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", mod_tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", ALL")
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, udp, actions=mod_tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", mod_tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", ALL")
+        table.insert(flowData.flows, "ip, tcp, actions=mod_tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", mod_tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", ALL")
         end,
     modifyPkt = function()
         FeatureConfig.pkt.PROTO = FeatureConfig.enum.PROTO.tcp
         end,
     evalCrit = {
-      ctrType        = "any",
-      desiredCtr     = 2,
-      pktClassifier  = function(pkt) return (pkt.src_port == FeatureConfig.modPkt.SRC_PORT and pkt.dst_port == FeatureConfig.modPkt.DST_PORT) end,
+      ctrType       = "any",
+      desiredCtr    = 2,
+      pktClassifier = function(pkt) return (pkt.src_port == FeatureConfig.modPkt.SRC_PORT and pkt.dst_port == FeatureConfig.modPkt.DST_PORT) end,
     }      
   },
-}
-
-
-FeatureConfig.evalCrit = {
-  modify_l2addr = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.src_mac == MOD_MAC or pkt.dst_mac == MOD_MAC) end,
-  },
-  modify_tos = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.tos == MOD_TOS) end,
-  },
-  modify_ttl = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.ttl == TTL - 1) end,
-  },
-  modify_ipv4 = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.src_ip == MOD_IP.ipv4 and pkt.dst_ip == MOD_IP.ipv4) end,
-  },
-  modify_ipv6 = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.src_ip == MOD_IP.ipv6 or pkt.dst_ip == MOD_IP.ipv6) end,
-  },
-  modify_l4port = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.src_port == MOD_PORT or pkt.dst_port == MOD_PORT) end, 
-  },
-  action_normal = {
-    ctrType        = "all",
-    desiredCtr     = 1,
-  },
-  action_flood = {
-    ctrType        = "all",
-    desiredCtr     = 1,
-  },
-  action_duplicate = {
-    ctrType        = "any",
-    desiredCtr     = 2,
-  },
-  action_setfield = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.ttl == 1) end,
  
+  action_return = {
+    settings = {
+      ignoreFirstDev = true;
+    },
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "actions=output:IN_PORT")
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.devId == FeatureConfig.orgPkt.TX_DEV_ID) end,
+    }      
   },
+  
+  action_normal = {
+    settings = {
+      txSteps = 2,
+    },
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "actions=NORMAL")
+        end,
+    modifyPkt = function()
+        FeatureConfig.pkt.DST_MAC = FeatureConfig.modPkt.DST_MAC
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 1,
+    }      
+  },
+  
+  action_flood = {
+    settings = {
+      firstRxDev = 2,
+    },
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "actions=FLOOD")
+        end,
+    evalCrit = {
+      ctrType       = "all",
+      desiredCtr    = 1,
+    }      
+  },
+  
+  action_duplicate = {
+    settings = {
+      firstRxDev = 2,
+    },
+    flowEntries = function(flowData, port)
+        if (not port) then return end
+        table.insert(flowData.flows, "actions=output:" .. tostring(port) .. "," .. tostring(port))
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 2,
+    }      
+  },
+
+  action_setfield = {
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "actions=set_field:" .. FeatureConfig.modPkt.SRC_MAC .. "->dl_src, ALL")
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.src_mac == FeatureConfig.modPkt.SRC_MAC) end,
+    }      
+  },
+  
   action_group_all = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) if (pkt.src_ip == MOD_IP.ipv4 and pkt.dst_ip ~= MOD_IP.ipv4) then return 1
-                                     elseif (pkt.src_ip ~= MOD_IP.ipv4 and pkt.dst_ip == MOD_IP.ipv4) then return 2
-                                     else return 0 end end,
-    evalCounter   = function (ctrs, threshold) return (ctrs[1] > threshold or ctrs[2] > threshold) end, 
+    flowEntries = function(flowData)
+        table.insert(flowData.groups, "group_id=1, type=all, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",ALL, bucket=mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
+        table.insert(flowData.flows, "actions=group:1")
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 2,
+      pktClassifier = function(pkt) if (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip ~= FeatureConfig.modPkt.DST_IP4) then return 1
+                                elseif (pkt.src_ip ~= FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) then return 2
+                                  else return 0 end end,                        
+      evalCounter   = function(ctrs, batch, threshold) return (ctrs[1] - batch <= threshold and ctrs[2] - batch <= threshold) end, 
+    } 
   },
-  action_group_indirect = { 
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) return (pkt.src_ip == MOD_IP.ipv4 and pkt.dst_ip == MOD_IP.ipv4) end,
+  
+  action_group_indirect = {
+    flowEntries = function(flowData)
+        table.insert(flowData.groups, "group_id=1, type=indirect, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
+        table.insert(flowData.flows, "actions=group:1")
+        end,
+    evalCrit = {
+      ctrType        = "any",
+      desiredCtr     = 1,
+      pktClassifier  = function(pkt) return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) end,
+    } 
   },
+  
   action_group_select = {
-    ctrType        = "any",
-    desiredCtr     = 1,
-    pktClassifier  = function (pkt) if (pkt.src_ip == MOD_IP.ipv4 and pkt.dst_ip ~= MOD_IP.ipv4) then return 1
-                                     elseif (pkt.src_ip ~= MOD_IP.ipv4 and pkt.dst_ip == MOD_IP.ipv4) then return 2
-                                     else return 0 end end,
-    evalCounter   = function (ctrs, threshold) return (ctrs[1] > threshold or ctrs[2] > threshold) end,
+    flowEntries = function(flowData)
+        table.insert(flowData.groups, "group_id=1, type=select, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",ALL, bucket=mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
+        table.insert(flowData.flows, "actions=group:1")
+        end,
+    evalCrit = {
+      ctrType        = "any",
+      desiredCtr     = 1,
+      pktClassifier  = function(pkt) if (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip ~= FeatureConfig.modPkt.DST_IP4) then return 1
+                                 elseif (pkt.src_ip ~= FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) then return 2
+                                   else return 0 end end,
+      evalCounter    = function(ctrs, batch, threshold) return (ctrs[1] - batch <= threshold or ctrs[2] - batch <= threshold) end,
+    } 
   },
 }
 
