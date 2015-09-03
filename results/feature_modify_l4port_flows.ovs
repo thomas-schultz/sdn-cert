@@ -1,3 +1,0 @@
-ip, udp, actions=mod_tp_src=4321, mod_tp_dst=8765, ALL
-ip, tcp, actions=mod_tp_src=4321, mod_tp_dst=8765, ALL
-priority=0, actions=DROP

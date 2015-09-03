@@ -1,3 +1,0 @@
-dl_src=aa:00:00:00:00:a1, dl_dst=ff:ff:ff:ff:ff:ff, actions=ALL
-dl_src=aa:00:00:00:00:a2, dl_dst=aa:aa:aa:aa:aa:aa, actions=DROP
-priority=0, actions=DROP

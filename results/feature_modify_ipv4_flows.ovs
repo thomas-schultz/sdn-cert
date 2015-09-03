@@ -1,2 +1,0 @@
-ip, actions=mod_nw_src=10.0.2.1,mod_nw_dst=10.0.2.2, ALL
-priority=0, actions=DROP

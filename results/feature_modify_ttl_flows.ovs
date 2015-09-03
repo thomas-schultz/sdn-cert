@@ -1,3 +1,0 @@
-ip, actions=dec_ttl, ALL
-ipv6, actions=dec_ttl, ALL
-priority=0, actions=DROP

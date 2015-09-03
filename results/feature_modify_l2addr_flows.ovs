@@ -1,2 +1,0 @@
-actions=mod_dl_src=aa:00:00:00:00:a2, mod_dl_dst=aa:aa:aa:aa:aa:aa, ALL
-priority=0, actions=DROP

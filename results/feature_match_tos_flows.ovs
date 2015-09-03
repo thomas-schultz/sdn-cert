@@ -1,3 +1,0 @@
-ip, nw_tos=0, actions=ALL
-ip, nw_tos=128, actions=DROP
-priority=0, actions=DROP
