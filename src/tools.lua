@@ -94,6 +94,8 @@ string.getKeyValue = function (str, ch_split)
     local k = string.trim(string.sub(str, 1, split-1))
     k = string.lower(string.replaceAll(k, "_", ""))
     local v = string.trim(string.sub(str, split+1, -1))
+    if (v == "true") then v = true end
+    if (v == "false") then v = false end
     return k, v
   end
   return nil

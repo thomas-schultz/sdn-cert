@@ -53,6 +53,7 @@ function Feature:get(key)
 end
 
 function Feature:runTest()
+  if (settings.config.simulate) then self:print() end
   -- copying
   local files = self:getLoadGenFiles()
   for i,file in pairs(files) do
@@ -68,9 +69,11 @@ function Feature:runTest()
   ofDev:reset()
   local flowDate = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
   ofDev:createAllFiles(flowDate, path)
-  ofDev:installAllFiles(path, "_ovs.output")
-  ofDev:dumpAll(path .. ".before")
-  if (not settings.config.simulate) then sleep(global.timeout) end
+  if (not settings.config.simulate) then
+    ofDev:installAllFiles(path, "_ovs.output")
+    ofDev:dumpAll(path .. ".before")
+    sleep(global.timeout)
+  end
   
   -- start loadgen
   showIndent("Starting feature test (~10 sec)")
@@ -78,10 +81,11 @@ function Feature:runTest()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
   cmd:addCommand("./" .. self:getLoadGen() .. " " .. self:getLgArgs())
-  lgDump:write(cmd:execute(settings.config.verbose))
+  if (not settings.config.simulate) then
+    lgDump:write(cmd:execute(settings.config.verbose))
+    ofDev:dumpAll(path .. ".after")
+  end
   io.close(lgDump)
-  
-  ofDev:dumpAll(path .. ".after")
   
   -- check result
   showIndent("Fetching result")
@@ -91,6 +95,8 @@ function Feature:runTest()
   showIndent("Checking result")
   local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
   local out = cmd:execute()
+  if (settings.config.simulate and not out) then
+    out = "simulation mode" end
   if (string.find(out, "cat: " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result:")) then
     out = "Feature test failed somehow, no result file was created" end
   if (not settings.config.simulate) then

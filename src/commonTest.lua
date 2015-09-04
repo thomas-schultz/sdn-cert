@@ -74,10 +74,16 @@ end
 function CommonTest.setLinks(test)
   test.config.ip = settings:get(global.switchIP)
   test.config.port = settings:get(global.switchPort)
+  local lg = ""
+  local of = ""
   for n=1,#settings.ports do
-    test.config[global.ofLinks .. tonumber(n)] = settings.ports[n].of
-    test.config[global.lgLinks .. tonumber(n)] = settings.ports[n].lg
+    of = of .. " " .. settings.ports[n].of
+    lg = lg .. " " .. settings.ports[n].lg
+    test.config[global.ofLinks .. tostring(n)] = settings.ports[n].of
+    test.config[global.lgLinks .. tostring(n)] = settings.ports[n].lg
   end
+  test.config[global.ofLinks .. "*"] = string.trim(of)
+  test.config[global.lgLinks .. "*"] = string.trim(lg)
 end
 
 function CommonTest.setSwitch(test)
