@@ -229,7 +229,7 @@ function featureTxSlave(featureName, txDevs, ports)
         else pkt = buf:getTcpPacket(not ip6) end
         local id = (n-1)*settings.batchSize + (i-1)*settings.bufSize + p
         pkt.payload.uint32[0] = id
-        txDump:write("Packet " .. id .. " / " .. tostring(settings.batchSize) .. " / " .. tostring(n*settings.batchSize) .. " on dev " .. tostring(ports[n]) .. "\n")
+        txDump:write("Packet " .. id .. " / " .. tostring(settings.batchSize) .. " / " .. tostring(n) .. " on dev " .. tostring(ports[n]) .. "\n")
         buf:dump(txDump)
       end
       if (featureCfg.pkt.PROTO == FeatureConfig.enum.PROTO.udp) then

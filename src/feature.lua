@@ -53,7 +53,7 @@ function Feature:get(key)
 end
 
 function Feature:runTest()
-  if (settings.config.simulate) then self:print() end
+  if (settings.config.verbose) then self:print() end
   -- copying
   local files = self:getLoadGenFiles()
   for i,file in pairs(files) do

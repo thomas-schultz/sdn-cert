@@ -3,7 +3,7 @@ CommonTest.__index = CommonTest
 
 function CommonTest.getArgs(args, config, asTable)
   asTable = asTable ~= nil and asTable
-  local t = {}
+  local line = ""
   for i=1,#args do
     local arg = args[i]
     local isvar = string.find(arg, global.ch_var)
@@ -11,18 +11,14 @@ function CommonTest.getArgs(args, config, asTable)
       local key = string.sub(arg, 1, isvar-1) .. string.sub(arg, isvar+1, -1)
       local value = config[string.replaceAll(key, "_", "")]
       if (not value) then printlog_err("Could not map variable '" .. key .. "'")
-      else t[i] = value end
+      else line = line .. value .. " " end
     else
-     t[i] = arg
+     line = line .. arg .. " "
     end
   end
-  if (asTable) then return t end
-  local line = ""
-  if (#t == 0) then return line end
-  for i=1,#t do
-    line = line .. t[i] .. " "
-  end
-  return string.trim(line)
+  line = string.trim(line)
+  if (asTable) then return string.split(line, " ")
+  else return line end
 end
 
 function CommonTest.checkLinkCount(feature, arg)
