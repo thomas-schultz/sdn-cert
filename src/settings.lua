@@ -31,6 +31,7 @@ function Settings:readSettings(configFile)
     end
   end
   io.close(fh)
+  if (self.config.debug == true) then debug_mode = true end
   if (self:isLocal()) then self.config[string.lower(global.loadgenHost)] = nil end
   if (self.config[global.loadgenWd] == nil) then self.config[global.loadgenWd] = "/tmp" end
   self.ports = {}
@@ -77,8 +78,14 @@ end
 function Settings:print()
   printBar()
   show("Settings:")
+  local t = {}
   for key,value in pairs(self.config) do
-    show(string.format("  %-16s = %s", key, tostring(value)))
+    table.insert(t,key)
   end
+  table.sort(t)
+  for i,name in pairs(t) do
+    show(string.format("     %-20s = %s", name, self.config[name]))
+  end
+  show()
 end
   

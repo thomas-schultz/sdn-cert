@@ -21,7 +21,9 @@ function acrhiveResults()
 end
 
 function setupMoongen()
-  local cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh", settings:get(global.loadgenHost), settings:get(global.loadgenWd), "tools/")
+  local cmd = nil
+  if (settings:isLocal()) then cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/")
+  else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) end
   cmd:execute(settings.config.verbose)
   checkMoongen()
   exit()
@@ -40,10 +42,11 @@ function killMoongen()
 end
 
 function initMoongen()
-  local cmd = CommandLine.getRunInstance().create()
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/build.sh")
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/setup-hugetlbfs.sh")
   local ret = cmd:execute(settings.config.verbose)
+  if (settings.config.simulate) then exit() end
   if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
   else printlog("Failed to initialize MoonGen") log_debug(ret) end  
   exit()
@@ -65,16 +68,24 @@ function checkOpenFlow()
     return false
   else
     show("Available logical ports on the switch:")
-    local ports = ""
+    local ports = {}
     local find, find_ = string.find(out, "ports")
     if (not find) then return end
     out = string.sub(out, find_+1, -1)
     for n,p in pairs(string.split(out, "\n")) do
       local a = string.find(p, string_matches.openflow_port)
-      local z = string.find(p, string_matches.openflow_port_delm)      
-      if (a and z) then ports = ports .. string.trim(string.sub(p, a+5, z-1)) .. ", " end
+      local z = string.find(p, string_matches.openflow_port_delm)
+      if (a and z) then
+        local port = string.trim(string.sub(p, a+5, z-1))
+        table.insert(ports, port)
+      end
     end
-    show("   " .. ports)
+    table.sort(ports)
+    local list = ""
+    for i,port in pairs(ports) do
+      list = list .. port .. ", "
+    end
+    show("   " .. list)
     return true
   end 
 end

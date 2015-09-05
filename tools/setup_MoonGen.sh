@@ -5,17 +5,24 @@
 #apt-get install gcc make cmake linux-headers-$(uname -r)
 #zypper in gcc make kernel-devel
 
-if [ $# -lt 1 ]; then
+if [ $# -eq 0 ]; then
+	WD="/tmp"
 	REPO="https://github.com/emmericp/MoonGen"
-else
-	REPO=$1
 fi
+if [ $# -ge 1 ]; then
+	WD=$1
+fi
+if [ $# -ge 2 ]; then
+	REPO=$2
+fi
+shift
 shift
 for IFACE in "$@"
 do
     ip a flush dev $IFACE 
 done
 
+cd $WD
 git clone $REPO
 cd MoonGen
 git pull

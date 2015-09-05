@@ -18,4 +18,4 @@ else
 fi
 shift
 scp $FOLDER$FILE root@$IP:$WD
-ssh root@$IP "cd $WD; ./$FILE $REPO $@;"
+ssh root@$IP "cd $WD; ./$FILE $WD $REPO $@;"
