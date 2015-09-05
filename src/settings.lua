@@ -62,15 +62,15 @@ function Settings:get(key)
 end
 
 function Settings:isLocal()
-  return self.config["local"] == "true"
+  return self.config["local"] == true
 end
 
 function Settings:verbose()
-  return self.config.verbose == "true"
+  return self.config.verbose == true
 end
 
 function Settings:check()
-  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  local cmd = CommandLine.getRunInstance(self:isLocal()).create()
   cmd:addCommand("mkdir -p " .. self.config[global.loadgenWd])
   cmd:execute(false)
 end

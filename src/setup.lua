@@ -22,9 +22,9 @@ end
 
 function setupMoongen()
   local cmd = nil
-  if (settings:isLocal()) then cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/")
-  else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) end
-  cmd:execute(settings.config.verbose)
+  if (settings:isLocal()) then cmd = CommandLine.create(settings.config.local_path .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) 
+  else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/") end
+  cmd:execute(true)
   checkMoongen()
   exit()
 end
@@ -116,9 +116,8 @@ function checkMoongen()
     end
     out = string.sub(out, devs+#string_matches.moongen_devs+2, dev_term-2)
     show(out)
-    fail = false
+    return true
   end
-  return (not fail)
 end
 
 function isReady()
