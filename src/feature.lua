@@ -43,7 +43,7 @@ function Feature:readConfig(configFile)
   end
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
-  CommonTest.readInFiles(self, "Disabled feature")
+  CommonTest.readInFiles(self, global.featureFolder, "Disabled feature")
   CommonTest.setSwitch(self)
   CommonTest.setLinks(self)
 end
@@ -63,7 +63,7 @@ function Feature:runTest()
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
-  showIndent("Configuring OpenFlow device (~5 sec)")
+  showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)")
   local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()

@@ -143,6 +143,29 @@ function fillPacket(buf, len, proto, ip6)
   }
 end
 
+function setPayload(packet, payload)
+  local ip6 = nil
+  
+  local ethType = packet:getEthernetPacket().eth:getType()
+  if (ethType == featureCfg.enum.ETH_TYPE.ip6) then ip6 = true
+  elseif (ethType == featureCfg.enum.ETH_TYPE.ip4) then ip6 = false
+  else
+    packet:getEthernetPacket().payload.uint32[0] = payload
+    return
+  end
+  local proto = nil
+  if (ip6) then proto = packet:getIPPacket(false).ip6:getNextHeader()
+  else proto = packet:getIPPacket().ip4:getProtocol() end
+  
+  if (proto == featureCfg.enum.PROTO.udp) then
+    packet:getUdpPacket(not ip6).payload.uint32[0] = payload
+  elseif (proto == featureCfg.enum.PROTO.tcp) then
+    packet:getTcpPacket(not ip6).payload.uint32[0] = payload
+  else
+    packet:getIPPacket(not ip6).payload.uint32[0] = payload
+  end
+end
+
 -- retrieves data from packet buffer
 function retrievePacket(packet, dev, ports)
   local pkt = {}
@@ -215,6 +238,7 @@ function featureTxSlave(featureName, txDevs, ports)
   local txSteps = settings.txSteps
   if (txSteps <= 0) then txSteps = #txDevs end
   featureCfg.createPkt()
+  local id = 0
   for n=1,txSteps do
     local ip6 = settings.ip6 ~= nil and settings.ip6 == true 
     local mempool = memory.createMemPool(function(buf)
@@ -224,12 +248,10 @@ function featureTxSlave(featureName, txDevs, ports)
     for i=1,settings.iterations do
       txBuf:alloc(settings.pktSize)
       for p, buf in ipairs(txBuf) do
-        local pkt = nil
-        if (n == 1) then pkt = buf:getUdpPacket(not ip6)
-        else pkt = buf:getTcpPacket(not ip6) end
-        local id = (n-1)*settings.batchSize + (i-1)*settings.bufSize + p
-        pkt.payload.uint32[0] = id
-        txDump:write("Packet " .. id .. " / " .. tostring(settings.batchSize) .. " / " .. tostring(n) .. " on dev " .. tostring(ports[n]) .. "\n")
+        --local id = (n-1)*settings.batchSize + (i-1)*settings.bufSize + p
+        id = id + 1
+        setPayload(buf, id)
+        txDump:write("Packet " .. p .. " / " .. tostring(settings.batchSize) .. " - " .. id .. " / " .. tostring(txSteps*settings.batchSize) .. " on dev " .. tostring(ports[n]) .. "\n")
         buf:dump(txDump)
       end
       if (featureCfg.pkt.PROTO == FeatureConfig.enum.PROTO.udp) then
@@ -274,7 +296,7 @@ function featureRxSlave(featureName, rxDevs, ports)
         local pkt = rxBuf[j]
         local recv = retrievePacket(pkt, i, ports)
         table.insert(rxPkts, recv)
-        rxDump:write("Packet " .. recv.id .. " / " .. tostring(settings.config.evalCrit.desiredCtr*settings.batchSize) .. " on dev " .. ports[i] .. "\n")
+        rxDump:write("Packet " .. recv.id .. " / " .. tostring(settings.config.evalCrit.desiredCtr*settings.batchSize) .. " (" .. tostring(settings.txSteps*settings.batchSize) .. ") on dev " .. ports[i] .. "\n")
         pkt:dump(rxDump)
       end
     end

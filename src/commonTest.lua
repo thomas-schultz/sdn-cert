@@ -54,11 +54,11 @@ function CommonTest.readInLgArgs(test)
   CommonTest.readInArgs(test, global.lgArgs, test.lg_args, "lg")
 end
 
-function CommonTest.readInFiles(test, msg)
+function CommonTest.readInFiles(test, folder, msg)
   for n,file in pairs(string.split(test:get(global.copy_files), ",")) do
     file = string.trim(file)
-    if (not localfileExists(global.featureFolder .. "/" .. file)) then
-      log_warn(msg .. " '" .. test:getName() .. "', missing file '" .. file .. "'")
+    if (not localfileExists(folder .. "/" .. file)) then
+      printlog_warn(msg .. " '" .. test:getName() .. "', missing file '" .. file .. "'")
       test.disabled = true
     else
       table.insert(test.files, n, file)

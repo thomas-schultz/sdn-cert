@@ -12,7 +12,7 @@ global = {}
   global.tempdir          = "/tmp"
   
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
-  global.ofVersion         = "openflow"
+  global.ofVersion        = "openflow"
   
   -- logger
   global.logFile = "sdn-cert.log"

@@ -49,7 +49,7 @@ function CommandLine:execute(verbose)
       out = out .. line .. "\n"
       if (verbose and string.len(line) > 0) then print(line) end
     end
-    log_debug("Running " .. self:get() .. ":\n" .. out)
+    log_debug("Running " .. self:get() .. "\n" .. out)
   end
   return out
 end

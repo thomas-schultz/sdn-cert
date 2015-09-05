@@ -53,7 +53,7 @@ function TestCase:readConfig(cfg)
   CommonTest.readInPrepArgs(self)
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
-  CommonTest.readInFiles(self, "Skipping test")
+  CommonTest.readInFiles(self, global.benchmarkFiles, "Skipping test")
   CommonTest.setSwitch(self)
   CommonTest.setLinks(self)
 end
@@ -66,7 +66,7 @@ function TestCase:checkFeatures(benchmark)
       if not simulate then self.disabled = true end
     end
   end
-  if (#require > 0) then
+  if (string.len(require) > 0) then
     printlog_warn("Skipping test, unsupported feature(s) " .. string.sub(require, 1 , #require-2))
   end
 end

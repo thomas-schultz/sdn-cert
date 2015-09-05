@@ -31,10 +31,8 @@ function Benchmark:readConfig(config)
 end
 
 function Benchmark:checkExit()
-  if #self.testcases == 0 then
-    printlog("Exiting: No tests left")
-    return true
-  end
+  if #self.testcases == 0 then return true
+  else return false end
 end
 
 function Benchmark:getFeatures()
@@ -196,7 +194,7 @@ end
 
 function Benchmark:run()
   if settings.config.testfeature then return end
-  if (self:checkExit()) then return end
+  if (self:checkExit()) then printlog("No test left") end
   for id,test in pairs(self.testcases) do
     printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
     test:setId(id)
@@ -233,7 +231,7 @@ function Benchmark:run()
 end
 
 function Benchmark:collect()
-  if settings.config.testfeature then return end
+  if (settings.config.testfeature or self:checkExit()) then return end
   for id,test in pairs(self.testcases) do
     printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
     local cmd = SCPCommand.create()
@@ -247,11 +245,14 @@ end
 
 function Benchmark:summary()
   if (not settings.config.skipfeature and not settings.config.simulate) then
-    if (self.feature_count == 0) then print("No features tested") end
-    for i,feature in pairs(self.featureList) do
-      show(string.format("Feature   %-22s %10s", feature:getName(), feature:getStatus()))
+    if (self.feature_count == 0) then
+      print("No features tested")
+    else
+      for i,feature in pairs(self.featureList) do
+        show(string.format("Feature   %-22s %10s", feature:getName(), feature:getStatus()))
+      end
+      printBar()
     end
-    printBar()
   end
   if (settings.config.archive == true) then
     acrhiveResults()
