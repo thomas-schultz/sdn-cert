@@ -84,7 +84,7 @@ function Settings:print()
   end
   table.sort(t)
   for i,name in pairs(t) do
-    show(string.format("     %-20s = %s", name, self.config[name]))
+    show(string.format("     %-20s = %s", name, tostring(self.config[name])))
   end
   show()
 end

@@ -84,6 +84,7 @@ function checkOpenFlow()
     local list = ""
     for i,port in pairs(ports) do
       list = list .. port .. ", "
+      if (i % 10 == 0) then list = list .. "\n   " end
     end
     show("   " .. list)
     return true

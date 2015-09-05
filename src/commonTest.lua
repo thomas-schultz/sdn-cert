@@ -104,7 +104,7 @@ function CommonTest.print(name, config)
   end
   table.sort(t)
   for i,name in pairs(t) do
-    show(string.format("     %-20s = %s", name, config[name]))
+    show(string.format("     %-20s = %s", name, tostring(config[name])))
   end
   show()
 end
