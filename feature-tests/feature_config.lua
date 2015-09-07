@@ -68,7 +68,7 @@ FeatureConfig.feature = {
       timeout = 2,            -- timeout in seconds until the receiving device stops
       txDevs = 1,             -- number of transmitting devices, <= 0 means all available
       txSteps = 1,            -- number of sending steps, modifyPkt is called after each, <= 0 sets it equal to txDevs
-      firstRxDev = 1          -- sets the first receive device (starts with 1), to make these only tx devices
+      firstRxDev = 1,          -- sets the first receive device (starts with 1), to make these only tx devices
     },
     -- default flow rule if nothing else matches
     flowEntries = function(flowData)
@@ -104,6 +104,7 @@ FeatureConfig.feature = {
   match_ethertype = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "dl_type=" .. FeatureConfig.orgPkt.ETH_TYPE4 .. ", actions=ALL")
@@ -123,6 +124,7 @@ FeatureConfig.feature = {
   match_l2addr = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "dl_src=" .. FeatureConfig.orgPkt.SRC_MAC .. ", dl_dst=" .. FeatureConfig.orgPkt.DST_MAC .. ", actions=ALL")
@@ -141,6 +143,7 @@ FeatureConfig.feature = {
   match_tos = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, nw_tos=" .. FeatureConfig.orgPkt.TOS .. ", actions=ALL")
@@ -158,6 +161,7 @@ FeatureConfig.feature = {
   match_ttl = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, nw_ttl=" .. FeatureConfig.orgPkt.TTL .. ", actions=ALL")
@@ -175,6 +179,7 @@ FeatureConfig.feature = {
   match_ipv4 = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, nw_src=" .. FeatureConfig.orgPkt.SRC_IP4 .. ", nw_dst=" .. FeatureConfig.orgPkt.DST_IP4 .. ", actions=ALL")
@@ -194,6 +199,7 @@ FeatureConfig.feature = {
     settings = {
       ip6     = true,
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ipv6, ipv6_src=" .. FeatureConfig.orgPkt.SRC_IP6 .. ", ipv6_dst=" .. FeatureConfig.orgPkt.DST_IP6 .. ", actions=ALL")
@@ -212,6 +218,7 @@ FeatureConfig.feature = {
   match_l3proto = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, nw_proto=" .. FeatureConfig.orgPkt.PROTO .. ", actions=ALL")
@@ -229,6 +236,7 @@ FeatureConfig.feature = {
   match_l4port = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, udp, tp_src=" .. FeatureConfig.orgPkt.SRC_PORT .. ", tp_dst=" .. FeatureConfig.orgPkt.DST_PORT .. ", actions=ALL")
@@ -245,6 +253,9 @@ FeatureConfig.feature = {
   },
  
   modify_l2addr = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "actions=mod_dl_src=" .. FeatureConfig.modPkt.SRC_MAC .. ", mod_dl_dst=" .. FeatureConfig.modPkt.DST_MAC .. ", ALL")
         end,
@@ -256,6 +267,9 @@ FeatureConfig.feature = {
   },
   
   modify_tos = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
         table.insert(flowData.flows, "ipv6, actions=mod_nw_tos=" .. FeatureConfig.modPkt.TOS .. ", ALL")
@@ -268,6 +282,9 @@ FeatureConfig.feature = {
   },
   
   modify_ttl = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
         table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
@@ -280,6 +297,9 @@ FeatureConfig.feature = {
   },
   
   modify_ipv4 = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, actions=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ", ALL")
         end,
@@ -294,6 +314,7 @@ FeatureConfig.feature = {
   modify_ipv6 = {
     settings = {
       ip6     = true,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ipv6, actions=set_field:" .. FeatureConfig.modPkt.SRC_IP6 .. "->ipv6_src, set_field:" .. FeatureConfig.modPkt.DST_IP6 .. "->ipv6_dst, ALL")
@@ -308,6 +329,7 @@ FeatureConfig.feature = {
   modify_l4port = {
     settings = {
       txSteps = 2,
+      firstRxDev = 2,
     },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "ip, udp, actions=mod_tp_src=" .. FeatureConfig.modPkt.SRC_PORT .. ", mod_tp_dst=" .. FeatureConfig.modPkt.DST_PORT .. ", ALL")
@@ -324,9 +346,6 @@ FeatureConfig.feature = {
   },
  
   action_return = {
-    settings = {
-      ignoreFirstDev = true;
-    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "actions=output:IN_PORT")
         end,
@@ -370,9 +389,8 @@ FeatureConfig.feature = {
     settings = {
       firstRxDev = 2,
     },
-    flowEntries = function(flowData, port)
-        if (not port) then return end
-        table.insert(flowData.flows, "actions=output:" .. tostring(port) .. "," .. tostring(port))
+    flowEntries = function(flowData, inPort, outPort)
+        table.insert(flowData.flows, "actions=output:" .. tostring(outPort) .. "," .. tostring(outPort))
         end,
     evalCrit = {
       ctrType       = "any",
@@ -381,6 +399,9 @@ FeatureConfig.feature = {
   },
 
   action_setfield = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.flows, "actions=set_field:" .. FeatureConfig.modPkt.SRC_MAC .. "->dl_src, ALL")
         end,
@@ -392,6 +413,9 @@ FeatureConfig.feature = {
   },
   
   action_group_all = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.groups, "group_id=1, type=all, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",ALL, bucket=mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
         table.insert(flowData.flows, "actions=group:1")
@@ -407,6 +431,9 @@ FeatureConfig.feature = {
   },
   
   action_group_indirect = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.groups, "group_id=1, type=indirect, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
         table.insert(flowData.flows, "actions=group:1")
@@ -419,6 +446,9 @@ FeatureConfig.feature = {
   },
   
   action_group_select = {
+    settings = {
+      firstRxDev = 2,
+    },
     flowEntries = function(flowData)
         table.insert(flowData.groups, "group_id=1, type=select, bucket=mod_nw_src=" .. FeatureConfig.modPkt.SRC_IP4 .. ",ALL, bucket=mod_nw_dst=" .. FeatureConfig.modPkt.DST_IP4 .. ",ALL")
         table.insert(flowData.flows, "actions=group:1")

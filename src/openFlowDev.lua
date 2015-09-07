@@ -56,6 +56,7 @@ end
 
 function OpenFlowDevice:installFlow(flow)
   local cmd = CommandLine.create("ovs-ofctl add-flow " .. self.target ..  "\"" .. flow .. "\"")
+  log_debug = (cmd:get())
   return cmd:execute(settings.config.cervose)
 end
 
@@ -67,6 +68,7 @@ end
 
 function OpenFlowDevice:installGroup(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
+  log_debug = (cmd:get())
   return cmd:execute(settings.config.cervose)
 end
 
@@ -78,6 +80,7 @@ end
 
 function OpenFlowDevice:installMeter(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
+  log_debug = (cmd:get())
   return cmd:execute(settings.config.cervose)
 end
 

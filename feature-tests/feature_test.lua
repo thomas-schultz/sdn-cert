@@ -49,7 +49,7 @@ function importSettings(name)
 end
 
 -- examines the packet counter and checks the packet. Returns test result string.
-function evaluate(featureName, rxPkts, rxCtrs)
+function evaluate(featureName, rxPkts, rxCtrs, ports)
   local eval = settings.config.evalCrit
   if (eval == nil) then
     return "Invalid or incomplete feature, check feature implementation" end
@@ -72,10 +72,10 @@ function evaluate(featureName, rxPkts, rxCtrs)
   local success = nil
   for i=settings.firstRxDev,#rxCtrs do
     local measuredCtr = select(4, rxCtrs[i]:getStats())
-    info = info .. i ..": " .. measuredCtr .. "/" .. desiredBatchSize .. "/" .. settings.threshold .. ", "
+    info = info .. ", " .. ports[i] ..": " .. measuredCtr .. "/" .. desiredBatchSize .. "/" .. settings.threshold 
     success = logicalOp(success, (math.abs(desiredBatchSize - measuredCtr) <= settings.threshold))
   end
-  if (success ~= true) then return "Packet counters exceeded threshold, [dev: rx/ref/thld] " .. info end
+  if (success ~= true) then return "Packet counters exceeded threshold [dev: rx/ref/thld]" .. info end
   if (eval.pktClassifier == nil) then return "passed" end
   
   --inspect received packets
@@ -274,7 +274,7 @@ end
 function featureRxSlave(featureName, rxDevs, ports)
   importSettings(featureName)
   local mempool = memory.createMemPool(function(buf)
-    fillPacket(buf, settings.pktSize, featureCfg.enum.PROTO.udp, ip6)
+    fillPacket(buf, settings.pktSize)
   end)
   local rxBuf = mempool:bufArray()
   local rxQueues = {}
@@ -306,5 +306,5 @@ function featureRxSlave(featureName, rxDevs, ports)
     rxCtrs[i]:finalize()
   end
   io.close(rxDump)
-  saveResult(featureName, evaluate(featureName, rxPkts, rxCtrs))
+  saveResult(featureName, evaluate(featureName, rxPkts, rxCtrs, ports))
 end
