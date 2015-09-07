@@ -92,15 +92,23 @@ function CommonTest.normalizeKey(key)
   return string.replaceAll(string.lower(key), "_", "")
 end
 
-function CommonTest.print(name, config)
-  show("  " .. name)
+function CommonTest.print(name, config, file)
   local t = {}
   for key,value in pairs(config) do
     table.insert(t,key)
   end
   table.sort(t)
-  for i,name in pairs(t) do
-    show(string.format("     %-20s = %s", name, tostring(config[name])))
+  if (file) then
+    local dump = io.open(file, "w")
+    dump:write(name .. "\n")
+    for i,name in pairs(t) do
+      dump:write(string.format("     %-20s = %s\n", name, tostring(config[name])))
+    end
+  else
+    show("  " .. name)
+    for i,name in pairs(t) do
+      show(string.format("     %-20s = %s", name, tostring(config[name])))
+    end
+    show()
   end
-  show()
 end

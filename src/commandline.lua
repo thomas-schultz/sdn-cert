@@ -74,7 +74,7 @@ SSHCommand = {}
 SSHCommand.__index = SSHCommand
 
 SSHCommand.errors = {
-  ["REMOTE HOST IDENTIFICATION HAS CHANGED"] = "Failed to execute ssh command, check your setup!",
+  ["REMOTE HOST IDENTIFICATION HAS CHANGED"] = "WARNING: Remote host identification has changed, check your ssh config!",
   ["No route to host"] = "Host is not responding, check connection, ip and port!"
 }
 

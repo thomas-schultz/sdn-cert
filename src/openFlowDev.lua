@@ -1,7 +1,6 @@
 OpenFlowDevice = {}
 OpenFlowDevice.__index = OpenFlowDevice
 
-package.path = package.path .. ';feature-tests/?.lua'
 
 function OpenFlowDevice.create(ip, port, version)
   local self = setmetatable({}, OpenFlowDevice)
@@ -61,7 +60,7 @@ function OpenFlowDevice:installFlow(flow)
 end
 
 function OpenFlowDevice:installFlows(file)
-  if (not absfileExists(file)) then print_err("Cannot add flows, no such file: '" .. file .. "'") return end
+  if (not absfileExists(file)) then printlog_err("Cannot add flows, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-flows " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose)
 end
@@ -72,7 +71,7 @@ function OpenFlowDevice:installGroup(group)
 end
 
 function OpenFlowDevice:installGroups(file)
-  if (not absfileExists(file)) then print_err("Cannot add groups, no such file: '" .. file .. "'") return end
+  if (not absfileExists(file)) then printlog_err("Cannot add groups, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-groups " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose)
 end
@@ -83,16 +82,16 @@ function OpenFlowDevice:installMeter(group)
 end
 
 function OpenFlowDevice:installMeters(file)
-  if (not absfileExists(file)) then print_err("Cannot add meters, no such file: '" .. file .. "'") return end
+  if (not absfileExists(file)) then printlog_err("Cannot add meters, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-meters " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose)
 end
 
 function OpenFlowDevice:installAllFiles(file, dump)
   local ret = ""
-  if (compareVersion("OpenFlow13", self.version) >= 0) then
+  if (compareVersion("OpenFlow13", self.version) >= 0 and absfileExists(file .. ".meters")) then
     ret = ret .. "install meters file:\n" .. self:installMeters(file .. ".meters") .. "\n" end
-  if (compareVersion("OpenFlow11", self.version) >= 0) then
+  if (compareVersion("OpenFlow11", self.version) >= 0 and absfileExists(file .. ".groups")) then
     ret = ret .. "install group file:\n" ..  self:installGroups(file .. ".groups") .. "\n" end
   ret = ret .. "install flow file:\n" .. self:installFlows(file .. ".flows") .. "\n"
   if (not dump) then return ret end
@@ -126,10 +125,22 @@ end
 
 function OpenFlowDevice:createAllFiles(flowData, file)
   self:createFlowFile(flowData.flows, file)
-  if (flowData.groups and compareVersion("OpenFlow11", self.version) >= 0) then
+  if (#flowData.groups > 0 and compareVersion("OpenFlow11", self.version) >= 0) then
     self:createGroupFile(flowData.groups, file) end
-  if (flowData.meters and compareVersion("OpenFlow13", self.version) >= 0) then
+  if (#flowData.meters > 0 and compareVersion("OpenFlow13", self.version) >= 0) then
     self:createMeterFile(flowData.meters, file) end
+end
+
+function OpenFlowDevice:getBenchmarkFlows(name, ...)
+  local benchConf = require "benchmark_config"
+  local flowData = {flows  = {}, groups = {}, meters = {} }
+  local addflows = benchConf[name]
+  if (not addflows) then
+    printlog_err("Failed to create flow entries for test '" .. name .. "'")
+  else
+      addflows(flowData, ...) 
+  end
+  return flowData
 end
 
 function OpenFlowDevice:getFeatureFlows(name, ...)

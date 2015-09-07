@@ -6,8 +6,8 @@ global = {}
   global.configFile       = "settings.cfg"
   global.featureList      = "feature_list.cfg"
   global.featureFile      = "features.cfg"
-  global.benchmarkFolder  = "benchmark-configs"
-  global.benchmarkFiles   = "benchmark-files"
+  global.benchmarkCfgs    = "benchmark-configs"
+  global.benchmarkFolder  = "benchmark-files"
   global.featureFolder    = "feature-tests"
   global.tempdir          = "/tmp"
   
@@ -76,3 +76,5 @@ global = {}
         # physical phyLinks between switch and load-generator
         Links = switch-MoonGen
   ]]
+  
+  return global

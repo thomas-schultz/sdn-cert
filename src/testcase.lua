@@ -29,19 +29,20 @@ function TestCase:readConfig(cfg)
     self.disabled = true
     return
   end
-  self.cfg_file = global.benchmarkFolder .. "/" .. self:getName() .. global.cfgFiletype
-  if (not localfileExists(self.cfg_file)) then
-    printlog_warn("Skipping test, config file not found '" .. self:getName() .. global.filetype .. "'")
+  self.cfgFile = global.benchmarkFolder .. "/" .. self:getName() .. global.cfgFiletype
+  if (not localfileExists(self.cfgFile)) then
+    printlog_warn("Skipping test, config file not found '" .. self.cfgFile .. "'")
     self.disabled = true 
+    return
   end
-  local fh = io.open(self.cfg_file)
+  local fh = io.open(self.cfgFile)
   while true do
     local line = fh:read()
-    if line == nil then break end
+    if (line == nil) then break end
     local comment = string.find(line, global.ch_comment)
     if not comment then
       local split = string.find(line, global.ch_equal)
-      if split then
+      if (split) then
         local k = string.trim(string.sub(line, 1, split-1))
         k = string.lower(string.replaceAll(k, "_", ""))
         local v = string.trim(string.sub(line, split+1, -1))
@@ -53,7 +54,7 @@ function TestCase:readConfig(cfg)
   CommonTest.readInPrepArgs(self)
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
-  CommonTest.readInFiles(self, global.benchmarkFiles, "Skipping test")
+  CommonTest.readInFiles(self, global.benchmarkFolder, "Skipping test")
   CommonTest.setSwitch(self)
   CommonTest.setLinks(self)
 end
@@ -73,6 +74,10 @@ end
 
 function TestCase:setId(id)
   self.config.id = id 
+end
+
+function TestCase:getId()
+  return self.config.id
 end
 
 function TestCase:get(key)
@@ -106,7 +111,7 @@ function TestCase:getPrepareCommand()
 end
 
 function TestCase:getOfArgs()
-  return self.of_args
+  return CommonTest.getArgs(self.of_args, self.config, true)
 end
 
 function TestCase:getLoadGen()
@@ -121,6 +126,6 @@ function TestCase:getLgArgs()
   return CommonTest.getArgs(self.lg_args, self.config)
 end
 
-function TestCase:print()
-  CommonTest.print(self:getName(), self.config)
+function TestCase:print(dump)
+  CommonTest.print(self:getName(), self.config, dump)
 end

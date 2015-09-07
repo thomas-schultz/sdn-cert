@@ -7,13 +7,16 @@ require "benchmark"
 require "commandline"
 require "commonTest"
 require "feature"
-require "globConst"
 require "logger"
 require "openFlowDev"
 require "settings"
 require "setup"
 require "testcase"
 require "tools"
+global = require "globConst"
+
+package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
+package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
 
 settings = nil
 debug_mode = false

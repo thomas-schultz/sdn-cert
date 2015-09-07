@@ -80,8 +80,8 @@ FeatureConfig.feature = {
 
   match_inport = {
     settings = {
-      txDevs  = 0,
-      txSteps = 0,
+      txDevs  = -1,
+      txSteps = -1,
     },
     flowEntries = function(flowData, ...)
         if (not ...) then return end

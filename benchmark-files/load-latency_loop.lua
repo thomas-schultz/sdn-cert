@@ -17,12 +17,15 @@ local SRC_PORT  = 1234
 local DST_PORT  = 1234
 
 
-function master(testId, txPort, rxPort, duration, rate, numIP, size)
+function master(testId, txPort, rxPort, duration, rate, numIP, size, ...)
   if not tonumber(testId) or not tonumber(txPort) or not tonumber(rxPort) or not tonumber(duration) or
      not tonumber(size) or not tonumber(rate) or not tonumber(numIP) then
-    print("usage: testId txDev rxDev duration size rate numIP")
+    print("usage: testId txDev rxDev duration size rate numIP [loops match]")
     return
   end
+  local loops, match = (...)
+  loops = loops or 1
+  match = match or "wol" 
   local txDev = device.config{
     port = txPort,
     rxQueues = 1,
@@ -35,9 +38,17 @@ function master(testId, txPort, rxPort, duration, rate, numIP, size)
   }
   device.waitForLinks()
   txDev:getTxQueue(0):setRate(rate - (size + 4) * 8 / 1000)
-  dpdk.launchLua("loadSlave", testId, txDev:getTxQueue(0), rxDev, size, numIP, duration, rate)
-  dpdk.launchLua("timerSlave", testId, txDev:getTxQueue(1), rxDev:getRxQueue(1), size, numIP, duration)
-  dpdk.waitForSlaves()
+  for i=1,loops do
+    local id = string.format("%d_%0" .. math.ceil(math.log10(loops+1)) .. "d", testId, i)
+    dpdk.launchLua("loadSlave", id, txDev:getTxQueue(0), rxDev, size, numIP, duration, rate)
+    dpdk.launchLua("timerSlave", id, txDev:getTxQueue(1), rxDev:getRxQueue(1), size, numIP, duration)
+    dpdk.waitForSlaves()
+    dpdk.launchLua("nextSlave", txDev:getTxQueue(0), match)
+    print("waiting for next iteration")
+    dpdk.waitForSlaves()
+    dpdk.sleepMillis(5000)
+    numIP = numIP * 2
+  end
 end
 
 local function fillUdpPacket(buf, len)

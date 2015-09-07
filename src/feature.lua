@@ -67,8 +67,8 @@ function Feature:runTest()
   local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
-  local flowDate = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
-  ofDev:createAllFiles(flowDate, path)
+  local flowData = ofDev:getFeatureFlows(self:getName(), unpack(self:getOfArgs()))
+  ofDev:createAllFiles(flowData, path)
   if (not settings.config.simulate) then
     ofDev:installAllFiles(path, "_ovs.output")
     ofDev:dumpAll(path .. ".before")
@@ -143,6 +143,6 @@ function Feature:getLgArgs()
   return CommonTest.getArgs(self.lg_args, self.config)
 end
 
-function Feature:print()
-  CommonTest.print(self:getName(), self.config)
+function Feature:print(dump)
+  CommonTest.print(self:getName(), self.config, dump)
 end

@@ -15,15 +15,22 @@ end
 
 -- read in the benchmark configuration
 function Benchmark:readConfig(config)
-  if settings.config.testfeature then return end
+  if (settings.config.testfeature) then return end
+  print(config)
   local fh = io.open(config)
   while true do
     local line = fh:read()
-    if line == nil then break end
-    if (not (string.sub(line, 1,1) == global.ch_comment) and #line > 0 ) then
-      local test = TestCase.create(line)
-      table.insert(self.testcases, test)
-      log_debug("added testcase " .. line)
+    if (not line) then break end
+    line = string.trim(line)
+    if (not (string.sub(line, 1,1) == global.ch_comment)) then
+      if (#line > 0 and string.sub(line, 1,7) == "include") then
+        local include = string.trim(string.sub(line, 8,-1))
+        self:readConfig(include .. global.cfgFiletype)
+      elseif (#line > 0) then
+        local test = TestCase.create(line)
+        table.insert(self.testcases, test)
+        log_debug("added testcase " .. line)
+      end
     end
   end
   io.close(fh)
@@ -170,17 +177,17 @@ function Benchmark:testFeatures()
 end
 
 function Benchmark:prepare()
-  if settings.config.testfeature then return end
+  if (settings.config.testfeature) then return end
   local testcases = {}
   for id,test in pairs(self.testcases) do
     printlog("Preparing test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
     test:checkFeatures(self)
-    if (not test:doSkip()) then
+    if (not test:doSkip() or settings.config.simulate) then
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
         showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
         local cmd = SCPCommand.create()
-        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFiles .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
+        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
         cmd:execute(settings.config.verbose)
       end
       table.insert(testcases, test)
@@ -193,7 +200,7 @@ function Benchmark:prepare()
 end
 
 function Benchmark:run()
-  if settings.config.testfeature then return end
+  if (settings.config.testfeature) then return end
   if (self:checkExit()) then printlog("No test left") end
   for id,test in pairs(self.testcases) do
     printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
@@ -201,29 +208,36 @@ function Benchmark:run()
     if (settings.config.verbose) then test:print() end
     if (test:getPrepareScript()) then
       showIndent("preparing OpenFlow script (~5 sec)")
-      local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmarkFiles .. "/" .. test:getPrepareCommand())
+      local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. test:getPrepareCommand())
       cmd:execute(settings.config.verbose)
     end
     -- configure open-flow device
+    showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)")
+    local path = settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId()
+    test:print(path .. "_" .. test:getName() .. ".cfg")
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
     ofDev:reset()
-    -- TODO
-    
-    showIndent("Waiting for job to be finished")
-    if (not settings.config.simulate) then sleep(global.timeout) end
-    -- start loadgen
-    local duration = test:getDuration()
-    if (duration) then
-      local loops = test:getLoopCount() or 1
-      duration = " (measuring for " .. loops .. "x " .. duration .. " sec)"
-    else
-      duration = " (unknown duration)"
+    local flowData = ofDev:getBenchmarkFlows(test:getName(), unpack(test:getOfArgs()))
+    ofDev:createAllFiles(flowData, path)
+    if (not settings.config.simulate) then
+      ofDev:installAllFiles(path, "_ovs.output")
+      ofDev:dumpAll(path .. ".before")
+      sleep(global.timeout)
     end
+    
+    -- start loadgen
+    local duration = test:getDuration() or "?"
+    duration = " (measuring for " .. duration .. " sec)"
     showIndent("Starting measurement" .. duration)
+    local lgDump = io.open(path .. "_loadgen.output", "w")
     local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
     cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
     cmd:addCommand("./" .. test:getLoadGen() .. " " .. test:getLgArgs())
-    cmd:execute(settings.config.verbose)
+    if (not settings.config.simulate) then
+      lgDump:write(cmd:execute(settings.config.verbose))
+      ofDev:dumpAll(path .. ".after")
+    end
+    io.close(lgDump)
     log("done")
   end
   log("Step complete")
