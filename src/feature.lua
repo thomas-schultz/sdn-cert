@@ -41,6 +41,7 @@ function Feature:readConfig(configFile)
     printlog_warn("Disabled feature '" .. self:getName() .. "', version is '" .. settings:get(global.ofVersion) .. "' but '" .. self.config[global.requires] .. "' is required")
     self.disabled = true
   end
+  self.state = self.config.state or global.featureState.undefined
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
   CommonTest.readInFiles(self, global.featureFolder, "Disabled feature")
@@ -121,6 +122,14 @@ function Feature:getStatus()
   else
     return "Test failed (" .. self.reason .. ")"
  end
+end
+
+function Feature:getOfVersion()
+  return self.config[global.requires]
+end
+
+function Feature:getState()
+  return self.state
 end
 
 function Feature:isSupported()

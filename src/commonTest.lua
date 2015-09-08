@@ -24,7 +24,7 @@ end
 function CommonTest.checkLinkCount(feature, arg)
   local con_count = tonumber(select(2, string.getKeyValue(arg)))
   if (con_count and con_count > #settings.ports) then
-    printlog_warn("Disabled feature '" .. feature:getName() .. "', not enough phyLinks: " .. tostring(con_count) .. " of " .. tostring(#settings.ports))
+    printlog_warn("Disabled feature '" .. feature:getName() .. "', not enough links: " .. tostring(con_count) .. " of " .. tostring(#settings.ports))
     feature.disabled = true
   end
 end

@@ -1,4 +1,4 @@
---Feature config file
+--Feature configuration file
 
 FeatureConfig = {}
 
@@ -286,13 +286,13 @@ FeatureConfig.feature = {
       firstRxDev = 2,
     },
     flowEntries = function(flowData)
-        table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
-        table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
+        table.insert(flowData.flows, "ip, actions=mod_nw_ttl=" .. FeatureConfig.modPkt.TTL .. ", ALL")
+        table.insert(flowData.flows, "ipv6, actions=mod_nw_ttl=" .. FeatureConfig.modPkt.TTL .. ", ALL")
         end,
     evalCrit = {
       ctrType       = "any",
       desiredCtr    = 1,
-      pktClassifier = function(pkt) return (pkt.ttl == FeatureConfig.orgPkt.TTL - 1) end,
+      pktClassifier = function(pkt) return (pkt.ttl == FeatureConfig.modPkt.TTL) end,
     }      
   },
   
@@ -342,6 +342,21 @@ FeatureConfig.feature = {
       ctrType       = "any",
       desiredCtr    = 2,
       pktClassifier = function(pkt) return (pkt.src_port == FeatureConfig.modPkt.SRC_PORT and pkt.dst_port == FeatureConfig.modPkt.DST_PORT) end,
+    }      
+  },
+  
+  action_dec_ttl = {
+    settings = {
+      firstRxDev = 2,
+    },
+    flowEntries = function(flowData)
+        table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
+        table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
+        end,
+    evalCrit = {
+      ctrType       = "any",
+      desiredCtr    = 1,
+      pktClassifier = function(pkt) return (pkt.ttl == FeatureConfig.orgPkt.TTL - 1) end,
     }      
   },
  
@@ -398,7 +413,7 @@ FeatureConfig.feature = {
     }      
   },
 
-  action_setfield = {
+  action_set_field = {
     settings = {
       firstRxDev = 2,
     },

@@ -53,6 +53,13 @@ global = {}
   global.ch_equal   = "="
   global.ch_connect = "-"
   
+  global.featureState = {
+    required    = "required",
+    optional    = "optional",
+    recommended = "recommended",
+    undef       = "undefined",
+  }
+  
   
   global.default_cfg = [[
         # settings file

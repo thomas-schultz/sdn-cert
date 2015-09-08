@@ -67,7 +67,7 @@ function Benchmark:getFeatures()
     if line == nil then break end
     if (not (string.sub(line, 1,1) == global.ch_comment) and string.len(line) > 0 ) then
       local feature = Feature.create(line)
-      if not feature:doSkip() then
+      if (not feature:doSkip()) then
         self.features[line] = feature
         self.feature_count = self.feature_count + 1
         table.insert(self.featureList, self.feature_count, feature)    
@@ -262,9 +262,13 @@ function Benchmark:summary()
     if (self.feature_count == 0) then
       print("No features tested")
     else
+      local compliance = true;
       for i,feature in pairs(self.featureList) do
-        show(string.format("Feature   %-22s %10s", feature:getName(), feature:getStatus()))
+        show(string.format("Feature:   %-22s %-22s %s", feature:getName(), feature:getState()..",".. feature:getOfVersion(), feature:getStatus()))
+        compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
       end
+      if (compliance) then printlog("\nTestdevice is " .. settings.config[global.ofVersion] .. " compliant!")
+      else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion]) end
       printBar()
     end
   end

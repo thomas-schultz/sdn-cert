@@ -148,11 +148,10 @@ end
 
 function OpenFlowDevice:getFeatureFlows(name, ...)
   local featureConf = require "feature_config"
-  local config = featureConf.feature[name]
   local flowData = {flows  = {}, groups = {}, meters = {} }
-  local addflows = config.flowEntries
+  local addflows = featureConf.feature[name].flowEntries
   if (not addflows) then
-    printlog_err("Failed to create flow entries for feature test '" .. name .. "'")
+    printlog_err("Failed to create flow entries for feature test '" .. name .. "', check feature_config.lua")
     return flowData
   end
   addflows(flowData, ...)

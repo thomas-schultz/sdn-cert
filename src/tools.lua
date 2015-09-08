@@ -114,7 +114,7 @@ end
 
 -- prints a bar to the command line
 function printBar()
-  print("---------------------------------------------------------")
+  print(string.rep("-", 80))
 end
 
 function sleep(n)
