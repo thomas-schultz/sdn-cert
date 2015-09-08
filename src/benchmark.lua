@@ -128,7 +128,7 @@ end
 
 function Benchmark:cleanUp()
   printBar()
-  printlog("Cleaning up testing system")
+  printlog("Cleaning up testing system", global.headline1)
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd))
   cmd:addCommand("mkdir -p " .. global.results)
@@ -156,9 +156,9 @@ function Benchmark:testFeatures()
     printlog("No features to test")
   end
   for i,feature in pairs(self.featureList) do
-    printlog("Testing feature ( " .. i .. " / " .. self.feature_count .. " ): " .. feature:getName())
+    printlog("Testing feature ( " .. i .. " / " .. self.feature_count .. " ): " .. feature:getName(), global.headline1)
     feature:runTest()
-    if not settings.config.simulate then showIndent(feature:getStatus()) end
+    if (not settings.config.simulate) then showIndent(feature:getStatus(), 1) end
   end
   log("Step complete")
   if (settings.config.testfeature) then
@@ -180,12 +180,12 @@ function Benchmark:prepare()
   if (settings.config.testfeature) then return end
   local testcases = {}
   for id,test in pairs(self.testcases) do
-    printlog("Preparing test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
+    printlog("Preparing test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(), global.headline1)
     test:checkFeatures(self)
     if (not test:doSkip() or settings.config.simulate) then
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
-        showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
+        showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1)
         local cmd = SCPCommand.create()
         cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
         cmd:execute(settings.config.verbose)
@@ -203,16 +203,16 @@ function Benchmark:run()
   if (settings.config.testfeature) then return end
   if (self:checkExit()) then printlog("No test left") end
   for id,test in pairs(self.testcases) do
-    printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
+    printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(), global.headline1)
     test:setId(id)
     if (settings.config.verbose) then test:print() end
     if (test:getPrepareScript()) then
-      showIndent("preparing OpenFlow script (~5 sec)")
+      showIndent("preparing OpenFlow script (~5 sec)", 1)
       local cmd = CommandLine.create(settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. test:getPrepareCommand())
       cmd:execute(settings.config.verbose)
     end
     -- configure open-flow device
-    showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)")
+    showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline1)
     local path = settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId()
     test:print(path .. "_" .. test:getName() .. ".cfg")
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
@@ -228,7 +228,7 @@ function Benchmark:run()
     -- start loadgen
     local duration = test:getDuration() or "?"
     duration = " (measuring for " .. duration .. " sec)"
-    showIndent("Starting measurement" .. duration)
+    showIndent("Starting measurement" .. duration, 1, global.headline1)
     local lgDump = io.open(path .. "_loadgen.output", "w")
     local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
     cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
@@ -247,7 +247,7 @@ end
 function Benchmark:collect()
   if (settings.config.testfeature or self:checkExit()) then return end
   for id,test in pairs(self.testcases) do
-    printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName())
+    printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(), global.headline1)
     local cmd = SCPCommand.create()
     cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
     cmd:execute(settings.config.verbose)
@@ -264,12 +264,12 @@ function Benchmark:summary()
     else
       local compliance = true;
       for i,feature in pairs(self.featureList) do
-        show(string.format("Feature:   %-22s %-22s %s", feature:getName(), feature:getState()..",".. feature:getOfVersion(), feature:getStatus()))
+        show(string.format("Feature:   ".. ColorCode.white .. "%-22s" .. ColorCode.normal .. "%-22s %s", feature:getName(), feature:getState()..",".. feature:getOfVersion(), feature:getStatus()))
         compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
       end
       if (not settings.config.testfeature) then
-        if (compliance) then printlog("\nTestdevice is " .. settings.config[global.ofVersion] .. " compliant!")
-        else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion]) end
+        if (compliance) then printlog("\nTestdevice is " .. settings.config[global.ofVersion] .. " compliant!", "lgreen")
+        else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], "lred") end
       end
       printBar()
     end

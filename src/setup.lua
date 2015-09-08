@@ -13,7 +13,7 @@ local string_matches = {
   }
 
 function acrhiveResults()
-  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive)
+  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive, global.headline1)
   local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
   cmd:execute()
   local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. global.results .. "_`date +%Y%m%d_%H%M%S`.tar " .. settings.config.localPath .. "/" .. global.results .. "/*")
@@ -48,13 +48,13 @@ function initMoongen()
   local ret = cmd:execute(settings.config.verbose)
   if (settings.config.simulate) then exit() end
   if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
-  else printlog("Failed to initialize MoonGen") log_debug(ret) end  
+  else printlog("Failed to initialize MoonGen", "red") log_debug(ret) end  
   exit()
 end
 
 function checkOpenFlow()
   printBar()
-  printlog("Checking test setup")
+  printlog("Checking test setup", global.headline1)
   local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.switchIP) .. ":" .. settings:get(global.switchPort))
   local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end

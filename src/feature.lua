@@ -41,7 +41,7 @@ function Feature:readConfig(configFile)
     printlog_warn("Disabled feature '" .. self:getName() .. "', version is '" .. settings:get(global.ofVersion) .. "' but '" .. self.config[global.requires] .. "' is required")
     self.disabled = true
   end
-  self.state = self.config.state or global.featureState.undefined
+  self.state = self.config[global.state] or global.featureState.undefined
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
   CommonTest.readInFiles(self, global.featureFolder, "Disabled feature")
@@ -58,13 +58,13 @@ function Feature:runTest()
   -- copying
   local files = self:getLoadGenFiles()
   for i,file in pairs(files) do
-    showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")")
+    showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
     local cmd = SCPCommand.create()
     cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.featureFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
-  showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)")
+  showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
   local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
@@ -77,7 +77,7 @@ function Feature:runTest()
   end
   
   -- start loadgen
-  showIndent("Starting feature test (~10 sec)")
+  showIndent("Starting feature test (~10 sec)", 1, global.headline2)
   local lgDump = io.open(path .. "_loadgen.output", "w")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
@@ -89,7 +89,7 @@ function Feature:runTest()
   io.close(lgDump)
   
   -- check result
-  showIndent("Fetching data and checking result")
+  showIndent("Fetching data and checking result", 1, global.headline2)
   local cmd = SCPCommand.create()
   cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
   cmd:execute(settings.config.verbose)
@@ -117,9 +117,9 @@ end
 
 function Feature:getStatus()
   if self:isSupported() then
-    return "Test passed"
+    return ColorCode.lgree .. "Test passed" .. ColorCode.normal
   else
-    return "Test failed (" .. self.reason .. ")"
+    return ColorCode.lgree .. "Test failed" .. ColorCode.normal .. "(" .. self.reason .. ")"
  end
 end
 

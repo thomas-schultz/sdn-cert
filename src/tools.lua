@@ -118,7 +118,7 @@ end
 
 -- prints a bar to the command line
 function printBar()
-  print(string.rep("-", 80))
+  print(ColorCode.lyellow .. string.rep("-", 80) .. ColorCode.normal)
 end
 
 function sleep(n)

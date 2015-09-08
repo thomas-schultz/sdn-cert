@@ -68,7 +68,9 @@ FeatureConfig.feature = {
       timeout = 2,            -- timeout in seconds until the receiving device stops
       txDevs = 1,             -- number of transmitting devices, <= 0 means all available
       txSteps = 1,            -- number of sending steps, modifyPkt is called after each, <= 0 sets it equal to txDevs
-      firstRxDev = 1,          -- sets the first receive device (starts with 1), to make these only tx devices
+      firstRxDev = 1,         -- sets the first receive device (starts with 1), to make these only tx devices
+      learnTime = 500,        -- time in milliseconds, where learning packets are generated and discarded by the receiver
+      learnPkts = 2,          -- number of packets, that will be generated for learning
     },
     -- default flow rule if nothing else matches
     flowEntries = function(flowData)

@@ -3,6 +3,9 @@ Global.__index = Global
 
 global = {}
 
+  global.headline1 = "bold"
+  global.headline2 = "white"
+
   global.configFile       = "settings.cfg"
   global.featureList      = "feature_list.cfg"
   global.featureFile      = "features.cfg"
@@ -46,13 +49,14 @@ global = {}
   global.lgArgs          = "lgargs"
   global.copy_files      = "files"
   global.link            = "link"
+  global.state           = "state"
   
   --special characters
   global.ch_var     = "%$"
   global.ch_comment = "#"
   global.ch_equal   = "="
   global.ch_connect = "-"
-  
+ 
   global.featureState = {
     required    = "required",
     optional    = "optional",

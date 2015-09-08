@@ -109,6 +109,5 @@ function CommonTest.print(name, config, file)
     for i,name in pairs(t) do
       show(string.format("     %-20s = %s", name, tostring(config[name])))
     end
-    show()
   end
 end

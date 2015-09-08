@@ -226,30 +226,39 @@ function featureTxSlave(featureName, txDevs, ports)
   local txQueues = {}
   local txCtrs = {}
   
-  -- check which number of txDevs should be used
+  -- check which number of txDevs should be used and how many steps
   local txDevNum = settings.txDevs
   if (txDevNum <= 0) then txDevNum = #txDevs end
-  for i=1,txDevNum do
-    txQueues[i] = txDevs[i]:getTxQueue(0) 
-    txCtrs[i] = stats:newDevTxCounter(txDevs[i], "plain")
-  end
-  local txDump = io.open("../results/feature_" .. featureName .. "_tx.dump", "w")
-  
   local txSteps = settings.txSteps
   if (txSteps <= 0) then txSteps = #txDevs end
+  
+  for i=1,txDevNum do txQueues[i] = txDevs[i]:getTxQueue(0) end
+  local txDump = io.open("../results/feature_" .. featureName .. "_tx.dump", "w")
+
+  -- send learning packet for the switch
+  featureCfg.createPkt()
+  for n=1,txSteps do
+    local ip6 = settings.ip6 ~= nil and settings.ip6 == true 
+    local mempool = memory.createMemPool(function(buf)
+        fillPacket(buf, settings.pktSize, featureCfg.pkt.PROTO, ip6)
+      end)
+    local learnBuf = mempool:bufArray(settings.learnPkts or 2)
+    learnBuf:alloc(settings.pktSize)
+    txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(learnBuf)
+    local modifyPkt = settings.config.modifyPkt
+    if (modifyPkt) then modifyPkt(n) end
+  end
+  dpdk.sleepMillis(settings.learnTime)
+
+  -- start actual feature traffic
   featureCfg.createPkt()
   local id = 0
   for n=1,txSteps do
     local ip6 = settings.ip6 ~= nil and settings.ip6 == true 
     local mempool = memory.createMemPool(function(buf)
         fillPacket(buf, settings.pktSize, featureCfg.pkt.PROTO, ip6)
-      end) 
-    
-    -- send learning packet for the switch
-    local learnBuf = mempool:bufArray(2)
-    learnBuf:alloc(settings.pktSize)
-    txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(learnBuf)
-    dpdk.sleepMillis(1000)   
+      end)    
+    txCtrs[FeatureConfig.pkt.TX_DEV_ID] = stats:newDevTxCounter(txDevs[FeatureConfig.pkt.TX_DEV_ID], "plain") 
       
     -- start actual feature traffic
     local txBuf = mempool:bufArray(settings.bufSize)
@@ -269,11 +278,9 @@ function featureTxSlave(featureName, txDevs, ports)
       txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(txBuf)
     end
     local modifyPkt = settings.config.modifyPkt
-    if (modifyPkt) then modifyPkt() end
-  end   
-  for i=1,txDevNum do
-    txCtrs[i]:finalize()
-  end 
+    if (modifyPkt) then modifyPkt(n) end
+    txCtrs[FeatureConfig.pkt.TX_DEV_ID]:finalize()
+  end
   io.close(txDump)
 end
 
@@ -284,18 +291,23 @@ function featureRxSlave(featureName, rxDevs, ports)
     fillPacket(buf, settings.pktSize)
   end)
   local rxBuf = mempool:bufArray()
-  local rxQueues = {}
-  
   local firstRxDev = settings.firstRxDev or 1
+  local rxQueues = {}
   local rxCtrs = {}
-  for i=firstRxDev,#rxDevs do
-    rxQueues[i] = rxDevs[i]:getRxQueue(0) 
-    rxCtrs[i] = stats:newDevRxCounter(rxDevs[i], "plain")
-  end
+  for i=firstRxDev,#rxDevs do rxQueues[i] = rxDevs[i]:getRxQueue(0) end 
+  
+  --wait until the learning packets are received and discarded
+  local learnBuf = mempool:bufArray()
+  dpdk.sleepMillis(settings.learnTime)
+  for i=settings.firstRxDev,#rxDevs do rxQueues[i]:tryRecv(learnBuf, 0) end
+  
+  -- initialize the counters and stuff
+  for i=firstRxDev,#rxDevs do rxCtrs[i] = stats:newDevRxCounter(rxDevs[i], "plain") end
   local timeout = dpdk.getTime() + settings.timeout
   local rxPkts = {}
   local rxDump = io.open("../results/feature_" .. featureName .. "_rx.dump", "w")
   
+  -- start actual receiving
   while dpdk.running() do
     for i=settings.firstRxDev,#rxDevs do
       local rx = rxQueues[i]:tryRecv(rxBuf, 0)
