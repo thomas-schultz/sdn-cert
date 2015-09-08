@@ -119,7 +119,7 @@ function Feature:getStatus()
   if self:isSupported() then
     return ColorCode.lgree .. "Test passed" .. ColorCode.normal
   else
-    return ColorCode.lgree .. "Test failed" .. ColorCode.normal .. "(" .. self.reason .. ")"
+    return ColorCode.lred .. "Test failed" .. ColorCode.normal .. " (" .. self.reason .. ")"
  end
 end
 

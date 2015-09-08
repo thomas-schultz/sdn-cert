@@ -276,10 +276,10 @@ function featureTxSlave(featureName, txDevs, ports)
         txBuf:offloadTcpChecksums(not ip6)
       end
       txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(txBuf)
+      txCtrs[FeatureConfig.pkt.TX_DEV_ID]:finalize()
     end
     local modifyPkt = settings.config.modifyPkt
     if (modifyPkt) then modifyPkt(n) end
-    txCtrs[FeatureConfig.pkt.TX_DEV_ID]:finalize()
   end
   io.close(txDump)
 end

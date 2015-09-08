@@ -1,0 +1,77 @@
+EAL: Detected lcore 0 as core 0 on socket 0
+EAL: Detected lcore 1 as core 1 on socket 0
+EAL: Detected lcore 2 as core 2 on socket 0
+EAL: Detected lcore 3 as core 3 on socket 0
+EAL: Detected lcore 4 as core 0 on socket 0
+EAL: Detected lcore 5 as core 1 on socket 0
+EAL: Detected lcore 6 as core 2 on socket 0
+EAL: Detected lcore 7 as core 3 on socket 0
+EAL: Support maximum 64 logical core(s) by configuration.
+EAL: Detected 8 lcore(s)
+EAL: Setting up memory...
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7f46e4e00000 (size = 0x200000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7f46e4a00000 (size = 0x200000)
+EAL: Ask a virtual area of 0xe000000 bytes
+EAL: Virtual area found at 0x7f46caa00000 (size = 0xe000000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7f46e4600000 (size = 0x200000)
+EAL: Ask a virtual area of 0x31800000 bytes
+EAL: Virtual area found at 0x7f4699000000 (size = 0x31800000)
+EAL: Ask a virtual area of 0x200000 bytes
+EAL: Virtual area found at 0x7f46e4200000 (size = 0x200000)
+EAL: Requesting 512 pages of size 2MB from socket 0
+EAL: TSC frequency is ~2500017 KHz
+EAL: Master core 0 is ready (tid=e7c9e8c0)
+EAL: Core 7 is ready (tid=e11f9700)
+EAL: Core 6 is ready (tid=e19fa700)
+EAL: Core 5 is ready (tid=e21fb700)
+EAL: Core 4 is ready (tid=e29fc700)
+EAL: Core 3 is ready (tid=e31fd700)
+EAL: Core 2 is ready (tid=e39fe700)
+EAL: Core 1 is ready (tid=e41ff700)
+EAL: PCI device 0000:01:00.0 on NUMA socket -1
+EAL:   probe driver: 8086:1528 rte_ixgbe_pmd
+EAL:   0000:01:00.0 not managed by VFIO driver, skipping
+EAL:   PCI memory mapped at 0x7f46e5c03000
+EAL:   PCI memory mapped at 0x7f46e7c63000
+EAL: PCI device 0000:01:00.1 on NUMA socket -1
+EAL:   probe driver: 8086:1528 rte_ixgbe_pmd
+EAL:   0000:01:00.1 not managed by VFIO driver, skipping
+EAL:   PCI memory mapped at 0x7f46e4c00000
+EAL:   PCI memory mapped at 0x7f46e7c5f000
+Found 2 usable devices:
+   Device 0: A0:36:9F:66:DA:30 (Ethernet Controller 10-Gigabit X540-AT2)
+   Device 1: A0:36:9F:66:DA:32 (Ethernet Controller 10-Gigabit X540-AT2)
+Waiting for devices to come up...
+Device 0 (A0:36:9F:66:DA:30) is up: full-duplex 1000 MBit/s
+Device 1 (A0:36:9F:66:DA:32) is up: full-duplex 1000 MBit/s
+2 devices are up.
+WARNING: rates with a payload rate >= 64/84% do not work properly with small packets due to a hardware bug, see documentation for details
+[Device: id=0] Sent 844515 packets, current rate 0.84 Mpps, 864.74 MBit/s, 999.85 MBit/s wire rate.
+[Device: id=1] Received 843203 packets, current rate 0.84 Mpps, 863.37 MBit/s, 998.27 MBit/s wire rate.
+Warning: failed to timestamp packet on transmission
+[Device: id=0] Sent 1689173 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 1687849 packets, current rate 0.84 Mpps, 864.89 MBit/s, 1000.03 MBit/s wire rate.
+[Device: id=0] Sent 2533839 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 2532518 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 3378473 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 3377152 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 4223141 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 4221828 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 5067810 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 5066493 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 5912474 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 5911151 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 6757142 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 6755828 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=0] Sent 7601778 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.02 MBit/s wire rate.
+[Device: id=1] Received 7600500 packets, current rate 0.84 Mpps, 864.88 MBit/s, 1000.01 MBit/s wire rate.
+[Device: id=0] Sent 8447117 packets with 1081230976 bytes payload (including CRC).
+[Device: id=0] Sent 0.844611 (StdDev 0.000002) Mpps, 864.881726 (StdDev 0.001622) MBit/s, 1000.019496 (StdDev 0.001875) MBit/s wire rate on average.
+[Device: id=1] Received 8447217 packets with 1081243776 bytes payload (including CRC).
+[Device: id=1] Received 0.844613 (StdDev 0.000006) Mpps, 864.883511 (StdDev 0.004196) MBit/s, 1000.021580 (StdDev 0.004902) MBit/s wire rate on average.
+Saving throughput to '../results/test_1_load.csv'
+Samples: 4121, Average: 121346.3 ns, StdDev: 91876.1 ns, Quartiles: 82790.4/84268.8/232582.4 ns
+Saving histogram to '../results/test_1_latency.csv'
