@@ -101,15 +101,16 @@ function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
   
   txCtr:finalize()
   rxCtr:finalize()
-  local log_file = "../results/test_" .. id .. "_load.csv"
-  local log = io.open(log_file, "w")
-  local mpps, mbits, wmbits = txCtr:getStats()
-  local pkts_in, bytes_in = rxCtr:getThroughput()
-  local pkts_out, bytes_out = txCtr:getThroughput()
-  --duration; mpps.avg; mbits.avg; rate; size; numIP
-  log:write(duration, "; ", mpps.avg, "; ", mbits.avg, "; ", rate, "; ", size, "; ", numIP, "\n")
+  local logFile = "../results/test_" .. id .. "_load.csv"
+  local log = io.open(logFile, "w")
+  local txStats = {n = select("#", txCtr:getStats()), txCtr:getStats()}
+  local rxStats = {n = select("#", rxCtr:getStats()), rxCtr:getStats()}
+  local stats = {mpps = 1, mbit = 2, wireMbit = 3, total = 4, totalBytes = 5}
+  log:write("mpps.avg; mbit.avg; wireMbit.avg; total; totalBytes\n")
+  log:write(txStats[stats.mpps].avg .. "; " .. txStats[stats.mbit].avg .. "; " .. txStats[stats.wireMbit].avg .. "; " .. txStats[stats.total] .. "; " .. txStats[stats.totalBytes] .. "\n")
+  log:write(rxStats[stats.mpps].avg .. "; " .. rxStats[stats.mbit].avg .. "; " .. rxStats[stats.wireMbit].avg .. "; " .. rxStats[stats.total] .. "; " .. rxStats[stats.totalBytes] .. "\n")
   io.close(log)
-  print("Saving throughput to '" .. log_file .. "'")
+  print("Saving throughput to '" .. logFile .. "'")
 end
 
 function timerSlave(id, txQueue, rxQueue, size, numIP, duration)

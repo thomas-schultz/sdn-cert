@@ -1,6 +1,10 @@
 string.special_chars = {"^", "$", "(", ")", "%", ".", "[", "]", "*", "+", "-", "?" }
 
 
+function pack(...)
+  return { n = select("#", ...), ... }
+end
+
 -- see if the file exists
 function localfileExists(file)
   if (not file) then return false end

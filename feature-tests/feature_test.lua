@@ -10,7 +10,7 @@ settings = {}
 
 function master(featureName, ...)
   local ports = {...}
-  if (not featureName or #ports < 2 ) then
+  if (not featureName or #ports < 1 ) then
     return print("usage: featureName tx/rxPorts ... ")
   end
   importSettings(featureName)
@@ -244,11 +244,18 @@ function featureTxSlave(featureName, txDevs, ports)
     local mempool = memory.createMemPool(function(buf)
         fillPacket(buf, settings.pktSize, featureCfg.pkt.PROTO, ip6)
       end) 
+    
+    -- send learning packet for the switch
+    local learnBuf = mempool:bufArray(2)
+    learnBuf:alloc(settings.pktSize)
+    txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(learnBuf)
+    dpdk.sleepMillis(1000)   
+      
+    -- start actual feature traffic
     local txBuf = mempool:bufArray(settings.bufSize)
     for i=1,settings.iterations do
       txBuf:alloc(settings.pktSize)
       for p, buf in ipairs(txBuf) do
-        --local id = (n-1)*settings.batchSize + (i-1)*settings.bufSize + p
         id = id + 1
         setPayload(buf, id)
         txDump:write("Packet " .. p .. " / " .. tostring(settings.batchSize) .. " - " .. id .. " / " .. tostring(txSteps*settings.batchSize) .. " on dev " .. tostring(ports[n]) .. "\n")

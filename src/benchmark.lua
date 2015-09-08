@@ -267,8 +267,10 @@ function Benchmark:summary()
         show(string.format("Feature:   %-22s %-22s %s", feature:getName(), feature:getState()..",".. feature:getOfVersion(), feature:getStatus()))
         compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
       end
-      if (compliance) then printlog("\nTestdevice is " .. settings.config[global.ofVersion] .. " compliant!")
-      else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion]) end
+      if (not settings.config.testfeature) then
+        if (compliance) then printlog("\nTestdevice is " .. settings.config[global.ofVersion] .. " compliant!")
+        else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion]) end
+      end
       printBar()
     end
   end

@@ -82,18 +82,17 @@ function Feature:runTest()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
   cmd:addCommand("./" .. self:getLoadGen() .. " " .. self:getLgArgs())
+  lgDump:write(cmd:execute(settings.config.verbose))
   if (not settings.config.simulate) then
-    lgDump:write(cmd:execute(settings.config.verbose))
     ofDev:dumpAll(path .. ".after")
   end
   io.close(lgDump)
   
   -- check result
-  showIndent("Fetching result")
+  showIndent("Fetching data and checking result")
   local cmd = SCPCommand.create()
   cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
   cmd:execute(settings.config.verbose)
-  showIndent("Checking result")
   local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
   local out = cmd:execute()
   if (settings.config.simulate and not out) then
