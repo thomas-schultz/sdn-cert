@@ -1,9 +1,0 @@
-Flow dump:
-OFPST_FLOW reply (OF1.1) (xid=0x2):
- cookie=0x0, duration=0.008s, table=0, n_packets=0, n_bytes=0, in_port=1 actions=output:2
-
-
-Group dump:
-OFPST_GROUP_DESC reply (OF1.1) (xid=0x2):
-
-
