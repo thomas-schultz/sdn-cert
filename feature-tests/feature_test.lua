@@ -103,9 +103,25 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
   return "passed"
 end
 
+function savePattern(featureName, rxPkts, desiredPkts)
+  local outFile = "../results/feature_" .. featureName .. "_rx.pattern"
+  local out = io.open(outFile, "w")
+  local pattern = ""
+  for i=1,math.max(desiredPkts, #rxPkts) do
+    if (rxPkts[i]) then pattern = pattern .. "#"
+    else pattern = pattern .. "-" end
+    if (string.len(pattern) >= 80) then
+      out:write(pattern .. "\n")
+      pattern = ""
+    end
+  end
+  if (string.len(pattern) > 0) then out:write(pattern .. "\n") end
+  io.close(out)
+end
+
 function saveResult(featureName, message)
-  local out_file = "../results/feature_" .. featureName .. ".result"
-  local out = io.open(out_file, "w")
+  local outFile = "../results/feature_" .. featureName .. ".result"
+  local out = io.open(outFile, "w")
   out:write(message)
   io.close(out)
 end
@@ -242,7 +258,9 @@ function featureTxSlave(featureName, txDevs, ports)
     local mempool = memory.createMemPool(function(buf)
         fillPacket(buf, settings.pktSize, featureCfg.pkt.PROTO, ip6)
       end)
-    local learnBuf = mempool:bufArray(settings.learnPkts or 2)
+    local learningFrames = settings.learnFrames or 2
+    local learnBuf = mempool:bufArray(learningFrames)
+    print("Sending " .. tostring(learningFrames) ..  " learning Frames in " .. settings.learnTime .. " msec")
     learnBuf:alloc(settings.pktSize)
     txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(learnBuf)
     local modifyPkt = settings.config.modifyPkt
@@ -276,8 +294,8 @@ function featureTxSlave(featureName, txDevs, ports)
         txBuf:offloadTcpChecksums(not ip6)
       end
       txQueues[FeatureConfig.pkt.TX_DEV_ID]:send(txBuf)
-      txCtrs[FeatureConfig.pkt.TX_DEV_ID]:finalize()
     end
+    txCtrs[FeatureConfig.pkt.TX_DEV_ID]:finalize()
     local modifyPkt = settings.config.modifyPkt
     if (modifyPkt) then modifyPkt(n) end
   end
@@ -299,13 +317,17 @@ function featureRxSlave(featureName, rxDevs, ports)
   --wait until the learning packets are received and discarded
   local learnBuf = mempool:bufArray()
   dpdk.sleepMillis(settings.learnTime)
-  for i=settings.firstRxDev,#rxDevs do rxQueues[i]:tryRecv(learnBuf, 0) end
+  for i=settings.firstRxDev,#rxDevs do 
+    local rx = rxQueues[i]:tryRecv(learnBuf, 0)
+    print("Discarded " .. tostring(rx) .. " learning frames on device " .. tostring(ports[i]))
+  end
   
   -- initialize the counters and stuff
   for i=firstRxDev,#rxDevs do rxCtrs[i] = stats:newDevRxCounter(rxDevs[i], "plain") end
   local timeout = dpdk.getTime() + settings.timeout
   local rxPkts = {}
   local rxDump = io.open("../results/feature_" .. featureName .. "_rx.dump", "w")
+  local desiredPkts = settings.config.evalCrit.desiredCtr*settings.batchSize
   
   -- start actual receiving
   while dpdk.running() do
@@ -314,8 +336,8 @@ function featureRxSlave(featureName, rxDevs, ports)
       for j=1,rx do
         local pkt = rxBuf[j]
         local recv = retrievePacket(pkt, i, ports)
-        table.insert(rxPkts, recv)
-        rxDump:write("Packet " .. recv.id .. " / " .. tostring(settings.config.evalCrit.desiredCtr*settings.batchSize) .. " (" .. tostring(settings.txSteps*settings.batchSize) .. ") on dev " .. ports[i] .. "\n")
+        table.insert(rxPkts, recv.id, recv)
+        rxDump:write("Packet " .. recv.id .. " / " .. tostring(desiredPkts) .. " (" .. tostring(settings.txSteps*settings.batchSize) .. ") on dev " .. ports[i] .. "\n")
         pkt:dump(rxDump)
       end
     end
@@ -325,5 +347,6 @@ function featureRxSlave(featureName, rxDevs, ports)
     rxCtrs[i]:finalize()
   end
   io.close(rxDump)
+  savePattern(featureName, rxPkts, desiredPkts)
   saveResult(featureName, evaluate(featureName, rxPkts, rxCtrs, ports))
 end
