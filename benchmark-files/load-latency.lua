@@ -106,9 +106,9 @@ function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
   local txStats = {n = select("#", txCtr:getStats()), txCtr:getStats()}
   local rxStats = {n = select("#", rxCtr:getStats()), rxCtr:getStats()}
   local stats = {mpps = 1, mbit = 2, wireMbit = 3, total = 4, totalBytes = 5}
-  log:write("mpps.avg; mbit.avg; wireMbit.avg; total; totalBytes\n")
-  log:write(txStats[stats.mpps].avg .. "; " .. txStats[stats.mbit].avg .. "; " .. txStats[stats.wireMbit].avg .. "; " .. txStats[stats.total] .. "; " .. txStats[stats.totalBytes] .. "\n")
-  log:write(rxStats[stats.mpps].avg .. "; " .. rxStats[stats.mbit].avg .. "; " .. rxStats[stats.wireMbit].avg .. "; " .. rxStats[stats.total] .. "; " .. rxStats[stats.totalBytes] .. "\n")
+  log:write("direction; mpps.avg; mbit.avg; wireMbit.avg; total; totalBytes\n")
+  log:write("tx; " .. txStats[stats.mpps].avg .. "; " .. txStats[stats.mbit].avg .. "; " .. txStats[stats.wireMbit].avg .. "; " .. txStats[stats.total] .. "; " .. txStats[stats.totalBytes] .. "\n")
+  log:write("rx; " .. rxStats[stats.mpps].avg .. "; " .. rxStats[stats.mbit].avg .. "; " .. rxStats[stats.wireMbit].avg .. "; " .. rxStats[stats.total] .. "; " .. rxStats[stats.totalBytes] .. "\n")
   io.close(log)
   print("Saving throughput to '" .. logFile .. "'")
 end

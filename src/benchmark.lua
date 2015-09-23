@@ -16,7 +16,6 @@ end
 -- read in the benchmark configuration
 function Benchmark:readConfig(config)
   if (settings.config.testfeature) then return end
-  print(config)
   local fh = io.open(config)
   while true do
     local line = fh:read()
@@ -43,19 +42,14 @@ function Benchmark:checkExit()
 end
 
 function Benchmark:getFeatures()
-  if settings.config.testfeature then
+  if (settings.isTestFeature()) then
     self.featureList = {}
-    local feature = Feature.create(settings.config.testfeature)
-    if feature:doSkip() then return end
-    self.features[settings.config.testfeature] = feature
-    if not feature:doSkip() then
-      self.feature_count = 1
-      table.insert(self.featureList, 1, feature)        
-      return
-    else
-      show("No such feature!")
-      exit(1)
-    end
+    local feature = Feature.create(settings.getTestFeature())
+    if feature:isDisabled() then return end
+    self.features[settings.getTestFeature()] = feature
+    self.feature_count = 1
+    table.insert(self.featureList, 1, feature)        
+    return
   end
   local list = settings.config.localPath .. "/" .. global.featureFolder .. "/" .. self.featureList
   local fh = io.open(list)
@@ -67,7 +61,7 @@ function Benchmark:getFeatures()
     if line == nil then break end
     if (not (string.sub(line, 1,1) == global.ch_comment) and string.len(line) > 0 ) then
       local feature = Feature.create(line)
-      if (not feature:doSkip()) then
+      if (not feature:isDisabled()) then
         self.features[line] = feature
         self.feature_count = self.feature_count + 1
         table.insert(self.featureList, self.feature_count, feature)    
@@ -264,7 +258,7 @@ function Benchmark:summary()
     else
       local compliance = true;
       for i,feature in pairs(self.featureList) do
-        show(string.format("Feature:   ".. ColorCode.white .. "%-22s" .. ColorCode.normal .. "%-22s %s", feature:getName(), feature:getState()..",".. feature:getOfVersion(), feature:getStatus()))
+        show(string.format("Feature:   ".. ColorCode.white .. "%-22s" .. ColorCode.normal .. "%-22s %s", feature:getName(), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
         compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
       end
       if (not settings.config.testfeature) then

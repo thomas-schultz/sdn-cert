@@ -19,7 +19,6 @@ function Settings:readSettings(configFile)
   self.config.archive       = false
   self.config.checkSetup    = false
   self.config.skipfeature   = false
-  self.config.skipBenchmark = false
   self.config[global.ofVersion] = "OpenFlow10"
   while true do
     local line = fh:read()
@@ -37,16 +36,16 @@ function Settings:readSettings(configFile)
   self.ports = {}
   for n,link in pairs(string.split(self:get(global.phyLinks), ",")) do
     local split = string.find(link, global.ch_connect)
-    local of_port = tonumber(string.sub(link, 1, split-1))
-    local lg_port = tonumber(string.sub(link, split+1, -1))
-    if (of_port == nil or lg_port == nil) then
+    local ofLinks = tonumber(string.sub(link, 1, split-1))
+    local lgLinks = tonumber(string.sub(link, split+1, -1))
+    if (ofLinks == nil or lgLinks == nil) then
       printlog("Invalid link: '" .. link .. "'")
       exit()
     end
     self.ports[n] = {}
-    self.ports[n].of = of_port
-    self.ports[n].lg = lg_port
-    log_debug("added port " .. of_port .. global.ch_connect .. lg_port)
+    self.ports[n].of = ofLinks
+    self.ports[n].lg = lgLinks
+    log_debug("added link " .. ofLinks .. global.ch_connect .. lgLinks)
   end
   if (#self.ports == 0) then
     printlog("Invalid settings, no phyLinks are assigned")
@@ -69,7 +68,19 @@ function Settings:verbose()
   return self.config.verbose == true
 end
 
-function Settings:check()
+function Settings:getOFVersion()
+  return settings.config[global.ofVersion]
+end
+
+function Settings:isTestFeature()
+  return (settings.config.testfeature ~= nil)
+end
+
+function Settings:getTestFeature()
+  return settings.config.testfeature
+end
+
+function Settings:verify()
   local cmd = CommandLine.getRunInstance(self:isLocal()).create()
   cmd:addCommand("mkdir -p " .. self.config[global.loadgenWd])
   cmd:execute(false)

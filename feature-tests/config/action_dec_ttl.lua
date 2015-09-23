@@ -1,0 +1,28 @@
+--[[
+  Feature test for decreasing the IP TTL or IPv6 hop limit value
+]]
+
+feature = require "feature_config"
+
+feature.require = "OpenFlow10"
+feature.state   = "optional"
+  
+feature.loadGen = "moongen"
+feature.files   = "feature_test.lua"
+feature.lgArgs  = "$file=1 $name $link*"
+    
+feature.pkt = feature.defaultPkt
+
+feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
+    table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
+  end
+
+feature.config{
+} 
+
+FeatureConfig.pktClassifier = {
+    function(pkt) return (pkt.ttl == feature.pkt.TTL - 1) end,
+  }
+
+return feature

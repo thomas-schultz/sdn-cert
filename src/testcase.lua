@@ -51,7 +51,6 @@ function TestCase:readConfig(cfg)
     end
   end
   io.close(fh)
-  CommonTest.readInPrepArgs(self)
   CommonTest.readInOfArgs(self)
   CommonTest.readInLgArgs(self)
   CommonTest.readInFiles(self, global.benchmarkFolder, "Skipping test")

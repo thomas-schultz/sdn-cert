@@ -24,21 +24,21 @@ end
 function OpenFlowDevice:dumpFlows(version)
   version = version or self.version
   local cmd = CommandLine.create("ovs-ofctl dump-flows " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:dumpGroups(version)
   version = version or self.version
   if (compareVersion("OpenFlow11", self.version) < 0) then return "groups are not supported in " .. self.version end
   local cmd = CommandLine.create("ovs-ofctl dump-groups " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:dumpMeters(version)
   version = version or self.version
   if (compareVersion("OpenFlow13", self.version) < 0) then return "meters are not supported in " .. self.version end
   local cmd = CommandLine.create("ovs-ofctl dump-meters " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:dumpAll(dump)
@@ -57,37 +57,37 @@ end
 function OpenFlowDevice:installFlow(flow)
   local cmd = CommandLine.create("ovs-ofctl add-flow " .. self.target ..  "\"" .. flow .. "\"")
   log_debug = (cmd:get())
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installFlows(file)
   if (not absfileExists(file)) then printlog_err("Cannot add flows, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-flows " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installGroup(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
   log_debug = (cmd:get())
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installGroups(file)
   if (not absfileExists(file)) then printlog_err("Cannot add groups, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-groups " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installMeter(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
   log_debug = (cmd:get())
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installMeters(file)
   if (not absfileExists(file)) then printlog_err("Cannot add meters, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-meters " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose)
+  return cmd:execute(settings.config.cervose) or ""
 end
 
 function OpenFlowDevice:installAllFiles(file, dump)
@@ -146,16 +146,14 @@ function OpenFlowDevice:getBenchmarkFlows(name, ...)
   return flowData
 end
 
-function OpenFlowDevice:getFeatureFlows(name, ...)
-  local featureConf = require "feature_config"
-  local flowData = {flows  = {}, groups = {}, meters = {} }
-  local addflows = featureConf.feature[name].flowEntries
-  if (not addflows) then
-    printlog_err("Failed to create flow entries for feature test '" .. name .. "', check feature_config.lua")
+function OpenFlowDevice:getFlowData(test, isFeature)
+  local flowData = { flows  = {}, groups = {}, meters = {} }
+  local flowEntries = test.config.flowEntries
+  if (not flowEntries) then
+    printlog_err("Failed to create flow entries for '" .. feature:getName() .. "', check configuration file")
     return flowData
   end
-  addflows(flowData, ...)
-  featureConf.feature.default.flowEntries(flowData)
+  flowEntries(flowData, unpack(test.ofArgs))
   return flowData
 end
 

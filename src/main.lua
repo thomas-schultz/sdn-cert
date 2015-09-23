@@ -17,9 +17,11 @@ global = require "globConst"
 
 package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
 package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
+package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
 
 settings = nil
 debug_mode = false
+color_mode = true
 
 local function main()  
   init_logger(global.logFile) 
@@ -37,6 +39,7 @@ local function main()
   parser:addOption("--setup", "installs MoonGen")
   parser:addOption("--init", "initializes MoonGen")
   parser:addOption("--sim", "all operations are printed, instead of executed")
+  parser:addOption("--nocolor", "disables the colored output")
   parser:addOption("--check", "checks if the test setup is correctly configured")
   parser:addOption("--tar", "creates a tar archive for the current and the final results folder")
   parser:addOption("--skipfeature", "skips all feature tests")
@@ -49,8 +52,9 @@ local function main()
   if (parser:hasOption("--help")) then parser:printHelp() exit() end
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
+  if (parser:hasOption("--nocolor")) then disableColor() end
   if (parser:hasOption("--tar")) then acrhiveResults() settings.config.archive = true end
-  settings:check()
+  settings:verify()
     
   if (parser:hasOption("--init")) then initMoongen() end
   if (parser:hasOption("--setup")) then setupMoongen() end
@@ -82,14 +86,10 @@ local function main()
     exit(1)
   end
 
-  if (not isReady()) then
-    if (not settings.config.simulate) then
-      show("Test setup is not ready, check log")
-      printBar()
-      exit(1)
-    end
+  if (not isReady() and not settings.config.simulate) then
+    printBar()
+    exit()
   end
-  log("Test setup is ready")
   if (settings.config.checkSetup) then exit() end
 
   benchmark = Benchmark.create(benchmark_file)
@@ -97,6 +97,8 @@ local function main()
   
   benchmark:cleanUp()
   benchmark:testFeatures()
+  benchmark:summary()
+  exit() -- TODO
   benchmark:prepare()
   benchmark:run()
   benchmark:collect()

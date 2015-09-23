@@ -1,0 +1,31 @@
+--[[
+  Feature test for modifying the IPv6 src and dst field
+]]
+
+feature = require "feature_config"
+
+feature.require = "OpenFlow12"
+feature.state   = "optional"
+  
+feature.loadGen = "moongen"
+feature.files   = "feature_test.lua"
+feature.lgArgs  = "$file=1 $name $link*"
+    
+feature.pkt = feature.defaultPkt
+
+feature.new_SRC_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0001"
+feature.new_DST_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0002"
+
+feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ipv6, actions=set_field:" .. feature.new_SRC_IP6 .. "->ipv6_src, set_field:" .. feature.new_DST_IP6 .. "->ipv6_dst, ALL")
+  end
+
+feature.config{
+  ip6 = true,
+} 
+
+FeatureConfig.pktClassifier = {
+    function(pkt) return (pkt.src_ip == feature.new_SRC_IP6 and pkt.dst_ip == feature.new_DST_IP6) end,
+  }
+
+return feature

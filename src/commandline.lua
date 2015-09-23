@@ -61,7 +61,7 @@ function CommandLine:tryExecute(errors, verbose)
     if (string.find(ret, err)) then
       printlog_err(msg)
       log_debug(ret)
-      exit()
+      return nil
     end
   end
   return ret

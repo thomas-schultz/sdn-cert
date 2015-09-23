@@ -60,11 +60,11 @@ function checkOpenFlow()
   if (out == nil or settings.config.simulate) then return false end
   if (string.find(out, error_messages.openflow_socket)) then
     show("OpenFlow device is not reachable!")
-    printlog(out)
+    printlog(string.replaceAll("  " .. out, "\n", " "), "red")
     return false
   elseif (string.find(out, error_messages.openflow_fail)) then
     show("OpenFlow device seem not to be ready!")
-    printlog(out)
+    printlog(string.replaceAll("  " .. out, "\n", " "), "red")
     return false
   else
     show("Available logical ports on the switch:")
@@ -126,5 +126,7 @@ function isReady()
   if (not result and not settings.config.simulate) then show("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
   result = checkMoongen() and result
   if (not result and not settings.config.simulate) then show("Make sure MoonGen is installed correctly") end
+  if (not result) then printlog("Test setup is not ready, check log", "lred")
+  else printlog("Test setup is ready", "lgreen") end
   return result
 end

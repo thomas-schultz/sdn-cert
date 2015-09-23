@@ -1,8 +1,10 @@
-string.special_chars = {"^", "$", "(", ")", "%", ".", "[", "]", "*", "+", "-", "?" }
-
-
 function pack(...)
   return { n = select("#", ...), ... }
+end
+
+
+function normalizeKey(key)
+  return string.replaceAll(string.lower(key), "_", "")
 end
 
 -- see if the file exists
@@ -18,7 +20,72 @@ function absfileExists(file)
   return f ~= nil
 end
 
-string.sanitize = function (str)
+function compareVersion(ver1, ver2)
+  if (ver1 == nil or ver2 == nil) then return nil end
+  if (ver1 == "unknown" or ver2 == "unknown") then return nil end
+  local ver1 = string.match(string.replace(ver1, ".", ""),"%d+")
+  local ver2 = string.match(string.replace(ver2, ".", ""),"%d+")
+  local v1 = tonumber(string.lpad(ver1, 3, "0"))
+  local v2 = tonumber(string.lpad(ver2, 3, "0"))
+  if (v1 == nil or v1 == nil) then return nil end
+  return v2 - v1
+end
+
+
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
+end
+
+function exit(msg)
+  if (msg) then log(msg) end
+  finalize_logger()
+  if (msg) then os.exit(1)
+  else os.exit(0) end
+end
+
+-----------
+-- Table --
+-----------
+
+table.toString = function(t)
+  local str = ""
+  for key,value in pairs(t) do str = str .. tostring(key) .. "=" .. tostring(value) .. ", " end
+  return str
+end
+
+table.copy = function(t, _t) 
+    local _t = _t or {}
+    for k,v in pairs(t) do _t[k] = v end
+    return _t
+  end
+
+--TODO
+table.flatten = function(t, _t)
+  local _t = _t or {}
+  for k,v in pairs(t) do
+    if (type(v) == 'table') then table.flatten(v, _t)
+    else _t[k] = v end
+  end
+  return _t
+end
+
+table.deepcopy = function(t)
+  local _t = {}
+  for k,v in pairs(t) do
+    if (type(v) == 'table') then _t[k] = table.deepcopy(v)
+    else _t[k] = v end          
+  end
+  return _t
+end
+
+
+------------
+-- String --
+------------
+
+string.special_chars = {"^", "$", "(", ")", "%", ".", "[", "]", "*", "+", "-", "?" }
+
+string.sanitize = function(str)
   for i=1,#string.special_chars do
     if (str == string.special_chars[i]) then return "%"..str end
   end
@@ -103,30 +170,4 @@ string.getKeyValue = function (str, ch_split)
     return k, v
   end
   return nil
-end
-
-function compareVersion(ver1, ver2)
-  if (ver1 == nil or ver2 == nil) then return nil end
-  if (ver1 == "unknown" or ver2 == "unknown") then return nil end
-  local ver1 = string.match(string.replace(ver1, ".", ""),"%d+")
-  local ver2 = string.match(string.replace(ver2, ".", ""),"%d+")
-  local v1 = tonumber(string.lpad(ver1, 3, "0"))
-  local v2 = tonumber(string.lpad(ver2, 3, "0"))
-  if (v1 == nil or v1 == nil) then return nil end
-  return v2 - v1
-end
-
--- prints a bar to the command line
-function printBar()
-  print(ColorCode.lyellow .. string.rep("-", 80) .. ColorCode.normal)
-end
-
-function sleep(n)
-  os.execute("sleep " .. tonumber(n))
-end
-
-function exit(code)
-  if code then log("Exit code: " .. code) end
-  finalize_logger()
-  os.exit(code)
 end

@@ -8,7 +8,7 @@ ColorCode = {
   cyan    = "\27[36m",
   gray    = "\27[37m",
   lred    = "\27[91m",
-  lgree   = "\27[92m",
+  lgreen  = "\27[92m",
   lyellow = "\27[93m",
   lblue   = "\27[94m",
   white   = "\27[97m",
@@ -18,6 +18,12 @@ ColorCode = {
   
   normal      = "\27[0m",
 }
+
+function disableColor()
+  ColorCode = {}
+  local mt = {__index = function () return "" end}
+  setmetatable(ColorCode, mt)
+end
 
 function get_timestamp()
   local time = os.date("*t")
@@ -35,7 +41,7 @@ function finalize_logger()
   logFile:close()
 end
 
-local function logger_log(type, msg, color)
+local function logger_log(type, msg)
    logFile:write(get_timestamp() ..  ": ")
    logFile:write(type, msg)
    logFile:write("\n")
@@ -43,7 +49,7 @@ local function logger_log(type, msg, color)
 end
 
 local function logger_printlog(type, msg, color)
-   logger_log(type, msg, color)
+   logger_log(type, msg)
    show(msg, color)
 end
 
@@ -59,8 +65,8 @@ function showIndent(msg, indent, color)
   show(string.rep("  ", indent) .. msg, color)
 end
 
-function log(msg, color)
-  logger_log("LOG     ", msg, color)
+function log(msg)
+  logger_log("LOG     ", msg)
 end
 
 function printlog(msg, color)
@@ -68,9 +74,9 @@ function printlog(msg, color)
    show(msg, color)
 end
 
-function log_warn(msg, color)
+function log_warn(msg)
   color = color or "yellow"
-  logger_log("WARNING ", msg, color)
+  logger_log("WARNING ", msg)
 end
 
 function printlog_warn(msg, color)
@@ -79,19 +85,23 @@ function printlog_warn(msg, color)
   showIndent(msg, 1)
 end
 
-function log_err(msg, color)
+function log_err(msg)
   color = color or "red"
-  logger_log("ERROR   ", msg, color)
+  logger_log("ERROR   ", msg)
 end
 
 function printlog_err(msg, color)
   color = color or "red"
-  logger_log("ERROR   ", msg, color)
-  showIndent(msg)
+  logger_log("ERROR   ", msg)
+  showIndent(msg, 1, color)
 end
 
-function log_debug(msg, color)
-  if (debug_mode) then logger_log("DEBUG   ", msg, color) end
+function log_debug(msg)
+  if (debug_mode) then logger_log("DEBUG   ", msg) end
 end 
 
+-- prints a bar to the command line
+function printBar()
+  print(ColorCode.lyellow .. string.rep("-", 80) .. ColorCode.normal)
+end
 
