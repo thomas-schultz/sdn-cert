@@ -53,13 +53,6 @@ table.toString = function(t)
   return str
 end
 
-table.copy = function(t, _t) 
-    local _t = _t or {}
-    for k,v in pairs(t) do _t[k] = v end
-    return _t
-  end
-
---TODO
 table.flatten = function(t, _t)
   local _t = _t or {}
   for k,v in pairs(t) do
@@ -76,6 +69,14 @@ table.deepcopy = function(t)
     else _t[k] = v end          
   end
   return _t
+end
+
+table.tostring = function(t)
+  local str = ""
+  for k,v in pairs(t) do
+    if (type(v) == 'string') then str = str .. v .. " " end
+  end
+  return string.trim(str)
 end
 
 

@@ -2,7 +2,9 @@
   Feature test for matching IP TTL or IPv6 hop limit value
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow10"
 feature.state   = "required"
@@ -11,7 +13,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.new_TTL = FeatureConfig.enum.TTL.min
 

@@ -16,6 +16,7 @@ require "tools"
 global = require "globConst"
 
 package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
+package.path = package.path .. ';' .. global.benchmarkFolder .. '/config/?.lua'
 package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
 package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
 
@@ -98,7 +99,6 @@ local function main()
   benchmark:cleanUp()
   benchmark:testFeatures()
   benchmark:summary()
-  exit() -- TODO
   benchmark:prepare()
   benchmark:run()
   benchmark:collect()

@@ -2,7 +2,9 @@
   Feature test for modifying IP ToS/DSCP or IPv6 traffic class field
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow10"
 feature.state   = "optional"
@@ -11,7 +13,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.new_TOS = feature.enum.TOS.mod
 

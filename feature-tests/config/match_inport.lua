@@ -2,7 +2,9 @@
   Feature test for matching of OpenFlow ingress port
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow10"
 feature.state   = "required"
@@ -12,7 +14,7 @@ feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
 feature.ofArgs  = "$link*"
   	
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.flowEntries = function(flowData, ...)
     local action = "ALL"

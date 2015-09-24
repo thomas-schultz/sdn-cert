@@ -88,7 +88,7 @@ end
 
 function Settings:print()
   printBar()
-  show("Settings:")
+  show("Settings:", global.headline1)
   local t = {}
   for key,value in pairs(self.config) do
     table.insert(t,key)

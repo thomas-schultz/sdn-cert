@@ -3,7 +3,10 @@
 ]]
 
 -- imports all needed function and default values, do not remove!
-feature = require "feature_config"
+require "feature_config"
+
+-- creates new Feature from feature_config file, do not remove!
+feature = FeatureConfig.new()
 
 -- required OpenFlow Version
 feature.require = "OpenFlow10"

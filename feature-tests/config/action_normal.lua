@@ -2,7 +2,9 @@
   Feature test for normal hybrid L2/L3 behavior
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow10"
 feature.state   = "optional"
@@ -11,7 +13,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, "priority=1, actions=NORMAL")

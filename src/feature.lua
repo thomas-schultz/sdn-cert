@@ -21,7 +21,7 @@ function Feature:readConfig()
   end
   local config = require(self.name)
   self.config = table.deepcopy(config)
-  self.settings = table.copy(self.config.settings)
+  self.settings = table.deepcopy(config.settings)
 
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())
@@ -32,9 +32,10 @@ function Feature:readConfig()
   self.settings.name = self:getName()
   self.settings.require = self:getRequiredOFVersion()
   self.settings.state = self.config.state or global.featureState.undefined
+  
   self.files = {configFile, "feature_config.lua"}
   self.files = CommonTest.readInFiles(self, global.featureFolder, self.files, true)
-  self.lgArgs = CommonTest.mapArgs(self, self.config.lgArgs, "lg", true)
+  self.lgArgs = CommonTest.mapArgs(self, self.config.lgArgs, "lg", false, true)
   self.ofArgs = CommonTest.mapArgs(self, self.config.ofArgs, "of", true, true)
 end
 

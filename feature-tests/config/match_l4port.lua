@@ -2,7 +2,9 @@
   Feature test for matching the UDP source and destination port
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow10"
 feature.state   = "required"
@@ -11,7 +13,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.new_SRC_PORT = 4321
 feature.new_DST_PORT = 8765

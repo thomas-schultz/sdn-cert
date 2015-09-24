@@ -24,38 +24,39 @@ function CommonTest.print(name, config, dump)
   else show("  " .. out) end
 end
 
-function CommonTest.readInArgs(test, args, t)
-  if (type(args) == 'string') then args = string.split(args, ",") end
+function CommonTest.readInArgs(args, t)
+  if (type(args) == 'string') then
+    args = string.split(string.replaceAll(args, ",", " "), " ") end
   local t = t or {}
   for n,arg in pairs(args) do
     local arg = string.trim(string.lower(arg))
-    if (string.find(arg, global.link)) then CommonTest.checkLinkCount(test, arg) end
-    arg = string.replace(arg, global.ch_equal, "")
     table.insert(t, n, arg)
   end
   return t 
 end
 
-function CommonTest.mapArgs(test, args, type, isFeature, asTable)
+function CommonTest.mapArgs(test, args, type, asTable, isFeature)
   local asTable = asTable ~= nil and asTable
+  local isFeature = isFeature ~= nil and isFeature
   if (not args) then return {} end
-  local args = CommonTest.readInArgs(test, args)
+  local args = CommonTest.readInArgs(args)
   
   local line = ""
   for i=1,#args do
     local arg = args[i]
+    local value = arg
     local isVar = string.find(arg, global.ch_var)
     if (isVar) then
       local key = string.replaceAll(string.sub(arg, 1, isVar-1) .. string.sub(arg, isVar+1, -1), "_", "")
-      local value = test.settings[key]
+      value = test.settings[string.replace(key, "=", "")]
       if (not value) then value = CommonTest.getLinks(test, arg, type, isFeature) end
       if (not value) then
         printlog_err("Could not map variable '" .. key .. "' for '" .. test:getName() ..  "'")
         exit("Abort")
-      else line = line .. value .. " " end
-    else
-     line = line .. arg .. " "
+      end
     end
+    line = line .. string.trim(tostring(value)) .. " "
+    log_debug(test:getName() .. ": mapped '" .. arg .. "' to '" .. value .. "'")
   end
   line = string.trim(line)
   if (asTable) then return string.split(line, " ")
@@ -66,7 +67,7 @@ function CommonTest.getLinks(test, arg, type, isFeature)
   local isLink = string.find(arg, global.link)
   if (not isLink) then return nil end
   local linkId = CommonTest.checkLinkCount(test, arg, isFeature)
-  if (linkId >= 0) then return tostring(self.ports[linkId][type]) end
+  if (linkId >= 0) then return tostring(settings.ports[linkId][type]) end
   local links = ""
   for n,link in pairs(settings.ports) do
     links = links .. tostring(link[type]) .. " "
@@ -76,8 +77,8 @@ end
 
 function CommonTest.checkLinkCount(test, arg, isFeature)
   local msg = "Disabled test"
-  if (isFeature) then msg = "Disabled feature" end  
-  if (string.find(arg, global.link .. "*")) then return -1 end
+  if (isFeature) then msg = "Disabled feature" end
+  if (string.find(arg, global.link .. "%*")) then return -1 end
   local linkId = tonumber(select(2, string.getKeyValue(arg)))
   if (linkId and linkId > #settings.ports) then
     local msg = msg or "Disabled test"

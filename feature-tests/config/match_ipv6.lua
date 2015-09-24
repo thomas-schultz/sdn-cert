@@ -2,7 +2,9 @@
   Feature test for matching of IPv6 src and dst field
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFlow12"
 feature.state   = "required"
@@ -11,7 +13,8 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
+feature.pkt.ETH_TYPE = feature.enum.ETH_TYPE.ip6
 
 feature.new_SRC_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0001"
 feature.new_DST_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0002"
@@ -22,7 +25,6 @@ feature.flowEntries = function(flowData)
   end
 
 feature.config{
-  ip6 = true,
 } 
   
 feature.modifyPkt = function(pkt, iteration)

@@ -47,9 +47,9 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
   
   -- check packet counters
   if (not settings.ctrType) then
-    return "Invalid counter type, check feature implementation" end
+    return "FAILED: Invalid counter type, check feature configuration" end
   if (not settings.desiredCtr) then
-    return "Invalid value for desired Counter, check feature implementation" end
+    return "FAILED: Invalid value for desired counter, check feature configuration" end
   
   -- if not specified, use default threshold value: desiredbatchSize * tolerance value
   local desiredBatchSize = settings.desiredCtr * settings.batchSize
@@ -57,19 +57,21 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
   settings.threshold = settings.threshold or math.ceil(desiredBatchSize * settings.maxDeviation)
   local logicalOp = feature.logicalOps[settings.ctrType]
     
+  print("Checking device packet counters")
   local info = ""
   local success = nil
   for i=settings.firstRxDev,#rxCtrs do
     local measuredCtr = select(4, rxCtrs[i]:getStats())
-    info = info .. ", " .. ports[i] ..": " .. measuredCtr .. "/" .. desiredBatchSize .. "/" .. settings.threshold 
+    print("device " .. ports[i] ..":  rx = " .. measuredCtr .. ", testing | rx - " .. desiredBatchSize .. " | <= " .. settings.threshold)
     success = logicalOp(success, (math.abs(desiredBatchSize - measuredCtr) <= settings.threshold))
   end
-  if (success ~= true) then return "Packet counters exceeded threshold [dev: rx/ref/thld]" .. info end
+  if (success ~= true) then return "FAILED: packet counters exceeded threshold!" end
   
   --inspect received packets
   local measuredPktsCtrs = {[0] = 0}
   for i=1,#feature.pktClassifier do measuredPktsCtrs[i] = 0 end
-   
+  
+  print("Checking classified packet counters")
   for p=1,#rxPkts do
     local pkt = rxPkts[p]
     local index = 0
@@ -81,23 +83,23 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
   if (measuredPktsCtrs[0] > 0) then
     return "Received invalid packets ["..tostring(measuredPktsCtrs[0]).."/" .. settings.batchSize .."]"  end
     
-  local ctrs = "["
-  for i=1,#measuredPktsCtrs do ctrs = ctrs .. " " .. tostring(i) .. ":" .. tostring(measuredPktsCtrs[i]) .. " " end
-  ctrs = ctrs .. "]"
+  for i=1,#measuredPktsCtrs do
+    print("class: " .. tostring(i) .. " = " .. tostring(measuredPktsCtrs[i]))
+  end
 
   -- apply counter check function
   if (not feature.evalCounters (measuredPktsCtrs, desiredBatchSize, settings.threshold)) then
-    return "Classified packet counter mismatch, " .. ctrs end
-  -- everything was as expected, test is passed 
+    return "FAILED: classified packet counter mismatch!" end
+  -- everything was as expected, then test is passed 
   return "passed"
 end
 
-function savePattern(featureName, rxPkts, desiredPkts)
+function savePattern(featureName, rxPattern, desiredPkts)
   local outFile = "../results/feature_" .. featureName .. "_rx.pattern"
   local out = io.open(outFile, "w")
   local pattern = ""
-  for i=1,math.max(desiredPkts, #rxPkts) do
-    if (rxPkts[i]) then pattern = pattern .. "#"
+  for i=1,math.max(desiredPkts, #rxPattern) do
+    if (rxPattern[i] and rxPattern[i] > 0) then pattern = pattern .. rxPattern[i]
     else pattern = pattern .. "-" end
     if (string.len(pattern) >= 80) then
       out:write(pattern .. "\n")
@@ -115,21 +117,19 @@ function saveResult(featureName, message)
   io.close(out)
 end
 
-function fillPacket(buf, len, proto, ip6)
-  local pkt
-  if (proto == feature.enum.PROTO.udp) then
-    pkt = buf:getUdpPacket(not ip6)
-  elseif (proto == feature.enum.PROTO.tcp) then
-    pkt = buf:getTcpPacket(not ip6)
-  else
-    buf:getEthPacket():fill{
-      ethType = feature.pkt.ETH_TYPE,
-      ethSrc  = feature.pkt.SRC_MAC,
-      ethDst  = feature.pkt.DST_MAC,
-    }
-    return
-  end
+function createPacket(buf, ethType, proto)
+  local ip6 = (ethType == feature.enum.ETH_TYPE.ip6)
+  if (proto == feature.enum.PROTO.udp) then return buf:getUdpPacket(not ip6) end
+  if (proto == feature.enum.PROTO.tcp) then return buf:getTcpPacket(not ip6) end
+  if (ethType == feature.enum.ETH_TYPE.ip4) then return buf:getIP4Packet() end
+  if (ethType == feature.enum.ETH_TYPE.ip6) then return buf:getIP6Packet() end
+  return buf:getEthPacket()
+end
+
+function fillPacket(buf, len)
+  local pkt = createPacket(buf, feature.pkt.ETH_TYPE, feature.pkt.PROTO)
   pkt:fill{
+    ethType = feature.pkt.ETH_TYPE,
     ethSrc  = feature.pkt.SRC_MAC,
     ethDst  = feature.pkt.DST_MAC,
     ip4TOS  = feature.pkt.TOS,
@@ -149,8 +149,7 @@ function fillPacket(buf, len, proto, ip6)
 end
 
 function setPayload(packet, payload)
-  local ip6 = nil
-  
+  local ip6
   local ethType = packet:getEthernetPacket().eth:getType()
   if (ethType == feature.enum.ETH_TYPE.ip6) then ip6 = true
   elseif (ethType == feature.enum.ETH_TYPE.ip4) then ip6 = false
@@ -238,14 +237,14 @@ function featureTxSlave(featureName, txDevs, ports)
   for i=1,#txDevs do txQueues[i] = txDevs[i]:getTxQueue(0) end
   local txDump = io.open("../results/feature_" .. featureName .. "_tx.dump", "w")
 
-  local learnPkt = feature.getPacket(feature.pkt)
+  local learnPkt = feature.getPkt(feature.pkt)
   local learningFrames = settings.learnFrames or 0
   if (learningFrames > 0) then 
     -- send learning packet for the switch
     for n=1,txSteps do
-      local ip6 = settings.ip6 ~= nil and settings.ip6 == true 
+      local ip6 = feature.isIPv6(learnPkt)
       local mempool = memory.createMemPool(function(buf)
-          fillPacket(buf, settings.pktSize, learnPkt.PROTO, ip6)
+          fillPacket(buf, settings.pktSize)
         end)
       local learningFrames = settings.learnFrames or 0
       local learnBuf = mempool:bufArray(learningFrames)
@@ -259,12 +258,12 @@ function featureTxSlave(featureName, txDevs, ports)
   end
 
   -- start actual feature traffic
-  local txPkt = feature.getPacket(feature.pkt)
+  local txPkt = feature.getPkt(feature.pkt)
   local id = 0
   for n=1,txSteps do
-    local ip6 = settings.ip6 ~= nil and settings.ip6 == true 
+    local ip6 = feature.isIPv6(txPkt)
     local mempool = memory.createMemPool(function(buf)
-        fillPacket(buf, settings.pktSize, txPkt.PROTO, ip6)
+        fillPacket(buf, settings.pktSize)
       end)    
     txCtrs[settings.txDev] = stats:newDevTxCounter(txDevs[settings.txDev], "plain") 
       
@@ -318,6 +317,7 @@ function featureRxSlave(featureName, rxDevs, ports)
   for i=firstRxDev,#rxDevs do rxCtrs[i] = stats:newDevRxCounter(rxDevs[i], "plain") end
   local timeout = dpdk.getTime() + settings.timeout
   local rxPkts = {}
+  local rxPattern = {}
   local rxDump = io.open("../results/feature_" .. featureName .. "_rx.dump", "w")
   local desiredPkts = settings.desiredCtr*settings.batchSize
   
@@ -328,7 +328,8 @@ function featureRxSlave(featureName, rxDevs, ports)
       for j=1,rx do
         local pkt = rxBuf[j]
         local recv = retrievePacket(pkt, i, ports)
-        rxPkts[recv.id] = recv
+        table.insert(rxPkts, recv)
+        rxPattern[recv.id] = (rxPattern[recv.id] or 0) + 1
         rxDump:write("Packet " .. recv.id .. " / " .. tostring(desiredPkts) .. " (" .. tostring(settings.txIterations*settings.batchSize) .. ") on dev " .. ports[i] .. "\n")
         pkt:dump(rxDump)
       end
@@ -339,6 +340,6 @@ function featureRxSlave(featureName, rxDevs, ports)
     rxCtrs[i]:finalize()
   end
   io.close(rxDump)
-  savePattern(featureName, rxPkts, desiredPkts)
+  savePattern(featureName, rxPattern, desiredPkts)
   saveResult(featureName, evaluate(featureName, rxPkts, rxCtrs, ports))
 end

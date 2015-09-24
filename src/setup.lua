@@ -48,7 +48,8 @@ function initMoongen()
   local ret = cmd:execute(settings.config.verbose)
   if (settings.config.simulate) then exit() end
   if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
-  else printlog("Failed to initialize MoonGen", "red") log_debug(ret) end  
+  else printlog("Failed to initialize MoonGen", "red") log_debug(ret) end
+  isReady()  
   exit()
 end
 

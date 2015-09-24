@@ -2,60 +2,44 @@ TestCase = {}
 TestCase.__index = TestCase
 
 
-function TestCase.create(cfg)
+function TestCase.create(cfgLine)
   local self = setmetatable({}, TestCase)
-  self.require = {}
-  self.prepare = {}
-  self.config = {}
-  self.config.id = -1 
-  self.of_args = {}
-  self.files = {}
-  self.lg_args = {}
   self.disabled = false
-  self:readConfig(cfg)
+  self:readConfig(cfgLine)
   return self
 end
 
-function TestCase:readConfig(cfg)
-  for n,arg in pairs(string.split(cfg, ",")) do
+function TestCase:readConfig(cfgLine)
+  self.settings = {}
+  for n,arg in pairs(string.split(cfgLine, ",")) do
     local k,v = string.getKeyValue(arg)
     if (k and v) then
-      self.config[k] = v
-      log_debug("test added " .. k .. "=" .. v)
+      self.settings[k] = v
     end
   end
-  if not self:getName() then
+  self.name = self.settings.name
+  if (not self.name) then
     printlog_warn("Skipping test, no name specified")
     self.disabled = true
     return
   end
-  self.cfgFile = global.benchmarkFolder .. "/" .. self:getName() .. global.cfgFiletype
-  if (not localfileExists(self.cfgFile)) then
-    printlog_warn("Skipping test, config file not found '" .. self.cfgFile .. "'")
+  log_debug("test '" .. self.name .. " added")
+  local cfgFile = global.benchmarkFolder .. "/config/" .. self.name .. ".lua"
+  if (not localfileExists(cfgFile)) then
+    printlog_warn("Skipping test, config file not found '" .. cfgFile .. "'")
     self.disabled = true 
     return
   end
-  local fh = io.open(self.cfgFile)
-  while true do
-    local line = fh:read()
-    if (line == nil) then break end
-    local comment = string.find(line, global.ch_comment)
-    if not comment then
-      local split = string.find(line, global.ch_equal)
-      if (split) then
-        local k = string.trim(string.sub(line, 1, split-1))
-        k = string.lower(string.replaceAll(k, "_", ""))
-        local v = string.trim(string.sub(line, split+1, -1))
-        self.config[k] = v
-      end
-    end
-  end
-  io.close(fh)
-  CommonTest.readInOfArgs(self)
-  CommonTest.readInLgArgs(self)
-  CommonTest.readInFiles(self, global.benchmarkFolder, "Skipping test")
-  CommonTest.setSwitch(self)
-  CommonTest.setLinks(self)
+  local config = require(self.name)
+  self.config = table.deepcopy(config)
+  self.require = CommonTest.readInArgs(config.require)
+  if (self.config.settings) then 
+    for k,v in pairs(self.config.settings) do self.settings[k] = v end end
+  self.settings.name = self.name
+  
+  self.files = CommonTest.readInFiles(self, global.benchmarkFolder, self.files)
+  self.ofArgs = CommonTest.mapArgs(self, self.config.ofArgs, "of", true)
+  self:print()
 end
 
 function TestCase:checkFeatures(benchmark)
@@ -63,58 +47,38 @@ function TestCase:checkFeatures(benchmark)
   for i,requires in pairs(self.require) do
     if (not benchmark:isFeatureSupported(requires)) then
       require = require .. "'" .. requires .. "', "
-      if not simulate then self.disabled = true end
+      if (not simulate) then self.disabled = true end
     end
   end
-  if (string.len(require) > 0) then
-    printlog_warn("Skipping test, unsupported feature(s) " .. string.sub(require, 1 , #require-2))
+  if (#require > 0) then
+    printlog_warn("Skipping test, unsupported feature(s): " .. string.sub(require, 1 , #require-2))
   end
 end
 
 function TestCase:setId(id)
-  self.config.id = id 
+  self.settings.id = id 
 end
 
 function TestCase:getId()
-  return self.config.id
+  return self.settings.id
 end
 
-function TestCase:get(key)
-  return self.config[CommonTest.normalizeKey(key)]
-end
-
-function TestCase:doSkip()
+function TestCase:isDisabled()
   if (self == nil) then return true end
   return self.disabled
 end
 
-function TestCase:getName()
-  return self.config[global.name]
+function TestCase:getName(withoutId)
+  if (self.settings.id and not withoutId) then return self.settings.id .. "_" .. self.name end
+  return self.name
 end
 
 function TestCase:getDuration()
-  return self.config[global.duration]
-end
-
-function TestCase:getLoopCount()
-  return self.config[global.loopCount]
-end
-
-function TestCase:getPrepareScript()
-  return self.prepare[1]
-end
-
-function TestCase:getPrepareCommand()
-  self:print()
-  return CommonTest.getArgs(self.prepare, self.config)
-end
-
-function TestCase:getOfArgs()
-  return CommonTest.getArgs(self.of_args, self.config, true)
+  return self.settings.duration
 end
 
 function TestCase:getLoadGen()
-  return self:get(global.loadgen)
+  return self.config.loadGen
 end
 
 function TestCase:getLoadGenFiles()
@@ -122,9 +86,9 @@ function TestCase:getLoadGenFiles()
 end
 
 function TestCase:getLgArgs()
-  return CommonTest.getArgs(self.lg_args, self.config)
+  return CommonTest.mapArgs(self, self.config.lgArgs, "lg", false)
 end
 
 function TestCase:print(dump)
-  CommonTest.print(self:getName(), self.config, dump)
+  CommonTest.print(self.name, self.settings, dump)
 end

@@ -150,9 +150,10 @@ function OpenFlowDevice:getFlowData(test, isFeature)
   local flowData = { flows  = {}, groups = {}, meters = {} }
   local flowEntries = test.config.flowEntries
   if (not flowEntries) then
-    printlog_err("Failed to create flow entries for '" .. feature:getName() .. "', check configuration file")
+    printlog_err("Failed to create flow entries for '" .. test:getName() .. "', check configuration file")
     return flowData
   end
+  log_debug("FlowEntries arguments: '" .. table.tostring(test.ofArgs) .. "'")
   flowEntries(flowData, unpack(test.ofArgs))
   return flowData
 end

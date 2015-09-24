@@ -2,7 +2,9 @@
   Feature test for group type INDIRECT
 ]]
 
-feature = require "feature_config"
+require "feature_config"
+
+local feature = FeatureConfig.new()
 
 feature.require = "OpenFLow11"
 feature.state   = "required"
@@ -11,7 +13,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.defaultPkt
+feature.pkt = feature.getDefaultPkt()
 
 feature.new_SRC_IP4 = "10.0.2.1"
 feature.new_DST_IP4 = "10.0.2.2"

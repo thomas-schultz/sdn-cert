@@ -1,6 +1,11 @@
 -- general Feature configuration file
 
 FeatureConfig = {}
+FeatureConfig.__index = FeatureConfig
+
+function FeatureConfig.new()
+  return setmetatable({}, FeatureConfig)
+end
 
 -- counter type:
 FeatureConfig.logicalOps = {
@@ -26,7 +31,6 @@ FeatureConfig.enum = {
   
 -- default settings
 FeatureConfig.settings = {
-    ip6           = false,    -- test uses IPv6 packets
     pktSize       = 80,       -- default packet size in bytes, without crc
     bufSize       = 32,       -- number of packets in one buffer
     loops         = 1,        -- loop count, each is sending bufSize packets
@@ -54,8 +58,7 @@ FeatureConfig.set = function(key, value)
 
 -- default packet
 FeatureConfig.defaultPkt = {
-    ETH_TYPE4 = FeatureConfig.enum.ETH_TYPE.ip4,
-    ETH_TYPE6 = FeatureConfig.enum.ETH_TYPE.ip6,
+    ETH_TYPE  = FeatureConfig.enum.ETH_TYPE.ip4,
     SRC_MAC   = "aa:00:00:00:00:a1",
     DST_MAC   = "ff:ff:ff:ff:ff:ff", 
     SRC_IP4   = "10.0.1.1",
@@ -69,33 +72,26 @@ FeatureConfig.defaultPkt = {
     TTL       = FeatureConfig.enum.TTL.max,
   }
 
+-- returns copy of the default packet
+FeatureConfig.getDefaultPkt = function()
+  return FeatureConfig.getPkt(FeatureConfig.defaultPkt)
+end
+
 -- returns copy of the given packet
-FeatureConfig.getPacket = function(pkt)
+FeatureConfig.getPkt = function(pkt)
   local _pkt = {}
   for k,v in pairs(pkt) do _pkt[k] = v end
   return _pkt
 end
 
+-- checks if packet is IPv6 
+FeatureConfig.isIPv6 = function(pkt)
+  return (pkt.ETH_TYPE == FeatureConfig.enum.ETH_TYPE.ip6)
+end
+
 -- modifies the given packet, by default none is changed
 FeatureConfig.modifyPkt = function(pkt, iteration)
 end
-
--- modified packet
--- TODO remove
-FeatureConfig.modifiedPkt = {
-    ETH_TYPE  = FeatureConfig.enum.ETH_TYPE.wol,
-    SRC_MAC   = "aa:00:00:00:00:a2",
-    DST_MAC   = "aa:aa:aa:aa:aa:aa", 
-    SRC_IP4   = "10.0.2.1",
-    SRC_IP6   = "fc00:0000:0000:0000:0000:0000:0002:0001",
-    DST_IP4   = "10.0.2.2",
-    DST_IP6   = "fc00:0000:0000:0000:0000:0000:0002:0002",
-    PROTO     = FeatureConfig.enum.PROTO.tcp,
-    SRC_PORT  = 4321, 
-    DST_PORT  = 8765,
-    TOS       = FeatureConfig.enum.TOS.mod,
-    TTL       = FeatureConfig.enum.TTL.min,
-  }
 
 -- default packet classifier, all packets passes independent from their content
 FeatureConfig.pktClassifier = {
@@ -104,7 +100,7 @@ FeatureConfig.pktClassifier = {
 
 -- default evaluate function, success if the first counter has enough packets
 FeatureConfig.evalCounters = function(ctrs, batch, threshold) 
-    return (ctrs[1] - batch <= threshold)
+    return (FeatureConfig.eval(ctrs[1], batch, threshold))
   end
   
 return FeatureConfig
