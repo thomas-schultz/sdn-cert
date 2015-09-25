@@ -1,5 +1,5 @@
 # sdn-cert
-OpenFlow Switch certification tool (early alpha)
+OpenFlow Switch certification tool (work in progress)
 
 
 # dependencies:
@@ -16,23 +16,40 @@ OpenFlow Switch certification tool (early alpha)
 	start benchmark ./run.sh <benchmark.cfg>
 	(start with --verbose and/or look at sdn-cert.log)
 	
-# genral info
+# Benchmarks
 	Testcases are defined in multiple layers:
 	Layer 1:
 		benchmark.cfg: List of testcases with name and variables in form of key=value
 	Layer 2:
-		benchmark-files/config/<name>.lua
-		TODO:
-		require:	required features, seperated by colon
-		of_script:	script with openflow rules followed by arguments, at least $ip and $port, args seperated by colon
-		load_gen:	loadgen programm
-		files:		files to copy to the loadgen host, seperated by colon
-		lg_args:	arguments passed to loaggen programm, lg_args
-		All Arguments beginning with '$' are treated as variables. All vvariables from the upper layer is passed downwards. So it is 	possible to define or override variables here.
+		stored in benchmark-files/config/<name>.lua
+		See benchmark-files/benchmark_template.lua for details
+
+		All Arguments beginning with '$' are treated as variables. All variables from the upper layer is passed downwards.
+		So it is possible to define or override variables here.
 		
-		SPECIAL: files are currently idetified by $file#, where # stands for the index of the file in the list above.
-		HINT: all key are stored lower case and without '_'. So 'rx_port' is the same key as "rxPort". Values are not changed.
+		SPECIAL:
+			files are currently identified by $file=#, where # stands for the index of the file in the list above.
+			physical connections between the switch and the loadgen are addressed by index. Use $link=1 to use the
+			first connection. $link=* will match to a list of all available connections
+		HINT: all keys are stored in lower case and without underscores. So 'rx_port' will refer to the same value
+			as "rxPort". Values are not changed in any way.
 	layer 3:
-		moongen script:
-			custom script that performs the packet generation.
+		moongen scripts: invidual scripts for generating and evaluating the result
+			
+# Feature-Test
+	uses nearly the same structure as benchmarks, but without Layer 1
+	Layer 2:
+		stored in feature-tests/config/<name>.lua
+		See feature-tests/feature_template.lua for details
 		
+		A simple feature test will work like this:
+			1)	install rules
+			2)	generate specific packet
+			3)	modify packet and jump to 2) or continue
+			4)	receive all packets, storing them in a table
+			5)	check if number of packets is as expected
+			6)	check if packet content is as expected
+			7)	report result
+		
+	Layer 3:
+		moongen script: one script, that performs the generating and checks the result with the given configuration.

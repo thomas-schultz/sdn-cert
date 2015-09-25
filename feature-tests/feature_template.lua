@@ -19,7 +19,7 @@ feature.loadGen = "moongen"
 feature.files   = "feature_test.lua"
 -- argument list for the load generator, use space as separator or specify as table
 feature.lgArgs  = "$file=1 $name $links"
--- argument list which will be mapped and than passed to then flowEntries function, can be omitted
+-- argument list which will be mapped and than passed to the flowEntries function, can be omitted
 feature.ofArgs  = "$link*"
 
 -- allowing for specific settings, default values can be overwritten, may be omitted
