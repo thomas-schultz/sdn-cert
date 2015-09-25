@@ -24,15 +24,18 @@ OpenFlow Switch certification tool (work in progress)
 		stored in benchmark-files/config/<name>.lua
 		See benchmark-files/benchmark_template.lua for details
 
-		All Arguments beginning with '$' are treated as variables. All variables from the upper layer is passed downwards.
-		So it is possible to define or override variables here.
+		All Arguments beginning with '$' are treated as variables. All variables from the
+		upper layer is passed downwards. So it is possible to define or override variables
+		from layer 1 here.
 		
 		SPECIAL:
-			files are currently identified by $file=#, where # stands for the index of the file in the list above.
-			physical connections between the switch and the loadgen are addressed by index. Use $link=1 to use the
-			first connection. $link=* will match to a list of all available connections
-		HINT: all keys are stored in lower case and without underscores. So 'rx_port' will refer to the same value
-			as "rxPort". Values are not changed in any way.
+			files are currently identified by $file=#, where # stands for the index of the
+			file in the list above. Physical connections between the switch and the loadgen
+			are addressed by index. Use $link=1 to use the first connection. $link=* will
+			match to a list of all available connections
+			
+		HINT: all keys are stored in lower case and without underscores. So 'rx_port' will
+			refer to the same value as "rxPort". Values are not changed in any way.
 	layer 3:
 		moongen scripts: invidual scripts for generating and evaluating the result
 			
@@ -52,4 +55,5 @@ OpenFlow Switch certification tool (work in progress)
 			7)	report result
 		
 	Layer 3:
-		moongen script: one script, that performs the generating and checks the result with the given configuration.
+		moongen script: one script, that performs the generating and checks the result with
+		the given configuration.
