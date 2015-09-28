@@ -213,7 +213,6 @@ function Benchmark:run()
     if (not settings.config.simulate) then sleep(global.timeout) end
     
     -- start loadgen
-    print("ID: " .. test:getId())
     local duration = test:getDuration() or "?"
     duration = " (measuring for " .. duration .. " sec)"
     showIndent("Starting measurement" .. duration, 1, global.headline1)

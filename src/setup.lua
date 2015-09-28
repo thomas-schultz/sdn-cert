@@ -26,6 +26,7 @@ function setupMoongen()
   else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/") end
   cmd:execute(true)
   checkMoongen()
+  printBar()
   exit()
 end
 
@@ -50,6 +51,7 @@ function initMoongen()
   if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
   else printlog("Failed to initialize MoonGen", "red") log_debug(ret) end
   isReady()  
+  printBar()
   exit()
 end
 

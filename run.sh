@@ -1,1 +1,3 @@
-src/main.lua
+#!/bin/bash
+
+./src/main.lua $@

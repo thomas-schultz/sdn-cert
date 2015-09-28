@@ -31,11 +31,12 @@ function TestCase:readConfig(cfgLine)
     return
   end
   local config = require(self.name)
-  self.config = table.deepcopy(config)
+  self.config = config
   self.require = CommonTest.readInArgs(config.require)
   if (self.config.settings) then 
     for k,v in pairs(self.config.settings) do self.settings[k] = v end end
   self.settings.name = self.name
+  for k,v in pairs(config.settings) do self.settings[k] = v end
   
   self.files = CommonTest.readInFiles(self, global.benchmarkFolder, self.files)
   self.ofArgs = CommonTest.mapArgs(self, self.config.ofArgs, "of", true)
@@ -69,7 +70,7 @@ function TestCase:isDisabled()
 end
 
 function TestCase:getName(withoutId)
-  if (self.settings.id and not withoutId) then return self.settings.id .. "_" .. self.name end
+  if (self.settings.id and not withoutId) then return "test_" .. self.settings.id .. "_" .. self.name end
   return self.name
 end
 

@@ -20,8 +20,8 @@ function Feature:readConfig()
     return
   end
   local config = require(self.name)
-  self.config = table.deepcopy(config)
-  self.settings = table.deepcopy(config.settings)
+  self.config = config
+  self.settings = config.settings
 
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())

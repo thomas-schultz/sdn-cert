@@ -69,9 +69,9 @@ local function main()
     log("*** Simulation-Mode ***")
   end
   
-  if settings.config.checkSetup then log("Testing, if the setup is correctly configured") end 
-  if settings.config.skipfeature then log("Skipping feature test, requirements will be ignored") end
-  if settings.config.testfeature then log("Testing feature '" .. settings.config.testfeature .. "', nothing more will be done") end 
+  if (settings.config.checkSetup) then log("Testing, if the setup is correctly configured") end 
+  if (settings.config.skipfeature) then log("Skipping feature test, requirements will be ignored") end
+  if (settings.config.testfeature) then log("Testing feature '" .. settings.config.testfeature .. "', nothing more will be done") end 
   
   if (parser:getArgCount() ~= 1) then
     if (parser:hasOption("--tar")) then
@@ -87,11 +87,10 @@ local function main()
     exit(1)
   end
 
-  if (not isReady() and not settings.config.simulate) then
+  if ((not isReady() and not settings.config.simulate) or settings.config.checkSetup) then
     printBar()
     exit()
   end
-  if (settings.config.checkSetup) then exit() end
 
   benchmark = Benchmark.create(benchmark_file)
   if (settings.config.verbose) then settings:print() end
