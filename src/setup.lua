@@ -12,12 +12,37 @@ local string_matches = {
   moongen_build      = "Built target MoonGen",
   }
 
+
+function cleanUp()
+  printBar()
+  printlog("Cleaning up testing system", global.headline1)
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  cmd:addCommand("cd " .. settings:get(global.loadgenWd))
+  cmd:addCommand("mkdir -p " .. global.results)
+  cmd:addCommand("rm -f " .. global.results .. "/*")
+  cmd:addCommand("mkdir -p " .. global.scripts)
+  cmd:addCommand("rm -f " .. global.scripts .. "/*")
+  cmd:execute()
+  local cmd = CommandLine.create()
+  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
+  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
+  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.eval)
+  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.eval .. "/*")
+  cmd:execute(settings.config.verbose)
+  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
+  ofDev:reset()
+  log("Step complete")
+  printBar()
+end
+
+
 function acrhiveResults()
-  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive, global.headline1)
+  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar", global.headline1)
   local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
   cmd:execute()
-  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. global.results .. "_`date +%Y%m%d_%H%M%S`.tar " .. settings.config.localPath .. "/" .. global.results .. "/*")
+  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar " .. settings.config.localPath .. "/" .. global.results .. "/* " .. settings.config.localPath .. "/" .. global.eval .. "/*")
   cmd:execute()
+  printBar()
 end
 
 function setupMoongen()
@@ -118,7 +143,7 @@ function checkMoongen()
       log_debug("Could not find MoonGen devices in output.\n" .. out)
       return false
     end
-    out = string.sub(out, devs+#string_matches.moongen_devs+2, dev_term-2)
+    out = string.sub(out, devs+#string_matches.moongen_devs+6, dev_term-2)
     show(out)
     return true
   end

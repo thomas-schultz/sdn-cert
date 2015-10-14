@@ -20,13 +20,41 @@ function CommonTest.print(name, config, dump)
   end   
   if (dump) then
     local file = io.open(dump, "w")
-    dump:write(out)
+    file:write(out)
   else show("  " .. out) end
+end
+
+
+function CommonTest.export(config, dump)
+  local t = {}
+  for key,value in pairs(config) do
+    table.insert(t,key)
+  end
+  table.sort(t)
+  local keys = ""
+  local values = ""
+  for i,key in pairs(t) do
+    keys = keys .. key .. ", "
+    values = values .. config[key] .. ", "
+  end
+  keys = string.sub(keys,1,#keys-2)
+  values = string.sub(values,1,#values-2)
+  if (dump) then
+    local file = io.open(dump, "w")
+    file:write(keys .. "\n")
+    file:write(values .. "\n")
+  else
+    show("  " .. keys)
+    show("  " .. values)
+  end
 end
 
 function CommonTest.readInArgs(args, t)
   if (type(args) == 'string') then
-    args = string.split(string.replaceAll(args, ",", " "), " ") end
+    args = string.replaceAll(args, ", ", " ")
+    args = string.replaceAll(args, ",", " ")
+    args = string.split(args, " ")
+  end
   local t = t or {}
   for n,arg in pairs(args) do
     local arg = string.trim(string.lower(arg))

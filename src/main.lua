@@ -2,6 +2,8 @@
 
 package.path = package.path .. ';src/?.lua'
 
+global = require "globConst"
+
 require "argParser"
 require "benchmark"
 require "commandline"
@@ -13,16 +15,12 @@ require "settings"
 require "setup"
 require "testcase"
 require "tools"
-global = require "globConst"
 
-package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
-package.path = package.path .. ';' .. global.benchmarkFolder .. '/config/?.lua'
-package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
-package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
 
 settings = nil
 debug_mode = false
 color_mode = true
+
 
 local function main()  
   init_logger(global.logFile) 
@@ -43,6 +41,7 @@ local function main()
   parser:addOption("--nocolor", "disables the colored output")
   parser:addOption("--check", "checks if the test setup is correctly configured")
   parser:addOption("--tar", "creates a tar archive for the current and the final results folder")
+  parser:addOption("--clean", "cleans the result and evaluation folder")
   parser:addOption("--skipfeature", "skips all feature tests")
   parser:addOption("--testfeature=feature", "tests specific feature, nothing more will be done")
   parser:addOption("--verbose", "shows further information")
@@ -60,6 +59,7 @@ local function main()
   if (parser:hasOption("--init")) then initMoongen() end
   if (parser:hasOption("--setup")) then setupMoongen() end
   if (parser:hasOption("--check")) then settings.config.checkSetup = true end
+  if (parser:hasOption("--clean")) then cleanUp() exit() end
   if (parser:hasOption("--skipfeature")) then settings.config.skipfeature = true end
   if (parser:hasOption("--testfeature")) then settings.config.testfeature = parser:getOptionValue("--testfeature") end
   if (parser:hasOption("-O")) then settings.config[global.ofVersion] = string.gsub(parser:getOptionValue("-O"), "%.", "") end
@@ -95,13 +95,14 @@ local function main()
   benchmark = Benchmark.create(benchmark_file)
   if (settings.config.verbose) then settings:print() end
   
-  benchmark:cleanUp()
+  cleanUp()
   benchmark:testFeatures()
-  benchmark:summary()
+  benchmark:sumFeatures()
   benchmark:prepare()
   benchmark:run()
-  benchmark:collect()
-  benchmark:summary()
+  benchmark:generateReports()
+  
+  if (settings:doArchive()) then acrhiveResults() end
   
   finalize_logger()
 end

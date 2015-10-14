@@ -1,5 +1,5 @@
 function pack(...)
-  return { n = select("#", ...), ... }
+  return {... }
 end
 
 
@@ -44,6 +44,70 @@ function exit(msg)
 end
 
 -----------
+-- Float --
+-----------
+
+float = {}
+
+float.tonumber = function(float)
+  local dot = string.find(float,"%.")
+  if (not dot) then return tonumber(float) end
+  local N_ = string.sub(float,1,dot-1)
+  local _N = string.sub(float,dot+1, -1)
+  local N = tonumber(N_.._N)
+  if (not N) then return nil end
+  for i=1,#_N do
+    N = N/10 end
+  return N
+end
+
+-----------
+--  CSV  --
+-----------
+
+csv = {}
+
+csv.parseCsv = function(file, separator)
+  local separator = separator or ","
+  local t = {}
+  local data = io.open(file, "r")
+  if (not data) then return t end
+  while (true) do
+    local line = data:read()
+    if (line == nil) then break end
+    table.insert(t, string.split(line, separator))
+  end
+  io.close(data)
+  return t
+end
+
+csv.getStats = function(data, clipBorder)
+  clipBorder = clipBorder or false
+  local stats = {}
+  if (not data[1]) then return stats end
+  for j,_ in pairs(data[1]) do
+    stats[j] = {}
+    stats[j].num = 0
+    stats[j].sum = 0
+  end
+  for i,row in pairs(data) do
+    if (not clipBorder or (i>1) and (i<#data)) then
+      for j,col in pairs(row) do
+        local value = float.tonumber(col)
+        if (value) then        
+          stats[j].num = stats[j].num + 1
+          stats[j].sum = stats[j].sum + value
+          stats[j].min, stats[j].max = math.min(stats[j].min or value,value), math.max(stats[j].max or value,value)
+          stats[j].avg = stats[j].sum / stats[j].num 
+        end
+      end
+    end
+  end
+  return stats
+end
+
+
+-----------
 -- Table --
 -----------
 
@@ -71,12 +135,23 @@ table.deepcopy = function(t)
   return _t
 end
 
-table.tostring = function(t)
+table.tostring = function(t, seperator)
   local str = ""
+  local seperator = seperator or " "
   for k,v in pairs(t) do
-    if (type(v) == 'string') then str = str .. v .. " " end
+    if (type(v) == 'string') then str = str .. v .. seperator end
+    if (type(v) == 'number') then str = str .. tostring(v) .. seperator end
   end
+  if (string.len(str) > 0) then str = string.sub(str,1,str:len()-1) end
   return string.trim(str)
+end
+
+table.getn = function(t)
+  local n = 0
+  for k,v in pairs(t) do
+    n = n + 1
+  end
+  return n
 end
 
 
@@ -93,7 +168,8 @@ string.sanitize = function(str)
   return str
 end
 
-string.trim = function (str)
+string.trim = function(str)
+  if (type(str) ~= 'string') then return str end
   return str:match("^%s*(.-)%s*$")
 end
 
@@ -104,11 +180,16 @@ string.replace = function (str, find, replace)
 end
 
 string.replaceAll = function (str, find, replace)
-  find = string.sanitize(find)
-  while (string.find(str, find)) do
-    str = string.replace(str, find, replace)
+  local _str = ""
+  local hit = string.find(str, find)
+  while (hit) do
+    local _str_ = string.sub(str,1, hit)
+    str = string.sub(str,hit+1, -1)
+    _str = _str .. string.replace(_str_, find, replace)
+    hit = string.find(str, find)
   end
-  return str
+  _str = _str .. str
+  return _str
 end
 
 

@@ -1,13 +1,16 @@
 Benchmark = {}
 Benchmark.__index = Benchmark
 
+package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
+package.path = package.path .. ';' .. global.benchmarkFolder .. '/config/?.lua'
+
+require "tex/document"
 
 function Benchmark.create(config)
   local self = setmetatable({}, Benchmark)
   self.testcases = {}
   self.features = {}
-  self.featureList = global.featureList
-  self.feature_count = 0
+  self.featureCount = 0
   self.config = config
   self:readConfig(config)
   return self
@@ -37,7 +40,7 @@ function Benchmark:readConfig(config)
 end
 
 function Benchmark:checkExit()
-  if #self.testcases == 0 then return true
+  if (#self.testcases == 0) then return true
   else return false end
 end
 
@@ -47,15 +50,15 @@ function Benchmark:getFeatures()
     local feature = Feature.create(settings.getTestFeature())
     if feature:isDisabled() then return end
     self.features[settings.getTestFeature()] = feature
-    self.feature_count = 1
+    self.featureCount = 1
     table.insert(self.featureList, 1, feature)        
     return
   end
-  local list = settings.config.localPath .. "/" .. global.featureFolder .. "/" .. self.featureList
+  local list = settings.config.localPath .. "/" .. global.featureFolder .. "/" .. global.featureList
   local fh = io.open(list)
   if (not fh) then printlog_err("Could not open feature list '" .. list .. "'") return end
   self.featureList = {}
-  self.feature_count = 0
+  self.featureCount = 0
   while true do
     local line = fh:read()
     if line == nil then break end
@@ -63,8 +66,8 @@ function Benchmark:getFeatures()
       local feature = Feature.create(line)
       if (not feature:isDisabled()) then
         self.features[line] = feature
-        self.feature_count = self.feature_count + 1
-        table.insert(self.featureList, self.feature_count, feature)    
+        self.featureCount = self.featureCount + 1
+        table.insert(self.featureList, self.featureCount, feature)    
         log_debug("added feature " .. line)    
       end
     end
@@ -87,8 +90,7 @@ function Benchmark:exportFeatures()
 end
 
 function Benchmark:importFeatures()
-  self.featureList = {}
-  self.feature_count = 0
+  self:getFeatures()
   if (not localfileExists(global.featureFile)) then return end
   local fh = io.open(global.featureFile)
   while true do
@@ -99,11 +101,8 @@ function Benchmark:importFeatures()
       if (split) then
         local name = string.trim(string.sub(line, 1, split-1))
         local state = string.trim(string.sub(line, split+1, -1))
-        local feature = Feature.create(name)
+        local feature = self.features[name]
         if (state == "true") then feature.supported = true end
-        self.features[name] = feature    
-        self.feature_count = self.feature_count + 1
-        table.insert(self.featureList, self.feature_count, feature)
         log_debug("imported feature " .. name .. " as " .. state)   
       end
     end
@@ -113,31 +112,11 @@ function Benchmark:importFeatures()
 end
 
 function Benchmark:isFeatureSupported(name)
-  if not self.features[name] then
-    printlog_warn("Feature disabled or not found, check log")
+  if (not self.features[name]) then
+    printlog_warn("Feature '" .. name .. "' disabled or not found, check log")
     return false
   end
   return self.features[name]:isSupported()
-end
-
-function Benchmark:cleanUp()
-  printBar()
-  printlog("Cleaning up testing system", global.headline1)
-  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
-  cmd:addCommand("cd " .. settings:get(global.loadgenWd))
-  cmd:addCommand("mkdir -p " .. global.results)
-  cmd:addCommand("rm -f " .. global.results .. "/*")
-  cmd:addCommand("mkdir -p " .. global.scripts)
-  cmd:addCommand("rm -f " .. global.scripts .. "/*")
-  cmd:execute()
-  local cmd = CommandLine.create()
-  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
-  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
-  cmd:execute(settings.config.verbose)
-  local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
-  ofDev:reset()
-  log("Step complete")
-  printBar()
 end
 
 function Benchmark:testFeatures()
@@ -146,11 +125,11 @@ function Benchmark:testFeatures()
     return
   end
   self:getFeatures()
-  if self.feature_count == 0 then
+  if (self.featureCount == 0) then
     printlog("No features to test")
   end
   for i,feature in pairs(self.featureList) do
-    printlog("Testing feature ( " .. i .. " / " .. self.feature_count .. " ): " .. feature:getName(true), global.headline1)
+    printlog("Testing feature ( " .. i .. " / " .. self.featureCount .. " ): " .. feature:getName(true), global.headline1)
     feature:runTest()
     if (not settings.config.simulate) then showIndent(feature:getStatus(), 1) end
   end
@@ -179,12 +158,14 @@ function Benchmark:prepare()
     if (not test:isDisabled() or settings.config.simulate) then
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
-        showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1)
+        showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
         local cmd = SCPCommand.create()
         cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
         cmd:execute(settings.config.verbose)
       end
-      table.insert(testcases, test)
+      local id = #testcases + 1
+      test:setId(id)
+      table.insert(testcases, id, test)
     end
     log("done")
   end
@@ -198,9 +179,8 @@ function Benchmark:run()
   if (self:checkExit()) then printlog("No test left") end
   for id,test in pairs(self.testcases) do
     printlog("Running test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), global.headline1)
-    test:setId(id)
     if (settings.config.verbose) then test:print() end
-
+    
     -- configure open-flow device
     showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
     local path = settings.config.localPath .. "/" .. global.results .. "/" .. test:getName()
@@ -210,32 +190,24 @@ function Benchmark:run()
     ofDev:createAllFiles(flowData, path)
     ofDev:installAllFiles(path, "_ovs.output")
     ofDev:dumpAll(path .. ".before")
-    if (not settings.config.simulate) then sleep(global.timeout) end
+    if (not settings.config.simulate) then sleep(global.timeout) end   
+    test:export(path .. "_parameter.csv")
     
     -- start loadgen
     local duration = test:getDuration() or "?"
     duration = " (measuring for " .. duration .. " sec)"
-    showIndent("Starting measurement" .. duration, 1, global.headline1)
+    showIndent("Starting measurement" .. duration, 1, global.headline2)
     local lgDump = io.open(path .. "_loadgen.output", "w")
     local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
     cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
     cmd:addCommand("./" .. test:getLoadGen() .. " " .. test:getLgArgs())
-    cmd:print()
-    lgDump:write(cmd:execute(settings.config.verbose))
-    if (not settings.config.simulate) then
+    if (settings:isVerbose()) then cmd:print() end
+    lgDump:write(cmd:execute(settings:isVerbose()))
+    if (not Settings:doSimulate()) then
       ofDev:dumpAll(path .. ".after")
     end
     io.close(lgDump)
-    log("done")
-  end
-  log("Step complete")
-  printBar()
-end
-
-function Benchmark:collect()
-  if (settings.config.testfeature or self:checkExit()) then return end
-  for id,test in pairs(self.testcases) do
-    printlog("Collecting results ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), global.headline1)
+    showIndent("Collecting results", 1, global.headline2)
     local cmd = SCPCommand.create()
     cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
     cmd:execute(settings.config.verbose)
@@ -245,27 +217,117 @@ function Benchmark:collect()
   printBar()
 end
 
-function Benchmark:summary(featureOnly)
-  if (not settings.config.skipfeature and not settings.config.simulate) then
-    if (self.feature_count == 0) then
-      print("No features tested")
-    else
-      local compliance = true;
-      for i,feature in pairs(self.featureList) do
-        show(string.format("Feature:   ".. ColorCode.white .. "%-24s" .. ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
-        compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
-      end
-      if (not settings.config.testfeature) then
-        if (compliance) then printlog("\nTestdevice has passed all required tests for " .. settings.config[global.ofVersion], "lgreen")
-        else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], "lred") end
-      end
-      printBar()
+function Benchmark:sumFeatures()
+  if (self.featureCount == 0) then
+    print("No features tested")
+  else
+    local compliance = true;
+    for i,feature in pairs(self.featureList) do
+      show(string.format("Feature:   ".. ColorCode.white .. "%-24s" .. ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
+      compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
+    end
+    if (not settings.config.testfeature) then
+      if (compliance) then printlog("\nTestdevice has passed all required tests for " .. settings.config[global.ofVersion], "lgreen")
+      else printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], "lred") end
     end
   end
-  if (featureOnly) then return end
-  if (settings.config.archive == true) then
-    acrhiveResults()
-    printBar()
+  local doc = TexDocument.create()
+  local title = TexText.create()
+  title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Summary Feature-Tests}", "\\end{LARGE}", "\\end{center}")
+  local ofvers = TexText.create()
+  title:add("\\begin{center}", "\\begin{huge}", "Version: " .. settings:getOFVersion(), "\\end{huge}", "\\end{center}")
+  doc:addElement(ofvers)
+  doc:addElement(title)
+  local features = TexTable.create("|l|l|l|l|","ht")
+  features:add("\\textbf{feature}", "\\textbf{type}", "\\textbf{version}", "\\textbf{status}")
+  for i,feature in pairs(self.featureList) do
+    features:add(feature:getName(true), feature:getState(), feature:getRequiredOFVersion(), feature:getTexStatus())
+  end
+  doc:addElement(features)
+  doc:generatePDF("Feature-Tests")
+  printBar()
+end
+
+function Benchmark:generateTestDB()
+  local db = {}
+  local paramaterList = {}
+  for id,test in pairs(self.testcases) do
+    local testName = test:getName(true)
+    db[testName] = db[testName] or {}
+    local case = {}
+    local parameters = test:getParameterList()
+    case.parameters = parameters
+    case.id = test:getId()
+    table.insert(db[testName],case)
+    for name,value in pairs(parameters) do
+      if (name ~= "name") then paramaterList[name] = true end
+    end
+  end
+  return paramaterList, db
+end
+
+function Benchmark:generateReports()
+  for id,test in pairs(self.testcases) do
+    test:setId(id)
+    printlog("Generating reports ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), global.headline1)
+    test:createReport()
+  end
+
+  local paramaterList,globalDB = self:generateTestDB()
+  for currentTestName,testDB in pairs(globalDB) do
+    local reports = {}
+    for currentParameter,_ in pairs(paramaterList) do
+      local set = {}
+      for _,test in pairs(testDB) do
+        local conf = ""
+        for parameter,value in pairs(test.parameters) do
+        if (parameter ~= currentParameter) then
+          conf = conf .. parameter .. "=" .. value .. "," end    
+        end
+        --print(currentParameter, conf)
+        if (not set[conf]) then set[conf] = {num = 0, ids = {}} end
+        set[conf].num = set[conf].num + 1
+        table.insert(set[conf].ids, test.id)
+      end
+      for conf,data in pairs(set) do
+        if (data.num > 1) then
+          --print(data.num, conf)
+          if (not reports[currentParameter]) then
+            printlog("Generating advanced report for " .. currentTestName .. "/" .. currentParameter, global.headline1)
+            reports[currentParameter] = TexDocument.create()
+            local title = TexText.create()
+            title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test: " .. currentTestName .. "}", "\\end{LARGE}", "\\end{center}")
+            reports[currentParameter]:addElement(title)
+            local subtitle = TexText.create()
+            subtitle:add("\\begin{center}", "\\begin{huge}", "parameter: " .. currentParameter, "\\end{huge}", "\\end{center}")
+            reports[currentParameter]:addElement(subtitle)
+          end
+          self:generateAdvancedReport(reports[currentParameter], currentTestName, currentParameter, data.ids)
+        end
+      end
+    end
+    for par,report in pairs(reports) do
+      report:saveToFile(currentTestName .. "_" .. par)
+      report:generatePDF()
+    end
+  end  
+  printBar()
+end
+
+function Benchmark:generateAdvancedReport(doc, name, currentParameter, ids)
+  local test = self.testcases[ids[1]]
+  local config = require("benchmark_config")
+  local metric = config.metric[test.config.metric]
+  local items = metric.advanced(currentParameter, self.testcases, ids) 
+  
+  local parameter = TexTable.create("|l|r|", "ht")
+  for k,v in pairs(test.parameters) do
+    if (k ~= "name" and k ~= currentParameter) then parameter:add(k, v) end
+  end
+  parameter:add("involved tests", table.tostring(ids, ","))
+  doc:addElement(parameter)  
+  for _,item in pairs(items) do
+    doc:addElement(item)
   end
 end
 

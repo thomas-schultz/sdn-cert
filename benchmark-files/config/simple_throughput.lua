@@ -17,5 +17,7 @@ bench.ofArgs  = "$link=1 $link=2"
 bench.flowEntries = function(flowData, inPort, outPort)
     table.insert(flowData.flows, "in_port=" .. inPort .. ", actions=output:" .. outPort)
   end
+  
+bench.metric = "load-latency"
 
 return bench

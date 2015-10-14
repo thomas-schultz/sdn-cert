@@ -12,7 +12,7 @@ local eth_Type  = { ip4 = 0x0800, ip6 = 0x86dd, arp = 0x0806, wol = 0x0842 }
 local SRC_MAC   = "aa:bb:cc:dd:ee:ff"
 local DST_MAC   = "ff:ff:ff:ff:ff:ff"
 local SRC_IP    = "10.0.0.0"
-local DST_IP    = "10.0.0.1"
+local DST_IP    = "10.0.0.0"
 local SRC_PORT  = 1234
 local DST_PORT  = 1234
 
@@ -52,34 +52,18 @@ local function fillUdpPacket(buf, len)
   }
 end
 
-function nextSlave(queue, match)
-  local size  = 60
-  local count = 1
-  local mempool = memory.createMemPool(function(buf)
-    fillUdpPacket(buf, size)
-  end)
-  local bufs = mempool:bufArray(count)
-  
-  while dpdk.running() do
-    bufs:alloc(size)
-    for i, buf in ipairs(bufs) do
-      local pkt = buf:getUdpPacket()
-      pkt.eth:setType(eth_Type.wol)
-    end
-    bufs:offloadUdpChecksums()
-    queue:send(bufs)
-    break
-  end
-end
-
 function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
   local mempool = memory.createMemPool(function(buf)
     fillUdpPacket(buf, size)
   end)
+  local logFile = "../results/test_" .. id .. "_load"
+  local txDump = logFile .. "_tx.csv"
+  local rxDump = logFile .. "_rx.csv"
+  
   local bufs = mempool:bufArray()
   local counter = 0
-  local txCtr = stats:newDevTxCounter(queue, "plain")
-  local rxCtr = stats:newDevRxCounter(rxDev, "plain")
+  local txCtr = stats:newDevTxCounter(queue, "CSV", txDump)
+  local rxCtr = stats:newDevRxCounter(rxDev, "CSV", rxDump)
   local baseIP = parseIPAddress(DST_IP)
   local start = dpdk.getTime()
   local timeout = dpdk.getTime() + duration
@@ -91,7 +75,6 @@ function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
       pkt.ip4.dst:set(baseIP + counter)
       counter = incAndWrap(counter, numIP)
     end
-    -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     bufs:offloadUdpChecksums()
     queue:send(bufs)
     txCtr:update()
@@ -101,20 +84,11 @@ function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
   
   txCtr:finalize()
   rxCtr:finalize()
-  local logFile = "../results/test_" .. id .. "_load.csv"
-  local log = io.open(logFile, "w")
-  local txStats = {n = select("#", txCtr:getStats()), txCtr:getStats()}
-  local rxStats = {n = select("#", rxCtr:getStats()), rxCtr:getStats()}
-  local stats = {mpps = 1, mbit = 2, wireMbit = 3, total = 4, totalBytes = 5}
-  log:write("direction; mpps.avg; mbit.avg; wireMbit.avg; total; totalBytes\n")
-  log:write("tx; " .. txStats[stats.mpps].avg .. "; " .. txStats[stats.mbit].avg .. "; " .. txStats[stats.wireMbit].avg .. "; " .. txStats[stats.total] .. "; " .. txStats[stats.totalBytes] .. "\n")
-  log:write("rx; " .. rxStats[stats.mpps].avg .. "; " .. rxStats[stats.mbit].avg .. "; " .. rxStats[stats.wireMbit].avg .. "; " .. rxStats[stats.total] .. "; " .. rxStats[stats.totalBytes] .. "\n")
-  io.close(log)
-  print("Saving throughput to '" .. logFile .. "'")
+  print("Saving txCounter to '" .. logFile .. "_tx.csv'")
+  print("Saving rxCounter to '" .. logFile .. "_rx.csv'")
 end
 
 function timerSlave(id, txQueue, rxQueue, size, numIP, duration)
-  rxQueue.dev:filterTimestamps(rxQueue)
   if size < 84 then
     printf("WARNING: packet size %d is smaller than minimum timestamp size 84. Timestamped packets will be larger than load packets.", size)
     size = 84
@@ -145,4 +119,3 @@ function timerSlave(id, txQueue, rxQueue, size, numIP, duration)
   hist:print()
   hist:save("../results/test_" .. id .. "_latency.csv")
 end
-

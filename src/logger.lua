@@ -19,16 +19,22 @@ ColorCode = {
   normal      = "\27[0m",
 }
 
+noColorCode = {}
+setmetatable(noColorCode, {__index = function () return "" end})
+
 function disableColor()
   ColorCode = {}
   local mt = {__index = function () return "" end}
   setmetatable(ColorCode, mt)
 end
 
-function get_timestamp()
+function get_timestamp(format)
+  local format = format or "log"
   local time = os.date("*t")
-  local timestamp = time.year .. "/" .. time.month .. "/" .. time.day .. " - " .. string.format("%.2d:%.2d:%.2d", time.hour, time.min, time.sec)
-  return timestamp
+  if (format == "log") then
+    return string.format("%.2d/%.2d/%.2d - %.2d:%.2d:%.2d", time.year, time.month, time.day, time.hour, time.min, time.sec) end
+  if (format == "file") then
+    return string.format("%.2d%.2d%.2d_%.2d%.2d%.2d", time.year, time.month, time.day, time.hour, time.min, time.sec) end
 end
 
 function init_logger(file)
@@ -97,7 +103,7 @@ function printlog_err(msg, color)
 end
 
 function log_debug(msg)
-  if (debug_mode) then logger_log("DEBUG   ", msg) end
+  if (debug_mode and msg) then logger_log("DEBUG   ", msg) end
 end 
 
 -- prints a bar to the command line

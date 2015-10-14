@@ -1,6 +1,9 @@
 Feature = {}
 Feature.__index = Feature
- 
+
+package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
+package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
+
  
 function Feature.create(name)
   local self = setmetatable({}, Feature)
@@ -109,19 +112,32 @@ function Feature:getRequiredOFVersion()
 end
 
 function Feature:getState()
-  return self.settings.state
+  return self.config.state
 end
 
 function Feature:isSupported()
   return self.supported
 end
 
-function Feature:getStatus()
-  if self:isSupported() then
-    return ColorCode.lgreen .. "Test passed" .. ColorCode.normal
+function Feature:getStatus(noColor)
+  local color
+  if (noColor) then color = noColorCode
+  else color = ColorCode end
+  
+  if (self:isSupported()) then
+    return color.lgreen .. "Test passed" .. color.normal
   else
-    return ColorCode.lred .. "Test failed" .. ColorCode.normal .. " (" .. self.reason .. ")"
- end
+    return color.lred .. "Test failed" .. color.normal
+    --return color.lred .. "Test failed" .. color.normal .. " (" .. self.reason .. ")"
+  end
+end
+
+function Feature:getTexStatus()
+  if (self:isSupported()) then
+    return "{\\color{green} supported}"
+  else
+    return "{\\color{red} not supported}"
+  end
 end
 
 function Feature:getLoadGen()

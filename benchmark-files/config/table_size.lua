@@ -12,20 +12,22 @@ bench.require = "match_ipv4, modify_ipv4"
 bench.loadGen = "moongen"
 bench.files   = "load-latency.lua"
 bench.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
-bench.ofArgs  = "$baseIP $link=1 link=2"
+bench.ofArgs  = "$baseIP $numIP $link=2"
    
 bench.settings = {
   baseIP = "10.0.0.0",
 }
 
 bench.flowEntries = function(flowData, baseIP, numIP, outPort)
-  local ip = BenchmarkConfig.parseIP(baseIP)
+  local ip = BenchmarkConfig.IP.parseIP(baseIP)
   for i=1,tonumber(numIP) do
-    local currentMatch = BenchmarkConfig.getIP(ip)
-    BenchmarkConfig.incAndWrap(ip)
-    local currentTarget = BenchmarkConfig.getIP(ip)
+    local currentMatch = BenchmarkConfig.IP.getIP(ip)
+    BenchmarkConfig.IP.incAndWrap(ip)
+    local currentTarget = BenchmarkConfig.IP.getIP(ip)
     table.insert(flowData.flows, "ip, nw_dst=" .. currentMatch ..", actions=mod_nw_dst=" .. currentTarget .. ",output:" .. outPort)
   end
 end
+
+bench.metric = "load-latency"
 
 return bench

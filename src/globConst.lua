@@ -22,6 +22,7 @@ global = {}
   
   -- path settings
   global.results = "results"
+  global.eval    = "evaluation"
   global.archive = "archive"
   global.scripts = "scripts"
   global.timeout = 2

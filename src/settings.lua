@@ -20,9 +20,9 @@ function Settings:readSettings(configFile)
   self.config.checkSetup    = false
   self.config.skipfeature   = false
   self.config[global.ofVersion] = "OpenFlow10"
-  while true do
+  while (true) do
     local line = fh:read()
-    if line == nil then break end
+    if (line == nil) then break end
     local comment = string.find(line, global.ch_comment)
     if (not comment) then
       local k,v = string.getKeyValue(line)
@@ -64,8 +64,20 @@ function Settings:isLocal()
   return self.config["local"] == true
 end
 
-function Settings:verbose()
+function Settings:isVerbose()
   return self.config.verbose == true
+end
+
+function Settings:doSimulate()
+  return settings.config.simulate == true
+end
+
+function Settings:doSkipfeature()
+  return self.config.skipfeature == true
+end
+
+function Settings:doArchive()
+  return self.config.archive == true
 end
 
 function Settings:getOFVersion()
