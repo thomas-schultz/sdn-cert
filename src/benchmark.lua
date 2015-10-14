@@ -136,7 +136,7 @@ function Benchmark:testFeatures()
   log("Step complete")
   if (settings.config.testfeature) then
     printBar()
-    self:summary(true)
+    self:sumFeatures()
     if (self.features[settings.config.testfeature] ~= nil) then
       local state = self.features[settings.config.testfeature]:isSupported()
       self:importFeatures()
