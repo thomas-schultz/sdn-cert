@@ -1,4 +1,6 @@
-local logFile = nil
+Logger = {}
+Logger.__index = Logger
+
 
 ColorCode = {
   red     = "\27[31m",
@@ -12,6 +14,7 @@ ColorCode = {
   lyellow = "\27[93m",
   lblue   = "\27[94m",
   white   = "\27[97m",
+  RED     = "\27[41m",
   
   bold        = "\27[1m",
   underlined  = "\27[4m",
@@ -28,7 +31,31 @@ function disableColor()
   setmetatable(ColorCode, mt)
 end
 
-function get_timestamp(format)
+Logger.logFile = nil
+Logger.lvl = {
+  ["INFO"] = {
+    color = "normal",
+    label = "INFO",
+    },
+  ["DEBUG"] = {
+    color = "normal",
+    label = "DEBUG",
+    },
+  ["WARN"] = {
+    color = "yellow",
+    label = "WARNING",
+    },
+  ["ERR"] = {
+    color = "red",
+    label = "ERROR",
+    },
+  ["FATAL"] = {
+    color = "RED",
+    label = "FATAL"
+    } 
+}
+
+function Logger.getTimestamp(format)
   local format = format or "log"
   local time = os.date("*t")
   if (format == "log") then
@@ -37,77 +64,53 @@ function get_timestamp(format)
     return string.format("%.2d%.2d%.2d_%.2d%.2d%.2d", time.year, time.month, time.day, time.hour, time.min, time.sec) end
 end
 
-function init_logger(file)
-  logFile = io.open(file, "a")
-  log("Started")
+function Logger.init(file)
+  Logger.logFile = io.open(file, "a")
+  Logger.log("Started")
+  return Logger
 end
 
-function finalize_logger()
-  log("Finished\n")
-  logFile:close()
+function Logger.finalize()
+  logger.log("Finished\n")
+  Logger.logFile:close()
 end
 
-local function logger_log(type, msg)
-   logFile:write(get_timestamp() ..  ": ")
-   logFile:write(type, msg)
-   logFile:write("\n")
-   logFile:flush ()
+function Logger.log(msg, lvl)
+  local lvl = (Logger.lvl[lvl] and Logger.lvl[lvl].label) or "INFO"
+  Logger.logFile:write(("%s: %-10s %s\n"):format(Logger.getTimestamp(),lvl,msg))
+  Logger.logFile:flush ()
 end
 
-local function logger_printlog(type, msg, color)
-   logger_log(type, msg)
-   show(msg, color)
-end
-
-function show(msg, color)
+function Logger.print(msg, indent, color)
   local msg = msg or ""
+  local indent = indent or 0
   local preamble = ColorCode[color] or ColorCode.normal
   local delim = ColorCode.normal
-  print(preamble .. msg .. delim)
+  print(preamble .. string.rep("  ", indent) .. msg .. delim)
 end
 
-function showIndent(msg, indent, color)
-  indent = indent or 0
-  show(string.rep("  ", indent) .. msg, color)
+function Logger.printlog(msg, lvl, color)
+   Logger.log(msg, lvl)
+   local color = color or (Logger.lvl[lvl] and Logger.lvl[lvl].color) or ColorCode.normal
+   Logger.print(msg, 0, color)
 end
 
-function log(msg)
-  logger_log("LOG     ", msg)
+function Logger.warn(msg)
+  logger.log("WARN", msg)
 end
 
-function printlog(msg, color)
-   log(msg, color)
-   show(msg, color)
+function Logger.err(msg)
+  logger.log("ERR", msg)
 end
 
-function log_warn(msg)
-  color = color or "yellow"
-  logger_log("WARNING ", msg)
-end
-
-function printlog_warn(msg, color)
-  color = color or "yellow"
-  logger_log("WARNING ", msg, color)
-  showIndent(msg, 1)
-end
-
-function log_err(msg)
-  color = color or "red"
-  logger_log("ERROR   ", msg)
-end
-
-function printlog_err(msg, color)
-  color = color or "red"
-  logger_log("ERROR   ", msg)
-  showIndent(msg, 1, color)
-end
-
-function log_debug(msg)
-  if (debug_mode and msg) then logger_log("DEBUG   ", msg) end
+function Logger.debug(msg)
+  if (debugMode and msg) then Logger.log("DEBUG", msg) end
 end 
 
 -- prints a bar to the command line
-function printBar()
+function Logger.printBar()
   print(ColorCode.lyellow .. string.rep("-", 80) .. ColorCode.normal)
 end
+
+return Logger
 

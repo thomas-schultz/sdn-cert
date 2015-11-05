@@ -14,8 +14,8 @@ local string_matches = {
 
 
 function cleanUp()
-  printBar()
-  printlog("Cleaning up testing system", global.headline1)
+  logger.printBar()
+  logger.printlog("Cleaning up testing system", global.headline1)
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd))
   cmd:addCommand("mkdir -p " .. global.results)
@@ -31,18 +31,18 @@ function cleanUp()
   cmd:execute(settings.config.verbose)
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
   ofDev:reset()
-  log("Step complete")
-  printBar()
+  logger.log("Step complete")
+  logger.printBar()
 end
 
 
 function acrhiveResults()
-  printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar", global.headline1)
+  logger.printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar", global.headline1)
   local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
   cmd:execute()
   local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar " .. settings.config.localPath .. "/" .. global.results .. "/* " .. settings.config.localPath .. "/" .. global.eval .. "/*")
   cmd:execute()
-  printBar()
+  logger.printBar()
 end
 
 function setupMoongen()
@@ -51,7 +51,7 @@ function setupMoongen()
   else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/") end
   cmd:execute(true)
   checkMoongen()
-  printBar()
+  logger.printBar()
   exit()
 end
 
@@ -73,29 +73,29 @@ function initMoongen()
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/setup-hugetlbfs.sh")
   local ret = cmd:execute(settings.config.verbose)
   if (settings.config.simulate) then exit() end
-  if (ret and string.find(ret, string_matches.moongen_build)) then printlog("Building successful") 
-  else printlog("Failed to initialize MoonGen", "red") log_debug(ret) end
+  if (ret and string.find(ret, string_matches.moongen_build)) then logger.printlog("Building successful") 
+  else logger.printlog("Failed to initialize MoonGen", "red") logger.debug(ret) end
   isReady()  
-  printBar()
+  logger.printBar()
   exit()
 end
 
 function checkOpenFlow()
-  printBar()
-  printlog("Checking test setup", global.headline1)
+  logger.printBar()
+  logger.printlog("Checking test setup", global.headline1)
   local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.switchIP) .. ":" .. settings:get(global.switchPort))
   local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end
   if (string.find(out, error_messages.openflow_socket)) then
-    show("OpenFlow device is not reachable!")
-    printlog(string.replaceAll("  " .. out, "\n", " "), "red")
+    logger.print("OpenFlow device is not reachable!")
+    logger.printlog(string.replaceAll("  " .. out, "\n", " "), "red")
     return false
   elseif (string.find(out, error_messages.openflow_fail)) then
-    show("OpenFlow device seem not to be ready!")
-    printlog(string.replaceAll("  " .. out, "\n", " "), "red")
+    logger.print("OpenFlow device seem not to be ready!")
+    logger.printlog(string.replaceAll("  " .. out, "\n", " "), "red")
     return false
   else
-    show("Available logical ports on the switch:")
+    logger.print("Available logical ports on the switch:")
     local ports = {}
     local find, find_ = string.find(out, "ports")
     if (not find) then return end
@@ -114,7 +114,7 @@ function checkOpenFlow()
       list = list .. port .. ", "
       if (i % 10 == 0) then list = list .. "\n   " end
     end
-    show("   " .. list)
+    logger.print("   " .. list)
     return true
   end 
 end
@@ -126,35 +126,35 @@ function checkMoongen()
   cmd:addCommand("./moongen ls")
   local out = cmd:execute(false)
   if (out == nil or settings.config.simulate) then
-    log_debug("Could not get output of MoonGen to detect available ports")
+    logger.debug("Could not get output of MoonGen to detect available ports")
     return false
   end
   if (string.find(out, error_messages.moongen_hugepage)) then
-    show("MoonGen is either running or not initialized, stop it or try '--init'")
+    logger.print("MoonGen is either running or not initialized, stop it or try '--init'")
     return false
   elseif (string.find(out, error_messages.moongen_bash)) then
-    show("MoonGen seems not to be installed, try '--setup'")
+    logger.print("MoonGen seems not to be installed, try '--setup'")
     return false
   else
-    show("Available physical devices of MoonGen:")
+    logger.print("Available physical devices of MoonGen:")
     local devs = string.find(out, string_matches.moongen_devs)
     local dev_term = string.find(out, string_matches.moongen_lua_err)
     if (not devs or not dev_term) then
-      log_debug("Could not find MoonGen devices in output.\n" .. out)
+      logger.debug("Could not find MoonGen devices in output.\n" .. out)
       return false
     end
     out = string.sub(out, devs+#string_matches.moongen_devs+6, dev_term-2)
-    show(out)
+    logger.print(out)
     return true
   end
 end
 
 function isReady()
   local result = checkOpenFlow()
-  if (not result and not settings.config.simulate) then show("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
+  if (not result and not settings.config.simulate) then logger.print("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
   result = checkMoongen() and result
-  if (not result and not settings.config.simulate) then show("Make sure MoonGen is installed correctly") end
-  if (not result) then printlog("Test setup is not ready, check log", "lred")
-  else printlog("Test setup is ready", "lgreen") end
+  if (not result and not settings.config.simulate) then logger.print("Make sure MoonGen is installed correctly") end
+  if (not result) then logger.printlog("Test setup is not ready, check log", "INFO", "lred")
+  else logger.printlog("Test setup is ready", "INFO", "lgreen") end
   return result
 end

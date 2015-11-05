@@ -1,21 +1,24 @@
-local device = require "device"
-local dpdk   = require "dpdk"
-local filter = require "filter"
-local hist   = require "histogram"
-local memory = require "memory"
-local stats  = require "stats"
-local timer  = require "timer"
-local ts     = require "timestamping"
+--- This script implements a simple QoS test by generating two flows and measuring their latencies.
+local mg		= require "dpdk" -- TODO: rename dpdk module to "moongen"
+local memory	= require "memory"
+local device	= require "device"
+local ts		= require "timestamping"
+local filter	= require "filter"
+local stats		= require "stats"
+local hist		= require "histogram"
+local timer		= require "timer"
+local log		= require "log"
 
--- set addresses here
-local eth_Type  = { ip4 = 0x0800, ip6 = 0x86dd, arp = 0x0806, wol = 0x0842 }
-local SRC_MAC   = "aa:bb:cc:dd:ee:ff"
-local DST_MAC   = "ff:ff:ff:ff:ff:ff"
-local SRC_IP    = "10.0.0.0"
-local DST_IP    = "10.0.0.0"
-local SRC_PORT  = 1234
-local DST_PORT  = 1234
-
+-- define packet here
+local PACKET = {
+  eth_Type  = { ip4 = 0x0800, ip6 = 0x86dd, arp = 0x0806, wol = 0x0842 },
+  SRC_MAC   = "aa:bb:cc:dd:ee:ff",
+  DST_MAC   = "ff:ff:ff:ff:ff:ff",
+  SRC_IP    = "10.0.0.0",
+  DST_IP    = "10.0.0.0",
+  SRC_PORT  = 1234,
+  DST_PORT  = 1234,
+}
 
 function master(testId, txPort, rxPort, duration, rate, numIP, size)
   if not tonumber(testId) or not tonumber(txPort) or not tonumber(rxPort) or not tonumber(duration) or
@@ -23,99 +26,107 @@ function master(testId, txPort, rxPort, duration, rate, numIP, size)
     print("usage: testId txDev rxDev duration size rate numIP")
     return
   end
-  local txDev = device.config{
-    port = txPort,
-    rxQueues = 1,
-    txQueues = 2,
-  }
-  local rxDev = device.config{
-    port = rxPort,
-    rxQueues = 2,
-    txQueues = 2,
-  }
-  device.waitForLinks()
-  txDev:getTxQueue(0):setRate(rate - (size + 4) * 8 / 1000)
-  dpdk.launchLua("loadSlave", testId, txDev:getTxQueue(0), rxDev, size, numIP, duration, rate)
-  dpdk.launchLua("timerSlave", testId, txDev:getTxQueue(1), rxDev:getRxQueue(1), size, numIP, duration)
-  dpdk.waitForSlaves()
+	-- 2 tx queues: traffic, and timestamped packets
+	-- 2 rx queues: traffic and timestamped packets
+	txDev = device.config{ port = txPort, rxQueues = 1, txQueues = 2}
+	rxDev = device.config{ port = rxPort, rxQueues = 2 }
+
+	device.waitForLinks()
+	txDev:getTxQueue(0):setRate(rate)
+	-- create traffic
+  mg.launchLua("loadSlave", testId, txDev:getTxQueue(0), size, numIP, duration, rate)
+	-- count the incoming packets
+	mg.launchLua("counterSlave", testId, rxDev:getRxQueue(0), duration)
+	-- measure latency from a second queue
+	mg.launchLua("timerSlave", testId, txDev:getTxQueue(1), rxDev:getRxQueue(1), size, numIP, duration)
+	-- wait until all tasks are finished
+	mg.waitForSlaves()
 end
 
 local function fillUdpPacket(buf, len)
   buf:getUdpPacket():fill{
-    ethSrc = SRC_MAC,
-    ethDst = DST_MAC,
-    ip4Src = SRC_IP,
-    ip4Dst = DST_IP,
-    udpSrc = SRC_PORT,
-    udpDst = DST_PORT,
+    ethSrc = PACKET.SRC_MAC,
+    ethDst = PACKET.DST_MAC,
+    ip4Src = PACKET.SRC_IP,
+    ip4Dst = PACKET.DST_IP,
+    udpSrc = PACKET.SRC_PORT,
+    udpDst = PACKET.DST_PORT,
     pktLength = len
   }
 end
 
-function loadSlave(id, queue, rxDev, size, numIP, duration, rate)
-  local mempool = memory.createMemPool(function(buf)
+function loadSlave(id, queue, size, numIP, duration, rate)
+	mg.sleepMillis(100) -- wait a few milliseconds to ensure that the rx thread is running
+	local mempool = memory.createMemPool(function(buf)
     fillUdpPacket(buf, size)
   end)
-  local logFile = "../results/test_" .. id .. "_load"
-  local txDump = logFile .. "_tx.csv"
-  local rxDump = logFile .. "_rx.csv"
-  
-  local bufs = mempool:bufArray()
-  local counter = 0
-  local txCtr = stats:newDevTxCounter(queue, "CSV", txDump)
-  local rxCtr = stats:newDevRxCounter(rxDev, "CSV", rxDump)
-  local baseIP = parseIPAddress(DST_IP)
-  local start = dpdk.getTime()
-  local timeout = dpdk.getTime() + duration
-    
-  while dpdk.running() do
-    bufs:alloc(size)
-    for i, buf in ipairs(bufs) do
-      local pkt = buf:getUdpPacket()
-      pkt.ip4.dst:set(baseIP + counter)
-      counter = incAndWrap(counter, numIP)
-    end
-    bufs:offloadUdpChecksums()
-    queue:send(bufs)
-    txCtr:update()
-    rxCtr:update()
-    if dpdk.getTime() > timeout then break end
-  end
-  
-  txCtr:finalize()
-  rxCtr:finalize()
-  print("Saving txCounter to '" .. logFile .. "_tx.csv'")
-  print("Saving rxCounter to '" .. logFile .. "_rx.csv'")
+
+  local txDump = "../results/test_" .. id .. "_load_tx.csv"
+	local txCtr = stats:newDevTxCounter(queue, "CSV", txDump)
+	local baseIP = parseIPAddress(PACKET.DST_IP)
+	local timeout = mg.getTime() + duration
+
+	local bufs = mempool:bufArray()
+	while mg.running() do
+		-- allocate buffers from the mem pool and store them in this array
+		bufs:alloc(size)
+		for _, buf in ipairs(bufs) do
+			local pkt = buf:getUdpPacket()
+			pkt.ip4.dst:set(baseIP + math.random(numIP) - 1)
+		end
+		-- send packets
+		bufs:offloadUdpChecksums()
+		queue:send(bufs)
+		txCtr:update()
+		if mg.getTime() > timeout then break end
+	end
+	txCtr:update()
+	txCtr:finalize()
+	log:info("Saving txCounter to '" .. txDump .. "'")
 end
 
+function counterSlave(id, queue, duration)
+	local bufs = memory.bufArray()
+	local rxDump = "../results/test_" .. id .. "_load_rx.csv"
+	local rxCtr = stats:newDevRxCounter(queue, "CSV", rxDump)
+	local timeout = mg.getTime() + duration + 1
+	while mg.running() do
+		local rx = queue:tryRecv(bufs, 0)
+		bufs:freeAll()
+		rxCtr:update()
+		if mg.getTime() > timeout then break end
+	end
+	rxCtr:update()
+	rxCtr:finalize()
+	log:info("Saving txCounter to '" .. rxDump .. "'")
+end
+
+
 function timerSlave(id, txQueue, rxQueue, size, numIP, duration)
-  if size < 84 then
-    printf("WARNING: packet size %d is smaller than minimum timestamp size 84. Timestamped packets will be larger than load packets.", size)
-    size = 84
-  end
-  rxQueue.dev:filterTimestamps(rxQueue)
-  local timestamper = ts:newUdpTimestamper(txQueue, rxQueue)
-  local hist = hist:new()
-  local start = dpdk.getTime()
-  dpdk.sleepMillis(1000) -- ensure that the load task is running
-  local counter = 0
-  local rateLimit = timer:new(0.001)
-  local baseIP = parseIPAddress(DST_IP)
-  local timeout = dpdk.getTime() + duration
-  
-  while dpdk.running() do
-    local time = dpdk.getTime()
-    hist:update(timestamper:measureLatency(size, function(buf)
-      fillUdpPacket(buf, size)
-      local pkt = buf:getUdpPacket()
-      pkt.ip4.dst:set(baseIP + counter)
-      counter = incAndWrap(counter, numIP)
-    end))
-    rateLimit:wait()
-    rateLimit:reset()
-    if dpdk.getTime() > timeout then break end
-  end
-  dpdk.sleepMillis(300)
-  hist:print()
+	local txDev = txQueue.dev
+	local rxDev = rxQueue.dev
+	rxDev:filterTimestamps(rxQueue)
+	local timestamper = ts:newUdpTimestamper(txQueue, rxQueue)
+	local hist = hist()
+	-- wait one second, otherwise we might start timestamping before the load is applied
+	mg.sleepMillis(1000)
+	local baseIP = parseIPAddress(PACKET.DST_IP)
+	local rateLimit = timer:new(0.001)
+	local timeout = mg.getTime() + duration
+	
+	while mg.running() do
+		local latency = timestamper:measureLatency(size, function(buf)
+		  fillUdpPacket(buf, size)
+			local pkt = buf:getUdpPacket()
+			pkt.ip4.dst:set(baseIP + math.random(numIP) - 1)
+		end)
+		hist:update(latency)
+		rateLimit:wait()
+		rateLimit:reset()
+		if mg.getTime() > timeout then break end
+	end
+	mg.sleepMillis(100) -- to prevent overlapping stdout
+	hist:print()
   hist:save("../results/test_" .. id .. "_latency.csv")
 end
+

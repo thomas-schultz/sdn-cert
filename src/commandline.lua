@@ -26,7 +26,7 @@ function CommandLine:get()
 end
 
 function CommandLine:print()
-  show(self:get())
+  logger.print(self:get())
 end
 
 function CommandLine:sendToBackground()
@@ -35,11 +35,11 @@ end
 
 function CommandLine:execute(verbose)
   if (not self:get()) then
-    printlog_err("Cannot execute empty command line") return end
+    logger.printlog("Cannot execute empty command line", "ERROR") return end
   verbose = verbose ~= nil and verbose
   local out = nil
   if (settings.config.simulate) then
-    show("  " .. self:get())
+    logger.print("  " .. self:get())
   else
     local handle = io.popen(self:get())
     out = ""
@@ -49,7 +49,7 @@ function CommandLine:execute(verbose)
       out = out .. line .. "\n"
       if (verbose and string.len(line) > 0) then print(line) end
     end
-    log_debug("Running " .. self:get() .. "\n" .. out)
+    logger.debug("Running " .. self:get() .. "\n" .. out)
   end
   return out
 end
@@ -59,8 +59,8 @@ function CommandLine:tryExecute(errors, verbose)
   if (not ret) then return end
   for err,msg in pairs(errors) do
     if (string.find(ret, err)) then
-      printlog_err(msg)
-      log_debug(ret)
+      logger.printlog(msg)
+      logger.debug(ret)
       return nil
     end
   end
@@ -103,7 +103,7 @@ function SSHCommand:get()
 end
 
 function SSHCommand:print()
-  show(self:get())
+  logger.print(self:get())
 end
 
 function SSHCommand:execute(verbose)

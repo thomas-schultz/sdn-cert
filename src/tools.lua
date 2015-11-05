@@ -38,7 +38,7 @@ end
 
 function exit(msg)
   if (msg) then log(msg) end
-  finalize_logger()
+  logger.finalize()
   if (msg) then os.exit(1)
   else os.exit(0) end
 end
@@ -183,9 +183,9 @@ string.replaceAll = function (str, find, replace)
   local _str = ""
   local hit = string.find(str, find)
   while (hit) do
-    local _str_ = string.sub(str,1, hit)
-    str = string.sub(str,hit+1, -1)
-    _str = _str .. string.replace(_str_, find, replace)
+    local _str_ = string.sub(str,1, hit-1)
+    str = string.sub(str,hit+#find, -1)
+    _str = _str .. _str_ .. replace
     hit = string.find(str, find)
   end
   _str = _str .. str

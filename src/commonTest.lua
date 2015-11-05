@@ -21,7 +21,7 @@ function CommonTest.print(name, config, dump)
   if (dump) then
     local file = io.open(dump, "w")
     file:write(out)
-  else show("  " .. out) end
+  else logger.print(out, 1) end
 end
 
 
@@ -57,6 +57,7 @@ function CommonTest.readInArgs(args, t)
   end
   local t = t or {}
   for n,arg in pairs(args) do
+    --print("#", arg)
     local arg = string.trim(string.lower(arg))
     table.insert(t, n, arg)
   end
@@ -79,12 +80,12 @@ function CommonTest.mapArgs(test, args, type, asTable, isFeature)
       value = test.settings[string.replace(key, "=", "")]
       if (not value) then value = CommonTest.getLinks(test, arg, type, isFeature) end
       if (not value) then
-        printlog_err("Could not map variable '" .. key .. "' for '" .. test:getName() ..  "'")
+        logger.printlog("Could not map variable '" .. key .. "' for '" .. test:getName() ..  "'", "ERROR")
         exit("Abort")
       end
     end
     line = line .. string.trim(tostring(value)) .. " "
-    log_debug(test:getName() .. ": mapped '" .. arg .. "' to '" .. value .. "'")
+    logger.debug(test:getName() .. ": mapped '" .. arg .. "' to '" .. value .. "'")
   end
   line = string.trim(line)
   if (asTable) then return string.split(line, " ")
@@ -110,7 +111,7 @@ function CommonTest.checkLinkCount(test, arg, isFeature)
   local linkId = tonumber(select(2, string.getKeyValue(arg)))
   if (linkId and linkId > #settings.ports) then
     local msg = msg or "Disabled test"
-    printlog_warn(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports))
+    logger.print(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports), "WARN")
     test.disabled = true
   end
   return linkId
@@ -125,7 +126,7 @@ function CommonTest.readInFiles(test, folder, files, isFeature)
   for n,file in pairs(filelist) do
     file = string.trim(file)
     if (not localfileExists(folder .. "/" .. file)) then
-      printlog_warn(msg .. " '" .. test:getName() .. "', missing file '" .. file .. "'")
+      logger.print(msg .. " '" .. test:getName() .. "', missing file '" .. file .. "'", "WARN")
       test.disabled = true
     else
       table.insert(files, file)

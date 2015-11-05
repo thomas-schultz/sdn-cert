@@ -18,7 +18,7 @@ end
 function Feature:readConfig()
   local configFile = "config/" .. self.name .. ".lua"
   if (not localfileExists(global.featureFolder .. "/" .. configFile)) then
-    printlog_warn("Disabled feature '" .. self:getName() .. "', missing file '" .. configFile .. "'")
+    logger.printlog("Disabled feature '" .. self:getName() .. "', missing file '" .. configFile .. "'", "WARN")
     self.disabled = true
     return
   end
@@ -29,7 +29,7 @@ function Feature:readConfig()
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())
   if (ver_comp == nil or ver_comp < 0) then
-    printlog_warn("Disabled feature '" .. self:getName() .. "', version is '" .. Settings:getOFVersion() .. "' but '" .. self:getRequiredOFVersion() .. "' is required")
+    logger.printlog("Disabled feature '" .. self:getName() .. "', version is '" .. Settings:getOFVersion() .. "' but '" .. self:getRequiredOFVersion() .. "' is required", "WARN")
     self.disabled = true
   end
   self.settings.name = self:getName()
@@ -47,13 +47,13 @@ function Feature:runTest()
   -- copying files
   local files = self.files
   for i,file in pairs(files) do
-    showIndent("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
+    logger.print("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
     local cmd = SCPCommand.create()
     cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.featureFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
-  showIndent("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
+  logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
   local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
@@ -64,7 +64,7 @@ function Feature:runTest()
   if (not settings.config.simulate) then sleep(global.timeout) end
   
   -- start loadgen
-  showIndent("Starting feature test (~10 sec)", 1, global.headline2)
+  logger.print("Starting feature test (~10 sec)", 1, global.headline2)
   local lgDump = io.open(path .. "_loadgen.output", "w")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
@@ -76,7 +76,7 @@ function Feature:runTest()
   io.close(lgDump)
   
   -- check result
-  showIndent("Fetching data and checking result", 1, global.headline2)
+  logger.print("Fetching data and checking result", 1, global.headline2)
   local cmd = SCPCommand.create()
   cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
   local out = cmd:execute(settings.config.verbose)
@@ -94,7 +94,7 @@ function Feature:runTest()
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true
     else self.reason = string.trim(string.replaceAll(out, "\n", " ")) end
-    log(self:getStatus())  
+    logger.log(self:getStatus())  
   end
   ofDev:reset()
 end

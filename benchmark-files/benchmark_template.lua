@@ -19,6 +19,12 @@ bench.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
 -- argument list which will be mapped and than passed to the flowEntries function, can be omitted
 bench.ofArgs  = "$link=1 $link=2"
 
+-- specific values for use configuration, only used inside this file
+bench.settings = {
+  variable = "value",
+  number = 42,
+}
+
 -- creating of the flow entries in flowData = { flows, groups, meters }
 bench.flowEntries = function(flowData, inPort, outPort)
     table.insert(flowData.flows, "in_port=" .. inPort .. ", actions=output:" .. outPort)

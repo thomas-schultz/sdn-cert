@@ -18,20 +18,18 @@ require "tools"
 
 
 settings = nil
-debug_mode = false
-color_mode = true
+debugMode = false
 
-
-local function main()  
-  init_logger(global.logFile) 
+local function main()
+  logger = Logger.init(global.logFile) 
   local f = io.open(global.configFile, "rb")  
   if f then f:close() else
-    printlog("Missing config file, created default")
+    logger.printlog("Missing config file, created default")
     local file = io.open(global.configFile, "w")
     file:write(global.default_cfg)
     io.close(file)
   end
- 
+   
   settings = Settings.create(global.configFile)
 
   local parser = ArgParser.create()
@@ -65,13 +63,13 @@ local function main()
   if (parser:hasOption("-O")) then settings.config[global.ofVersion] = string.gsub(parser:getOptionValue("-O"), "%.", "") end
   
   if settings.config.simulate then 
-    show("*******************\n* Simulation-Mode *\n*******************")
-    log("*** Simulation-Mode ***")
+    print("*******************\n* Simulation-Mode *\n*******************")
+    logger.log("*** Simulation-Mode ***")
   end
   
-  if (settings.config.checkSetup) then log("Testing, if the setup is correctly configured") end 
-  if (settings.config.skipfeature) then log("Skipping feature test, requirements will be ignored") end
-  if (settings.config.testfeature) then log("Testing feature '" .. settings.config.testfeature .. "', nothing more will be done") end 
+  if (settings.config.checkSetup) then logger.log("Testing, if the setup is correctly configured") end 
+  if (settings.config.skipfeature) then logger.log("Skipping feature test, requirements will be ignored") end
+  if (settings.config.testfeature) then logger.log("Testing feature '" .. settings.config.testfeature .. "', nothing more will be done") end 
   
   if (parser:getArgCount() ~= 1) then
     if (parser:hasOption("--tar")) then
@@ -88,7 +86,7 @@ local function main()
   end
 
   if ((not isReady() and not settings.config.simulate) or settings.config.checkSetup) then
-    printBar()
+    logger.printBar()
     exit()
   end
 
@@ -104,7 +102,7 @@ local function main()
   
   if (settings:doArchive()) then acrhiveResults() end
   
-  finalize_logger()
+  logger.finalize()
 end
 
 main()

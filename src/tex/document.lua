@@ -65,10 +65,9 @@ end
 
 function TexDocument:generatePDF(file)
   if (not self.file) then self:saveToFile(file) end
-  showIndent("Saving PDF to " .. self.file .. ".pdf",1)
+  logger.print("Saving PDF to " .. self.file .. ".pdf",1)
   local cmd = CommandLine.create("cd " .. settings.config.localPath .. "/" .. global.eval)
   cmd:addCommand("pdflatex " .. self.file .. ".tex")
-  --cmd:execute(settings:isVerbose())
   cmd:execute()
 end
 

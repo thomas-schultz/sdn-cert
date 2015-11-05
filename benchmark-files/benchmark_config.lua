@@ -56,11 +56,9 @@ BenchmarkConfig.metric = {
         local rx = FileContent.create("rx")
         rx:addCsvLine("0,0,0,0,0")
         rx:addCsvFile(settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId() .. "_load_rx.csv", true)
-        rx:addCsvLine(tonumber(test:getDuration())+1 .. ",0,0,0,0")
         local tx = FileContent.create("tx")
         tx:addCsvLine("0,0,0,0,0")
         tx:addCsvFile(settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId() .. "_load_tx.csv", true)
-        tx:addCsvLine(tonumber(test:getDuration())+1 .. ",0,0,0,0")
         return {latency, rx, tx} 
     end,
     getPlots = function(test)
@@ -84,15 +82,15 @@ BenchmarkConfig.metric = {
           line = string.replaceAll(line, ",", ".")
           rx:addCsvLine(string.replaceAll(line, ";", ","))
         end
-        local throuh = TexFigure.create("ht")
+        local throughput = TexFigure.create("ht")
         local label = BenchmarkConfig.labels[parameter]
         if (not label) then
           label = BenchmarkConfig.labels.default
           label.x = parameter
         end
         if (not label.y) then label.y = BenchmarkConfig.labels.default.y end
-        throuh:add(TexBlocks.throughput(label, 1,2,3))
-        return {rx, throuh}
+        throughput:add(TexBlocks.throughput(label, 1,2,3))
+        return {rx, throughput}
     end
   }
 }

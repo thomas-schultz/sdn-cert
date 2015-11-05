@@ -19,14 +19,14 @@ function TestCase:readConfig(cfgLine)
   end
   self.name = self.parameters.name
   if (not self.name) then
-    printlog_warn("Skipping test, no name specified")
+    logger.printlog("Skipping test, no name specified", "WARN")
     self.disabled = true
     return
   end
-  log_debug("test '" .. self.name .. " added")
+  logger.debug("test '" .. self.name .. " added")
   local cfgFile = global.benchmarkFolder .. "/config/" .. self.name .. ".lua"
   if (not localfileExists(cfgFile)) then
-    printlog_warn("Skipping test, config file not found '" .. cfgFile .. "'")
+    logger.printlog("Skipping test, config file not found '" .. cfgFile .. "'", "WARN")
     self.disabled = true 
     return
   end
@@ -50,7 +50,7 @@ function TestCase:checkFeatures(benchmark)
     end
   end
   if (string.len(require) > 0) then
-    printlog_warn("Skipping test, unsupported feature(s): " .. string.sub(require, 1 , #require-2))
+    logger.printlog("Skipping test, unsupported feature(s): " .. string.sub(require, 1 , #require-2), "WARN")
   end
 end
 

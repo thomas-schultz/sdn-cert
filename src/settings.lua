@@ -30,7 +30,7 @@ function Settings:readSettings(configFile)
     end
   end
   io.close(fh)
-  if (self.config.debug == true) then debug_mode = true end
+  if (self.config.debug == true) then debugMode = true end
   if (self:isLocal()) then self.config[string.lower(global.loadgenHost)] = nil end
   if (self.config[global.loadgenWd] == nil) then self.config[global.loadgenWd] = "/tmp" end
   self.ports = {}
@@ -39,13 +39,13 @@ function Settings:readSettings(configFile)
     local ofLinks = tonumber(string.sub(link, 1, split-1))
     local lgLinks = tonumber(string.sub(link, split+1, -1))
     if (ofLinks == nil or lgLinks == nil) then
-      printlog("Invalid link: '" .. link .. "'")
+      logger.printlog("Invalid link: '" .. link .. "'")
       exit()
     end
     self.ports[n] = {}
     self.ports[n].of = ofLinks
     self.ports[n].lg = lgLinks
-    log_debug("added link " .. ofLinks .. global.ch_connect .. lgLinks)
+    logger.debug("added link " .. ofLinks .. global.ch_connect .. lgLinks)
   end
   if (#self.ports == 0) then
     printlog("Invalid settings, no phyLinks are assigned")
@@ -99,16 +99,16 @@ function Settings:verify()
 end
 
 function Settings:print()
-  printBar()
-  show("Settings:", global.headline1)
+  logger.printBar()
+  logger.print("Settings:", 0, global.headline1)
   local t = {}
   for key,value in pairs(self.config) do
     table.insert(t,key)
   end
   table.sort(t)
   for i,name in pairs(t) do
-    show(string.format("     %-20s = %s", name, tostring(self.config[name])))
+    logger.print(string.format("%-20s = %s", name, tostring(self.config[name])), 2)
   end
-  show()
+  logger.print()
 end
   
