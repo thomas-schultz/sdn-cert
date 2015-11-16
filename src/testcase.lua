@@ -25,6 +25,7 @@ function TestCase:readConfig(cfgLine)
   end
   logger.debug("test '" .. self.name .. " added")
   local cfgFile = global.benchmarkFolder .. "/config/" .. self.name .. ".lua"
+  print(cfgFile)
   if (not localfileExists(cfgFile)) then
     logger.printlog("Skipping test, config file not found '" .. cfgFile .. "'", "WARN")
     self.disabled = true 
@@ -88,7 +89,7 @@ function TestCase:getParameterList()
   return self.parameters
 end
 
-function TestCase:createReport()
+function TestCase:createReport(error)
   local config = require("benchmark_config")
   local metric = config.metric[self.config.metric]
   if (not metric) then
@@ -100,7 +101,11 @@ function TestCase:createReport()
 
   local doc = TexDocument.create()
   local title = TexText.create()
-  title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
+  if (not error) then
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
+  else
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
+  end
   local parameter = TexTable.create("|l|r|", "ht")
   for k,v in pairs(self.parameters) do
     if (k ~= "name") then parameter:add(k, v) end
@@ -114,6 +119,10 @@ function TestCase:createReport()
     doc:addElement(item)
   end  
   doc:generatePDF(self:getName())
+end
+
+function TestCase:createErrorReport()
+  self:createReport(true)
 end
 
 function TestCase:getLgArgs()

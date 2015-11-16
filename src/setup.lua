@@ -36,11 +36,11 @@ function cleanUp()
 end
 
 
-function acrhiveResults()
-  logger.printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar", global.headline1)
+function archiveResults()
+  logger.printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", global.headline1)
   local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
   cmd:execute()
-  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. get_timestamp("file") .. ".tar " .. settings.config.localPath .. "/" .. global.results .. "/* " .. settings.config.localPath .. "/" .. global.eval .. "/*")
+  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar " .. settings.config.localPath .. "/" .. global.results .. "/* " .. settings.config.localPath .. "/" .. global.eval .. "/*")
   cmd:execute()
   logger.printBar()
 end

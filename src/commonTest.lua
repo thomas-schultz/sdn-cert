@@ -63,7 +63,6 @@ function CommonTest.readInArgs(args, t)
   end
   return t 
 end
-
 function CommonTest.mapArgs(test, args, type, asTable, isFeature)
   local asTable = asTable ~= nil and asTable
   local isFeature = isFeature ~= nil and isFeature

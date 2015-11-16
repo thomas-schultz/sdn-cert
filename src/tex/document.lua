@@ -43,6 +43,12 @@ function TexDocument:addElements(...)
   end
 end
 
+function TexDocument:addClearPage(...)
+  local clearpage = TexText.create()
+  clearpage:add("\\clearpage")
+  table.insert(self.content, clearpage)
+end
+
 function TexDocument:getTex()
   local tex = self.header .. "\n\n"
   for i=1,#self.usepackage do

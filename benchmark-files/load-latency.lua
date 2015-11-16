@@ -26,6 +26,10 @@ function master(testId, txPort, rxPort, duration, rate, numIP, size)
     print("usage: testId txDev rxDev duration size rate numIP")
     return
   end
+  if (size < 60) then
+    log:warn("Requested packet size below 64 Bytes")
+    return
+  end
 	-- 2 tx queues: traffic, and timestamped packets
 	-- 2 rx queues: traffic and timestamped packets
 	txDev = device.config{ port = txPort, rxQueues = 1, txQueues = 2}
@@ -34,7 +38,7 @@ function master(testId, txPort, rxPort, duration, rate, numIP, size)
 	device.waitForLinks()
 	txDev:getTxQueue(0):setRate(rate)
 	-- create traffic
-  mg.launchLua("loadSlave", testId, txDev:getTxQueue(0), size, numIP, duration, rate)
+	mg.launchLua("loadSlave", testId, txDev:getTxQueue(0), size, numIP, duration, rate)
 	-- count the incoming packets
 	mg.launchLua("counterSlave", testId, rxDev:getRxQueue(0), duration)
 	-- measure latency from a second queue

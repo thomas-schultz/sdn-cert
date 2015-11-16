@@ -20,18 +20,27 @@ end
 function Benchmark:readConfig(config)
   if (settings.config.testfeature) then return end
   local fh = io.open(config)
+  if (not fh) then
+    logger.debug("'" ..  config .. "' not found, searching in " .. global.benchmarkCfgs)
+    fh = io.open(global.benchmarkCfgs .. "/" .. config)
+    if (not fh) then return end
+  end
   while true do
     local line = fh:read()
     if (not line) then break end
     line = string.trim(line)
     if (not (string.sub(line, 1,1) == global.ch_comment)) then
-      if (#line > 0 and string.sub(line, 1,7) == "include") then
+      if (#line > 0 and (string.sub(line, 1,7) == "include" or string.sub(line, 1,6) == "import")) then
         local include = string.trim(string.sub(line, 8,-1))
         self:readConfig(include .. global.cfgFiletype)
       elseif (#line > 0) then
         local test = TestCase.create(line)
-        table.insert(self.testcases, test)
-        logger.debug("added testcase " .. line)
+        if (not test:isDisabled()) then
+          table.insert(self.testcases, test)
+          logger.debug("added testcase " .. line)
+        else
+          logger.debug("skipped testcase " .. line)
+        end
       end
     end
   end
@@ -210,7 +219,11 @@ function Benchmark:run()
     logger.print("Collecting results", 1, global.headline2)
     local cmd = SCPCommand.create()
     cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*.csv", settings.config.localPath .. "/" .. global.results)
-    cmd:execute(settings.config.verbose)
+    local out = cmd:execute(settings.config.verbose)
+    if (not out) then
+      self.reason = "Testcase failed, no files were created"
+      test.disabled = true
+    end 
     logger.log("done")
   end
   logger.log("Step complete")
@@ -250,44 +263,44 @@ end
 
 function Benchmark:generateTestDB()
   local db = {}
-  local paramaterList = {}
   for id,test in pairs(self.testcases) do
     local testName = test:getName(true)
     db[testName] = db[testName] or {}
-    local case = {}
+    db[testName].paramaterList = db[testName].paramaterList or {}
+    db[testName].testParameter = db[testName].testParameter or {}
     local parameters = test:getParameterList()
-    case.parameters = parameters
-    case.id = test:getId()
-    table.insert(db[testName],case)
+    db[testName].testParameter[test:getId()] = parameters
     for name,value in pairs(parameters) do
-      if (name ~= "name") then paramaterList[name] = true end
+      if (name ~= "name") then
+        db[testName].paramaterList[name] = true
+      end
     end
   end
-  return paramaterList, db
+  return db
 end
 
 function Benchmark:generateReports()
   for id,test in pairs(self.testcases) do
-    test:setId(id)
     logger.printlog("Generating reports ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), 0, global.headline1)
-    test:createReport()
+    if (test:isDisabled()) then test:createErrorReport()
+    else test:createReport() end
   end
 
-  local paramaterList,globalDB = self:generateTestDB()
+  local globalDB = self:generateTestDB()
   for currentTestName,testDB in pairs(globalDB) do
     local reports = {}
-    for currentParameter,_ in pairs(paramaterList) do
+    for currentParameter,_ in pairs(globalDB[currentTestName].paramaterList) do
       local set = {}
-      for _,test in pairs(testDB) do
+      for id,testParameter in pairs(testDB.testParameter) do
         local conf = ""
-        for parameter,value in pairs(test.parameters) do
+        for parameter,value in pairs(testParameter) do
         if (parameter ~= currentParameter) then
           conf = conf .. parameter .. "=" .. value .. "," end    
         end
         --print(currentParameter, conf)
         if (not set[conf]) then set[conf] = {num = 0, ids = {}} end
         set[conf].num = set[conf].num + 1
-        table.insert(set[conf].ids, test.id)
+        table.insert(set[conf].ids, id)
       end
       for conf,data in pairs(set) do
         if (data.num > 1) then
@@ -325,10 +338,11 @@ function Benchmark:generateAdvancedReport(doc, name, currentParameter, ids)
     if (k ~= "name" and k ~= currentParameter) then parameter:add(k, v) end
   end
   parameter:add("involved tests", table.tostring(ids, ","))
-  doc:addElement(parameter)  
+  doc:addElement(parameter) 
   for _,item in pairs(items) do
     doc:addElement(item)
   end
+  doc:addClearPage()
 end
 
 function Benchmark:listTestCases()

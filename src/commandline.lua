@@ -85,7 +85,7 @@ function SSHCommand.create(user, host)
     user = "root"
     host = settings:get(global.loadgenHost)
   end  
-  self.line = "ssh " .. user .. "@" .. host
+  self.line = "ssh " .. user .. "@" .. host .. " -o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=5"
   return self
 end
 
