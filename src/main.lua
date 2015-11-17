@@ -51,7 +51,7 @@ local function main()
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
   if (parser:hasOption("--nocolor")) then disableColor() end
-  if (parser:hasOption("--tar")) then acrhiveResults() settings.config.archive = true end
+  if (parser:hasOption("--tar")) then archiveResults() settings.config.archive = true end
   settings:verify()
     
   if (parser:hasOption("--init")) then initMoongen() end
@@ -92,7 +92,7 @@ local function main()
 
   benchmark = Benchmark.create(benchmark_file)
   if (settings.config.verbose) then settings:print() end
-  
+
   cleanUp()
   benchmark:testFeatures()
   benchmark:sumFeatures()
@@ -100,7 +100,7 @@ local function main()
   benchmark:run()
   benchmark:generateReports()
   
-  if (settings:doArchive()) then acrhiveResults() end
+  if (settings:doArchive()) then archiveResults() end
   
   logger.finalize()
 end

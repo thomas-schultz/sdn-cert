@@ -27,7 +27,7 @@ bench.flowEntries = function(flowData, numIP, inPort, outPort)
     for i=1,tonumber(numIP) do
       local matchIP = BenchmarkConfig.IP.getIP(ip)
       local newPort = math.random(bench.settings.minPort, bench.settings.maxPort)
-      local flow = string.format("ip,in_port=%d,nw_src=%s, actions=mod_nw_src=%s,mod_tp_src=%d,output:%d", inPort, matchIP, bench.settings.SRC_IP, newPort, outPort)
+      local flow = string.format("ip,udp,in_port=%d,nw_src=%s, actions=mod_nw_src=%s,mod_tp_src=%d,output:%d", inPort, matchIP, bench.settings.SRC_IP, newPort, outPort)
       table.insert(flowData.flows, flow)
       BenchmarkConfig.IP.incAndWrap(ip)
     end

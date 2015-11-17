@@ -17,6 +17,7 @@ function TestCase:readConfig(cfgLine)
       self.parameters[normalizeKey(k)] = v
     end
   end
+  table.sort(self.parameters)
   self.name = self.parameters.name
   if (not self.name) then
     logger.printlog("Skipping test, no name specified", "WARN")
@@ -25,7 +26,6 @@ function TestCase:readConfig(cfgLine)
   end
   logger.debug("test '" .. self.name .. " added")
   local cfgFile = global.benchmarkFolder .. "/config/" .. self.name .. ".lua"
-  print(cfgFile)
   if (not localfileExists(cfgFile)) then
     logger.printlog("Skipping test, config file not found '" .. cfgFile .. "'", "WARN")
     self.disabled = true 
@@ -87,6 +87,14 @@ end
 
 function TestCase:getParameterList()
   return self.parameters
+end
+
+function TestCase:getParameterConf()
+  local conf = ""
+  for parameter,value in pairs(self.parameters) do
+    conf = conf .. parameter .. "=" .. value .. "," 
+  end
+  return conf
 end
 
 function TestCase:createReport(error)

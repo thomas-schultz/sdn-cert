@@ -25,6 +25,7 @@ function Benchmark:readConfig(config)
     fh = io.open(global.benchmarkCfgs .. "/" .. config)
     if (not fh) then return end
   end
+  local testLines = {}
   while true do
     local line = fh:read()
     if (not line) then break end
@@ -35,12 +36,14 @@ function Benchmark:readConfig(config)
         self:readConfig(include .. global.cfgFiletype)
       elseif (#line > 0) then
         local test = TestCase.create(line)
-        if (not test:isDisabled()) then
+        local conf = test:getParameterConf()
+        if (not test:isDisabled() and not testLines[conf]) then
           table.insert(self.testcases, test)
           logger.debug("added testcase " .. line)
         else
           logger.debug("skipped testcase " .. line)
         end
+        testLines[conf] = true
       end
     end
   end
@@ -161,25 +164,33 @@ end
 function Benchmark:prepare()
   if (settings.config.testfeature) then return end
   local testcases = {}
+  local fileList = {}
   for id,test in pairs(self.testcases) do
     logger.printlog("Preparing test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), global.headline1)
     test:checkFeatures(self)
     if (not test:isDisabled() or settings.config.simulate) then
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
-        logger.print("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
-        local cmd = SCPCommand.create()
-        cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
-        cmd:execute(settings.config.verbose)
+        logger.print("Selecting file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
+        fileList[file] = true
       end
       local id = #testcases + 1
       test:setId(id)
       table.insert(testcases, id, test)
     end
-    logger.log("done")
+    logger.log("selecting files completed")
+  end
+  logger.printlog("Copying files", 0, global.headline1)
+  local n = 1
+  for file,_ in pairs(fileList) do
+    logger.printlog("Copying file " .. n .. "/" .. #fileList .. " (" .. file .. ")", 1)
+    local cmd = SCPCommand.create()
+    cmd:switchCopyTo(settings:isLocal(), settings.config.localPath .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
+    cmd:execute(settings.config.verbose)
+    n = n + 1
   end
   self.testcases = testcases
-  logger.log("Step complete")
+  logger.log("Copying completed")
   logger.printBar()
 end
 
@@ -233,16 +244,19 @@ end
 function Benchmark:sumFeatures()
   if (self.featureCount == 0) then
     logger.print("No features tested")
-  else
-    local compliance = true;
-    for i,feature in pairs(self.featureList) do
-      logger.print(string.format("Feature:   ".. ColorCode.white .. "%-24s" .. ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
-      compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
-    end
-    if (not settings.config.testfeature) then
-      if (compliance) then logger.printlog("\nTestdevice has passed all required tests for " .. settings.config[global.ofVersion], "lgreen")
-      else logger.printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], "lred") end
-    end
+    return
+  elseif (settings:doSkipfeature()) then
+    logger.print("Skipping feature report, using " ..global.featureFile)
+    return
+  end
+  local compliance = true;
+  for i,feature in pairs(self.featureList) do
+    logger.print(string.format("Feature:   ".. ColorCode.white .. "%-24s" .. ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
+    compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
+  end
+  if (not settings.config.testfeature) then
+    if (compliance) then logger.printlog("\nTestdevice has passed all required tests for " .. settings.config[global.ofVersion], "lgreen")
+    else logger.printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], "lred") end
   end
   local doc = TexDocument.create()
   local title = TexText.create()
@@ -260,6 +274,8 @@ function Benchmark:sumFeatures()
   doc:generatePDF("Feature-Tests")
   logger.printBar()
 end
+
+-- creates a database with all test parameters and the according test ids
 
 function Benchmark:generateTestDB()
   local db = {}
@@ -282,29 +298,34 @@ end
 function Benchmark:generateReports()
   for id,test in pairs(self.testcases) do
     logger.printlog("Generating reports ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), 0, global.headline1)
-    if (test:isDisabled()) then test:createErrorReport()
-    else test:createReport() end
+    if (not test:isDisabled()) then test:createReport()
+    else logger.warn("Test failed, skipping report") end
   end
 
   local globalDB = self:generateTestDB()
   for currentTestName,testDB in pairs(globalDB) do
-    local reports = {}
+    -- iterate and create one report over every testname
+    local reports = {} 
     for currentParameter,_ in pairs(globalDB[currentTestName].paramaterList) do
+      -- iterate over all parameters of the current test
       local set = {}
       for id,testParameter in pairs(testDB.testParameter) do
+        -- create configuration key, containing all other parameters
         local conf = ""
         for parameter,value in pairs(testParameter) do
         if (parameter ~= currentParameter) then
           conf = conf .. parameter .. "=" .. value .. "," end    
         end
-        --print(currentParameter, conf)
+        logger.debug("processing " .. currentParameter .. " with conf-key: " .. conf)
+        -- count all test with the same conf-key
         if (not set[conf]) then set[conf] = {num = 0, ids = {}} end
         set[conf].num = set[conf].num + 1
+        -- insert current test id to the list
         table.insert(set[conf].ids, id)
       end
       for conf,data in pairs(set) do
         if (data.num > 1) then
-          --print(data.num, conf)
+          logger.debug(conf .. " #:" .. data.num)
           if (not reports[currentParameter]) then
             logger.printlog("Generating advanced report for " .. currentTestName .. "/" .. currentParameter, 0, global.headline1)
             reports[currentParameter] = TexDocument.create()
