@@ -11,13 +11,13 @@ end
 -- read in the settings file
 function Settings:readSettings(configFile)
   local f = io.popen("pwd 2>&1")
-  self.config.local_path = f:read("*line")
+  self.config.localpath = f:read("*line")
   local fh = io.open(configFile)
-  self.config.localPath    = "."
   self.config.verbose       = false
   self.config.simulate      = false
   self.config.archive       = false
-  self.config.checkSetup    = false
+  self.config.runtex        = false
+  self.config.checksetup    = false
   self.config.skipfeature   = false
   self.config[global.ofVersion] = "OpenFlow10"
   while (true) do
@@ -60,6 +60,10 @@ function Settings:get(key)
   return self.config[string.lower(key)]
 end
 
+function Settings:getLocalPath()
+  return self.config.localpath
+end
+
 function Settings:isLocal()
   return self.config["local"] == true
 end
@@ -78,6 +82,10 @@ end
 
 function Settings:doArchive()
   return self.config.archive == true
+end
+
+function Settings:doRunTex()
+  return self.config.runtex == true
 end
 
 function Settings:getOFVersion()

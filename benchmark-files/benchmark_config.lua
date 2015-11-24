@@ -42,54 +42,79 @@ BenchmarkConfig.labels = {
   numIP = {
       x = "number of different IPs",
     },
-  default = {
-      y = "archieved load in [mbit]",
+  filter = {
+      x = "filter options",
+    },
+  load = {
+      y = "achieved load in [mbit]",
     },
 }
 
 BenchmarkConfig.metric = {
   ["load-latency"] = {
     output = {"_load_rx.csv", "_load_tx.csv", "_latency.csv"},
+    units = {
+      rate = "MBit",
+      duration = "sec",
+      numip = "",
+      pktsize = "Bytes (+4B CRC)",      
+    },
     getData = function(test)
         local latency = FileContent.create("latency")
-        latency:addCsvFile(settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId() .. "_latency.csv")
+        latency:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_latency.csv")
         local rx = FileContent.create("rx")
-        rx:addCsvLine("0,0,0,0,0")
-        rx:addCsvFile(settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId() .. "_load_rx.csv", true)
+        rx:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_load_rx.csv", false)
         local tx = FileContent.create("tx")
-        tx:addCsvLine("0,0,0,0,0")
-        tx:addCsvFile(settings.config.localPath .. "/" .. global.results .. "/test_" .. test:getId() .. "_load_tx.csv", true)
+        tx:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_load_tx.csv", false)
         return {latency, rx, tx} 
     end,
     getPlots = function(test)
-        local throuh = TexFigure.create("ht")
-        throuh:add(TexBlocks.mppsGraph("x index={0}, y index={2}", "throughput graph", "fig:throughput"))
+        local plots = {}
+        local mpps = TexFigure.create("ht")
+        mpps:add(TexBlocks.mppsGraph("x=time, y=mpps", "rx.csv", "tx.csv"))
+        local mbit = TexFigure.create("ht")
+        mbit:add(TexBlocks.mbitGraph("x=time, y=mbit", "rx.csv", "tx.csv"))
+        local loss = TexFigure.create("ht")
+        -- TODO get total and los values from csv files
+        --loss:add(TexBlocks.pktLoss(0, 0))
         local hist = TexFigure.create("ht")
-        hist:add(TexBlocks.histogram("latency in [ns]", "occurrence", "latency.csv", "latency histogram", "fig:latency"))
-        return {throuh, hist}
+        hist:add(TexBlocks.histogram({x="latency in [ns]", y="occurrence"}, "latency.csv"))
+        return {mpps, mbit, hist}
     end,
     advanced = function(parameter, testcases, ids)
-        local parMin,parMax
-        local stats
-        local rx = FileContent.create("rx")
+        local entries = {}
+        local isNumber = true
+        local data = {}
         for _,id in pairs(ids) do
           local test = testcases[id]
           local par = test:getParameterList()[parameter]
-          local data = csv.parseCsv(settings.config.localPath .. "/" .. global.results .. "/test_" .. id .. "_load_rx.csv")
-          local stats = csv.getStats(data, true)
+          data[par] = csv.parseAndCropCsv(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 1, false)
+          table.insert(entries, par)
+          isNumber = isNumber and tonumber(par)
+        end
+        table.sort(entries)
+        local rx = FileContent.create("rx")
+        rx:addCsvLine("parameter, min, avg, max")
+        for _,par in pairs(entries) do
+          local stats = csv.getStats(data[par], true)
           if (not stats or not stats[4]) then stats = {[4] = {min = 0, avg = 0, max = 0}} end
-          local line = ("%d;%.5f;%.5f;%.5f"):format(par, stats[4].min, stats[4].avg, stats[4].max)
+          local line = ("%s;%.5f;%.5f;%.5f"):format(par, stats[4].min, stats[4].avg, stats[4].max)
           line = string.replaceAll(line, ",", ".")
           rx:addCsvLine(string.replaceAll(line, ";", ","))
         end
+        
         local throughput = TexFigure.create("ht")
         local label = BenchmarkConfig.labels[parameter]
         if (not label) then
-          label = BenchmarkConfig.labels.default
+          label = BenchmarkConfig.labels.load
           label.x = parameter
         end
-        if (not label.y) then label.y = BenchmarkConfig.labels.default.y end
-        throughput:add(TexBlocks.throughput(label, 1,2,3))
+        if (not label.y) then label.y = BenchmarkConfig.labels.load.y end
+        if (isNumber) then
+          throughput:add(TexBlocks.throughputStats(label, "rx.csv"))
+        else
+          throughput:add(TexBlocks.throughputStatsStr(label, "rx.csv"))
+        end
         return {rx, throughput}
     end
   }

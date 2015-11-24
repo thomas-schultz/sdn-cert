@@ -69,8 +69,12 @@ function TestCase:isDisabled()
 end
 
 function TestCase:getName(withoutId)
-  if (self.settings.id and not withoutId) then return "test_" .. self.settings.id .. "_" .. self.name end
+  if (self.settings.id and not withoutId) then return "test_" .. self:getId() .. "_" .. self.name end
   return self.name
+end
+
+function TestCase:getOutputPath()
+  return settings:getLocalPath() .. "/" .. global.results .. "/" .. self.name .. "/"
 end
 
 function TestCase:getDuration()
@@ -114,23 +118,29 @@ function TestCase:createReport(error)
   else
     title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
   end
-  local parameter = TexTable.create("|l|r|", "ht")
-  for k,v in pairs(self.parameters) do
-    if (k ~= "name") then parameter:add(k, v) end
-  end
   doc:addElement(title)
-  doc:addElement(parameter)
+  doc:addElement(self:getParameterTable(metric))
   for _,item in pairs(data) do
     doc:addElement(item)
   end
   for _,item in pairs(plots) do
     doc:addElement(item)
-  end  
-  doc:generatePDF(self:getName())
+  end 
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. self:getName(true) .. "/eval", self:getName())
+  doc:generatePDF()
 end
 
 function TestCase:createErrorReport()
   self:createReport(true)
+end
+
+function TestCase:getParameterTable(metric)
+  local parameter = TexTable.create("|l|r|l|", "ht")
+  parameter:add("parameter", "value", "unit")
+  for k,v in pairs(self.parameters) do
+    if (k ~= "name") then parameter:add(k, v, metric.units[k] or "") end
+  end
+  return parameter
 end
 
 function TestCase:getLgArgs()
@@ -138,7 +148,7 @@ function TestCase:getLgArgs()
 end
 
 function TestCase:print(dump)
-  CommonTest.print(self.name, self.settings, dump)
+  CommonTest.print(self.settings, dump)
 end
 
 function TestCase:export(dump)

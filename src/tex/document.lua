@@ -1,13 +1,15 @@
 TexDocument = {}
 TexDocument.__index = TexDocument
 
+package.path = package.path .. ';src/tex/?.lua'
 
-require "tex/blocks"
-require "tex/figure"
-require "tex/filecontent"
-require "tex/latex"
-require "tex/table"
-require "tex/text"
+require "blocks"
+require "figure"
+require "filecontent"
+require "latex"
+require "tabular"
+require "text"
+
 
 function TexDocument.create(class)
   local class = class or "report"
@@ -20,6 +22,7 @@ function TexDocument.create(class)
   self:usePackage("geometry", "a4paper")
   self:usePackage("fullpage")
   self:usePackage("pgfplots")
+  self:usePackage("pgfplotstable")
   self:usePackage("csvsimple")
   self:usePackage("filecontents")
   return self
@@ -62,18 +65,29 @@ function TexDocument:getTex()
   return(tex)
 end
 
-function TexDocument:saveToFile(file)
+function TexDocument:saveToFile(path, file)
   self.file = file or "texDocument"
-  local reportFile = io.open(settings.config.localPath .. "/" .. global.eval .. "/" .. self.file .. ".tex", "w")
+  self.path = path or settings:getlocalPath() .. "/" .. global.results
+  Setup.createFolder(self.path)
+  local reportFile = io.open(path .. "/" .. self.file .. ".tex", "w")
   reportFile:write(self:getTex())
-  io.close(reportFile)
+  io.close(reportFile)  
 end
 
-function TexDocument:generatePDF(file)
-  if (not self.file) then self:saveToFile(file) end
+function TexDocument:generatePDF(path, file)
+  if (not settings:doRunTex()) then
+    logger.debug("Skipping pdflatex")
+    return
+  end
+  if (not self.file or not self.path) then self:saveToFile(path, file) end
   logger.print("Saving PDF to " .. self.file .. ".pdf",1)
-  local cmd = CommandLine.create("cd " .. settings.config.localPath .. "/" .. global.eval)
+  local cmd = CommandLine.create("cd " .. self.path)
   cmd:addCommand("pdflatex " .. self.file .. ".tex")
+  cmd:addCommand("rm *.aux")
+  cmd:addCommand("rm *.log")
+  cmd:addCommand("rm *.csv")
+  cmd:addCommand("rm *.dat")
   cmd:execute()
 end
+
 

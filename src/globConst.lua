@@ -9,10 +9,11 @@ global = {}
   global.configFile       = "settings.cfg"
   global.featureList      = "feature_list.cfg"
   global.featureFile      = "features.cfg"
-  global.benchmarkCfgs    = "benchmark-configs"
+  global.benchmarkCfgs    = "benchmarks"
   global.benchmarkFolder  = "benchmark-files"
   global.featureFolder    = "feature-tests"
   global.tempdir          = "/tmp"
+  global.cfgFiletype      = ".cfg"
   
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion        = "openflow"
@@ -22,7 +23,6 @@ global = {}
   
   -- path settings
   global.results = "results"
-  global.eval    = "evaluation"
   global.archive = "archive"
   global.scripts = "scripts"
   global.timeout = 2
@@ -37,7 +37,7 @@ global = {}
   global.phyLinks    = "links"
   
   --benchmark keywords
-  global.cfgFiletype     = ".cfg"
+  global.include         = {"include", "import"}
   global.requires        = "require"
   global.prepare         = "prepare"
   global.name            = "name"
@@ -67,7 +67,13 @@ global = {}
         # settings file
         
         # Debugging settings
-        #debug = true
+        debug = false
+        
+        # Make archive before delting everything
+        archive = false
+        
+        # Automatically run LaTex to create PDFs
+        runTex = true
         
         OpenFlowVersion = OpenFlow10
         

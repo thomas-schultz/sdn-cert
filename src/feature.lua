@@ -49,47 +49,49 @@ function Feature:runTest()
   for i,file in pairs(files) do
     logger.print("Copying file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
     local cmd = SCPCommand.create()
-    cmd:switchCopyTo(settings:isLocal(), settings.config.local_path .. "/" .. global.featureFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
+    cmd:switchCopyTo(settings:isLocal(), settings:getLocalPath() .. "/" .. global.featureFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
   logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
-  local path = settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName()
+  local path = settings:getLocalPath() .. "/" .. global.results .. "/features"
+  Setup.createFolder(path)
+  local template = path .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
   local flowData = ofDev:getFlowData(self)
-  ofDev:createAllFiles(flowData, path)
-  ofDev:installAllFiles(path, "_ovs.output")
-  ofDev:dumpAll(path .. ".before")
+  ofDev:createAllFiles(flowData, template)
+  ofDev:installAllFiles(template, "_ovs-output")
+  ofDev:dumpAll(template .. "_flowdump-before")
   if (not settings.config.simulate) then sleep(global.timeout) end
   
   -- start loadgen
   logger.print("Starting feature test (~10 sec)", 1, global.headline2)
-  local lgDump = io.open(path .. "_loadgen.output", "w")
+  local lgDump = io.open(template .. "_loadgen-output", "w")
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
   cmd:addCommand("./" .. self:getLoadGen() .. " " .. self.lgArgs)
   lgDump:write(cmd:execute(settings.config.verbose))
   if (not settings.config.simulate) then
-    ofDev:dumpAll(path .. ".after")
+    ofDev:dumpAll(template .. "_flowdump_after")
   end
   io.close(lgDump)
   
   -- check result
   logger.print("Fetching data and checking result", 1, global.headline2)
   local cmd = SCPCommand.create()
-  cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", settings.config.local_path .. "/" .. global.results)
+  cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .. "/feature_" .. self:getName() .. "*", path)
   local out = cmd:execute(settings.config.verbose)
   if (not out) then
     self.reason = "Feature test failed, no files were created"
     ofDev:reset()
     return
   end 
-  local cmd = CommandLine.create("cat " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result")
+  local cmd = CommandLine.create("cat " .. template .. "_result")
   out = cmd:execute()
   if (settings.config.simulate and not out) then
     out = "simulation mode" end
-  if (string.find(out, "cat: " .. settings.config.localPath .. "/" .. global.results .. "/feature_" .. self:getName() .. ".result:")) then
+  if (string.find(out, "cat: " .. settings:getLocalPath() .. "/" .. global.results .. "/feature_" .. self:getName() .. "_result:")) then
     out = "Feature test failed to run" end
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true
@@ -149,5 +151,5 @@ function Feature:getLoadGenFiles()
 end
 
 function Feature:print(dump)
-  CommonTest.print(self:getName(), self.settings, dump)
+  CommonTest.print(self.settings, dump)
 end

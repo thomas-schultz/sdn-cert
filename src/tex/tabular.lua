@@ -1,6 +1,7 @@
 TexTable = {}
 TexTable.__index = TexTable
 
+
 function TexTable.create(spec, pos)
   local self = setmetatable({}, TexTable)
   self.header = {}

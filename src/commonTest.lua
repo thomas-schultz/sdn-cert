@@ -7,16 +7,16 @@ function CommonTest.create()
 end
 
 
-function CommonTest.print(name, config, dump)
+function CommonTest.print(config, dump)
   local t = {}
   for key,value in pairs(config) do
     table.insert(t,key)
   end
   table.sort(t)
-  local out = name
+  local out = ""
   for i,key in pairs(t) do
     local value = config[key]
-    out = out .. string.format("\n     %-20s = %s", key, tostring(value))
+    out = string.format("%s%-20s = %s\n", out, key, tostring(value))
   end   
   if (dump) then
     local file = io.open(dump, "w")

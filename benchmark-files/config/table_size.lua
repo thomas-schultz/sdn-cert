@@ -19,7 +19,8 @@ bench.settings = {
 }
 
 bench.flowEntries = function(flowData, numIP, outPort)
-  local ip = BenchmarkConfig.IP.parseIP(bench.settings.BASE_IP)
+  local pkt = bench.settings
+  local ip = BenchmarkConfig.IP.parseIP(pkt.BASE_IP)
   for i=1,tonumber(numIP) do
     local currentMatch = BenchmarkConfig.IP.getIP(ip)
     BenchmarkConfig.IP.incAndWrap(ip)

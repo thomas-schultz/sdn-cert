@@ -11,10 +11,12 @@ require "commonTest"
 require "feature"
 require "logger"
 require "openFlowDev"
-require "settings"
+require "reports"
 require "setup"
+require "settings"
 require "testcase"
-require "tools"
+require "tools/general"
+require "tex/document"
 
 
 settings = nil
@@ -81,26 +83,26 @@ local function main()
   end
   local benchmark_file = parser:getArg(1)
   if (not (settings.config.checkSetup  or settings.config.testfeature) and not localfileExists(benchmark_file)) then
-    show("no such file '" .. benchmark_file .. "'")
+    print("no such file '" .. benchmark_file .. "'")
     exit(1)
   end
 
-  if ((not isReady() and not settings.config.simulate) or settings.config.checkSetup) then
+  if ((not Setup.isReady() and not settings.config.simulate) or settings.config.checkSetup) then
     logger.printBar()
     exit()
   end
 
-  benchmark = Benchmark.create(benchmark_file)
+  local benchmark = Benchmark.create(benchmark_file)
   if (settings.config.verbose) then settings:print() end
 
-  cleanUp()
+  Setup.cleanUp()
   benchmark:testFeatures()
   benchmark:sumFeatures()
   benchmark:prepare()
   benchmark:run()
-  benchmark:generateReports()
+  Reports.generate(benchmark)
   
-  if (settings:doArchive()) then archiveResults() end
+  if (settings:doArchive()) then Setup.archiveResults() end
   
   logger.finalize()
 end

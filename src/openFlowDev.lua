@@ -24,21 +24,21 @@ end
 function OpenFlowDevice:dumpFlows(version)
   version = version or self.version
   local cmd = CommandLine.create("ovs-ofctl dump-flows " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:dumpGroups(version)
   version = version or self.version
   if (compareVersion("OpenFlow11", self.version) < 0) then return "groups are not supported in " .. self.version end
   local cmd = CommandLine.create("ovs-ofctl dump-groups " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:dumpMeters(version)
   version = version or self.version
   if (compareVersion("OpenFlow13", self.version) < 0) then return "meters are not supported in " .. self.version end
   local cmd = CommandLine.create("ovs-ofctl dump-meters " .. self.bridge .. " -O " .. version)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:dumpAll(dump)
@@ -57,46 +57,46 @@ end
 function OpenFlowDevice:installFlow(flow)
   local cmd = CommandLine.create("ovs-ofctl add-flow " .. self.target ..  "\"" .. flow .. "\"")
   logger.debug = (cmd:get())
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installFlows(file)
   if (not absfileExists(file)) then logger.printlog("Cannot add flows, no such file: '" .. file .. "'", "ERROR") return end
   local cmd = CommandLine.create("ovs-ofctl add-flows " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installGroup(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
   logger.debug = (cmd:get())
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installGroups(file)
   if (not absfileExists(file)) then logger.printlog("Cannot add groups, no such file: '" .. file .. "'", "ERROR") return end
   local cmd = CommandLine.create("ovs-ofctl add-groups " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installMeter(group)
   local cmd = CommandLine.create("ovs-ofctl add-group " .. self.target ..  "\"" .. group .. "\"")
   logger.debug = (cmd:get())
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installMeters(file)
   if (not absfileExists(file)) then logger.printlog("Cannot add meters, no such file: '" .. file .. "'", "ERROR") return end
   local cmd = CommandLine.create("ovs-ofctl add-meters " .. self.target .. " " .. file)
-  return cmd:execute(settings.config.cervose) or ""
+  return cmd:execute(settings.config.cervose) or "none"
 end
 
 function OpenFlowDevice:installAllFiles(file, dump)
   local ret = ""
-  if (compareVersion("OpenFlow13", self.version) >= 0 and absfileExists(file .. ".meters")) then
-    ret = ret .. "install meters file:\n" .. self:installMeters(file .. ".meters") .. "\n" end
-  if (compareVersion("OpenFlow11", self.version) >= 0 and absfileExists(file .. ".groups")) then
-    ret = ret .. "install group file:\n" ..  self:installGroups(file .. ".groups") .. "\n" end
-  ret = ret .. "install flow file:\n" .. self:installFlows(file .. ".flows") .. "\n"
+  if (compareVersion("OpenFlow13", self.version) >= 0 and absfileExists(file .. "_meters")) then
+    ret = ret .. "install meters file:\n" .. self:installMeters(file .. "_meters") .. "\n" end
+  if (compareVersion("OpenFlow11", self.version) >= 0 and absfileExists(file .. "_groups")) then
+    ret = ret .. "install group file:\n" ..  self:installGroups(file .. "_groups") .. "\n" end
+  ret = ret .. "install flow file:\n" .. self:installFlows(file .. "_flows") .. "\n"
   if (not dump) then return ret end
   local dunpFile = io.open(file .. dump, "w")
   dunpFile:write(ret)
@@ -107,22 +107,26 @@ end
 
 function OpenFlowDevice:createFlowData(data, file)
   local stream = io.open(file, "w")
+  if (not stream) then
+    Setup.createParentFolder(file)
+    stream = io.open(file, "w")
+  end
   if (data) then for i,line in pairs(data) do stream:write(line .. "\n") end end
   io.close(stream)
 end
 
 function OpenFlowDevice:createFlowFile(flows, file)
-   file = file .. ".flows" or global.tempdir .. "/switch.flows"
+  file = file .. "_flows" or global.tempdir .. "/switch_flows"
   return self:createFlowData(flows, file)
 end
 
 function OpenFlowDevice:createGroupFile(groups, file)
-  file = file .. ".groups" or global.tempdir .. "/switch.groups"
+  file = file .. "_groups" or global.tempdir .. "/switch_groups"
   return self:createFlowData(groups, file)
 end
 
 function OpenFlowDevice:createMeterFile(meters, file)
-  file = file .. ".meters" or global.tempdir .. "/switch.meters"
+  file = file .. "_meters" or global.tempdir .. "/switch_meters"
   return self:createFlowData(meters, file)
 end
 

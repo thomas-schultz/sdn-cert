@@ -25,7 +25,7 @@ end
 
 function TexFigure:getTex()
   local tex = "\\begin{figure}" ..  self.header.pos .. "\n"
-  tex = tex .. "\\begin{center}\n"
+  tex = tex .. "\\pgfplotsset{compat=1.10}\n\\begin{center}\n"
   for i=1,#self.data do
     tex = tex .. self.data[i] .. "\n"
   end

@@ -20,7 +20,8 @@ bench.settings = {
 }
 
 bench.flowEntries = function(flowData, inPort, outPort)
-    local flow = string.format("ip,in_port=%d, actions=mod_dl_src=%s,mod_dl_dst=%s,dec_ttl, output:%d", inPort, bench.settings.SRC_MAC, bench.settings.DST_MAC, outPort)
+    local pkt = bench.settings
+    local flow = string.format("ip,in_port=%d, actions=mod_dl_src=%s,mod_dl_dst=%s,dec_ttl, output:%d", inPort, pkt.SRC_MAC, pkt.DST_MAC, outPort)
     table.insert(flowData.flows, flow)
   end
   

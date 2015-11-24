@@ -1,3 +1,7 @@
+Setup = {}
+Setup.__index = Setup
+
+
 local error_messages = {
   openflow_fail     = "failes",
   openflow_socket   = "failed to connect to socket",
@@ -12,23 +16,48 @@ local string_matches = {
   moongen_build      = "Built target MoonGen",
   }
 
+-- creates folder if not existent
+-- set remote true, if not local
+function Setup.createFolder(name, path, remote)
+  local path = path or "."
+  local remote = remote or false
+  local cmd = CommandLine.getRunInstance(not remote).create()
+  cmd:addCommand("cd " .. path)
+  cmd:addCommand("mkdir -p " .. name)
+  cmd:print()
+  cmd:forceExcute()
+end
 
-function cleanUp()
+-- creates parent folder of a given file or directory
+-- set remote true, if not local
+function Setup.createParentFolder(file, path, remote)
+  local path = path or "."
+  local remote = remote or false
+  local cmd = CommandLine.getRunInstance(not remote).create()
+  local parent = string.match(file, "(.-)([^\\/]-%.?([^%.\\/]*))$")
+  cmd:addCommand("cd " .. path)
+  cmd:addCommand("mkdir -p " .. parent)
+  cmd:forceExcute()
+end
+
+
+function Setup.cleanUp()
   logger.printBar()
-  logger.printlog("Cleaning up testing system", global.headline1)
-  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
+  logger.printlog("Cleaning up testing system", 0, global.headline1)
+  -- clean remote 
+  Setup.createFolder(global.results, settings:get(global.loadgenWd), true)
+  Setup.createFolder(global.scripts, settings:get(global.loadgenWd), true)
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create() 
   cmd:addCommand("cd " .. settings:get(global.loadgenWd))
-  cmd:addCommand("mkdir -p " .. global.results)
   cmd:addCommand("rm -f " .. global.results .. "/*")
-  cmd:addCommand("mkdir -p " .. global.scripts)
   cmd:addCommand("rm -f " .. global.scripts .. "/*")
   cmd:execute()
+  -- clean local 
+  Setup.createFolder(settings:getLocalPath() .. "/" .. global.results)
   local cmd = CommandLine.create()
-  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.results)
-  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.results .. "/*")
-  cmd:addCommand("mkdir -p " .. settings.config.localPath .. "/" .. global.eval)
-  cmd:addCommand("rm -f " .. settings.config.localPath .. "/" .. global.eval .. "/*")
+  cmd:addCommand("rm -rf " .. settings:getLocalPath() .. "/" .. global.results .. "/*")
   cmd:execute(settings.config.verbose)
+  -- reset OpenFlow dev
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
   ofDev:reset()
   logger.log("Step complete")
@@ -36,26 +65,25 @@ function cleanUp()
 end
 
 
-function archiveResults()
-  logger.printlog("Archive current results to " .. settings.config.localPath .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", global.headline1)
-  local cmd = CommandLine.create("mkdir -p " .. settings.config.localPath .. "/" .. global.archive)
-  cmd:execute()
-  local cmd = CommandLine.create("tar -cvf " .. settings.config.localPath .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar " .. settings.config.localPath .. "/" .. global.results .. "/* " .. settings.config.localPath .. "/" .. global.eval .. "/*")
+function Setup.archiveResults()
+  logger.printlog("Archive current results to " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", 0, global.headline1)
+  Setup.createFolder(global.archive)
+  local cmd = CommandLine.create("tar -cvf " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar " .. settings:getLocalPath() .. "/" .. global.results .. "/*")
   cmd:execute()
   logger.printBar()
 end
 
-function setupMoongen()
+function Setup.setupMoongen()
   local cmd = nil
-  if (settings:isLocal()) then cmd = CommandLine.create(settings.config.local_path .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) 
-  else cmd = CommandLine.create(settings.config.local_path .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/") end
+  if (settings:isLocal()) then cmd = CommandLine.create(settings:getLocalPath() .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) 
+  else cmd = CommandLine.create(settings:getLocalPath() .. "/tools/setup.sh " .. settings:get(global.loadgenHost) .. " " .. settings:get(global.loadgenWd) ..  " tools/") end
   cmd:execute(true)
-  checkMoongen()
+  Setup.checkMoongen()
   logger.printBar()
   exit()
 end
 
-function killMoongen()
+function Setup.killMoongen()
   local kill = nil
   if (settings:isLocal()) then
     kill = CommandLine.create("pkill -f moongen")
@@ -67,7 +95,7 @@ function killMoongen()
   kill:execute()
 end
 
-function initMoongen()
+function Setup.initMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/build.sh")
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/setup-hugetlbfs.sh")
@@ -75,14 +103,14 @@ function initMoongen()
   if (settings.config.simulate) then exit() end
   if (ret and string.find(ret, string_matches.moongen_build)) then logger.printlog("Building successful") 
   else logger.printlog("Failed to initialize MoonGen", "red") logger.debug(ret) end
-  isReady()  
+  Setup.isReady()  
   logger.printBar()
   exit()
 end
 
-function checkOpenFlow()
+function Setup.checkOpenFlow()
   logger.printBar()
-  logger.printlog("Checking test setup", global.headline1)
+  logger.printlog("Checking test setup", 0, global.headline1)
   local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.switchIP) .. ":" .. settings:get(global.switchPort))
   local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end
@@ -119,8 +147,8 @@ function checkOpenFlow()
   end 
 end
 
-function checkMoongen()
-  killMoongen()
+function Setup.checkMoongen()
+  Setup.killMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("cd " .. settings:get(global.loadgenWd).. "/MoonGen")
   cmd:addCommand("./moongen ls")
@@ -149,12 +177,14 @@ function checkMoongen()
   end
 end
 
-function isReady()
-  local result = checkOpenFlow()
+function Setup.isReady()
+  local result = Setup.checkOpenFlow()
   if (not result and not settings.config.simulate) then logger.print("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
-  result = checkMoongen() and result
+  result = Setup.checkMoongen() and result
   if (not result and not settings.config.simulate) then logger.print("Make sure MoonGen is installed correctly") end
   if (not result) then logger.printlog("Test setup is not ready, check log", "INFO", "lred")
   else logger.printlog("Test setup is ready", "INFO", "lgreen") end
   return result
 end
+
+return Setup
