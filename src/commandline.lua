@@ -33,7 +33,7 @@ function CommandLine:sendToBackground()
    os.execute(string.replaceAll(self:get(), ";", "&"))
 end
 
-function CommandLine:forceExcute()
+function CommandLine:forceExcute(verbose)
   logger.debug("Running " .. self:get())
   local handle = io.popen(self:get())
   local out = ""
@@ -55,7 +55,7 @@ function CommandLine:execute(verbose)
   if (settings.config.simulate) then
     logger.print("  " .. self:get())
   else
-    out = self:forceExcute()
+    out = self:forceExcute(verbose)
   end
   return out
 end
@@ -112,10 +112,10 @@ function SSHCommand:print()
   logger.print(self:get())
 end
 
-function SSHCommand:forceExcute()
+function SSHCommand:forceExcute(verbose)
   verbose = verbose ~= nil and verbose
   local cmd = CommandLine.create(self:get())
-  return cmd:forceExcute()
+  return cmd:forceExcute(verbose)
 end
 
 function SSHCommand:execute(verbose)
