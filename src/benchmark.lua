@@ -77,8 +77,9 @@ end
 
 -- reads the feature list files
 -- creates the feature objects
-function Benchmark:getFeatures()
-  if (settings.isTestFeature()) then
+function Benchmark:getFeatures(force)
+  local force = force or false
+  if (not force and settings.isTestFeature()) then
     self.featureList = {}
     local feature = Feature.create(settings.getTestFeature())
     if feature:isDisabled() then return end
@@ -119,13 +120,14 @@ function Benchmark:exportFeatures()
   table.sort(t)
   for i,name in pairs(t) do
     file:write(string.format("%-22s = %s\n", name, tostring(self.features[name]:isSupported())))
+    logger.debug("export feature " .. name .. " as " .. tostring(self.features[name]:isSupported()))
   end
   io.close(file)
 end
 
 -- imports features and their states from a previous run
 function Benchmark:importFeatures()
-  self:getFeatures()
+  self:getFeatures(true) 
   if (not localfileExists(global.featureFile)) then return end
   local fh = io.open(global.featureFile)
   while true do
@@ -138,7 +140,7 @@ function Benchmark:importFeatures()
         local state = string.trim(string.sub(line, split+1, -1))
         local feature = self.features[name]
         if (feature and state == "true") then feature.supported = true end
-        logger.debug("imported feature " .. name .. " as " .. state)   
+        logger.debug("imported feature " .. name .. " as " .. state) 
       end
     end
   end
@@ -270,7 +272,7 @@ function Benchmark:run()
     io.close(lgDump)
     logger.print("Collecting results", 1, global.headline2)
     local cmd = SCPCommand.create()
-    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*", self.output)
+    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*", path)
     local out = cmd:execute(settings.config.verbose)
     if (not out) then
       self.reason = "Testcase failed, no files were created"

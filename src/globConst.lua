@@ -17,6 +17,7 @@ global = {}
   
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion        = "openflow"
+  global.sshTimeOut       = 5
   
   -- logger
   global.logFile = "sdn-cert.log"
