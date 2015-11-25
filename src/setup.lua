@@ -18,10 +18,10 @@ local string_matches = {
 
 -- creates folder if not existent
 -- set remote true, if not local
-function Setup.createFolder(name, path, remote)
+function Setup.createFolder(name, path, isLocal)
   local path = path or "."
-  local remote = remote or false
-  local cmd = CommandLine.getRunInstance(not remote).create()
+  local isLocal = isLocal or true
+  local cmd = CommandLine.getRunInstance(isLocal).create()
   cmd:addCommand("cd " .. path)
   cmd:addCommand("mkdir -p " .. name)
   cmd:forceExcute()
