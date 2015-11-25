@@ -113,7 +113,7 @@ BenchmarkConfig.metric = {
         if (isNumber) then
           throughput:add(TexBlocks.throughputStats(label, "rx.csv"))
         else
-          throughput:add(TexBlocks.throughputStatsStr(label, "rx.csv"))
+          throughput:add(TexBlocks.throughputStatsBars(label, "rx.csv"))
         end
         return {rx, throughput}
     end

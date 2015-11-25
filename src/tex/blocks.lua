@@ -96,13 +96,16 @@ legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
 ]]
 end
 
-TexBlocks.throughputStatsStr = function(labels, file)
+TexBlocks.throughputStatsBars = function(labels, file)
 return [[
 \pgfplotstableread[col sep=comma]{]] .. file ..[[}\datatable
+\definecolor{mingrey}{rgb}{0.7, 0.75, 0.71}
+\definecolor{maxgrey}{rgb}{0.43, 0.5, 0.5}
 \begin{tikzpicture}
 \begin{axis}[
 width=\textwidth,
 height=0.8\textwidth,
+ybar,
 ymin=0,
 xlabel={]] .. labels.x .. [[},
 ylabel={]] .. labels.y .. [[},
@@ -110,13 +113,14 @@ grid=major,
 xticklabels from table={\datatable}{parameter},
 x tick label style={rotate=60,anchor=east},
 xtick=data,
+legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
 ]
-\addlegendentry{max}
-\addplot [color=gray,style=loosely dashed, mark=x] table [x expr=\coordindex, y=max] {\datatable};
 \addlegendentry{min}
-\addplot [color=gray,style=dashed,mark=x] table [x expr=\coordindex, y=min] {\datatable};
+\addplot [color=black, fill=mingrey, style=dashed] table [x expr=\coordindex, y=min] {\datatable};
 \addlegendentry{avg}
-\addplot [color=blue,mark=square*] table [x expr=\coordindex, y=avg] {\datatable};
+\addplot [color=black, fill=blue] table [x expr=\coordindex, y=avg] {\datatable};
+\addlegendentry{max}
+\addplot [color=black, fill=maxgrey, style=dashed] table [x expr=\coordindex, y=max] {\datatable};
 \end{axis}
 \end{tikzpicture}
 \caption{throughput graph}

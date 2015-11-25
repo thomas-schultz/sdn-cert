@@ -16,12 +16,12 @@ function CommonTest.print(config, dump)
   local out = ""
   for i,key in pairs(t) do
     local value = config[key]
-    out = string.format("%s%-20s = %s\n", out, key, tostring(value))
+    out = string.format("%s    %-20s = %s\n", out, key, tostring(value))
   end   
   if (dump) then
     local file = io.open(dump, "w")
     file:write(out)
-  else logger.print(out, 1) end
+  else logger.print(out) end
 end
 
 

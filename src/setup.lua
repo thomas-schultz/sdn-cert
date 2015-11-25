@@ -24,7 +24,6 @@ function Setup.createFolder(name, path, remote)
   local cmd = CommandLine.getRunInstance(not remote).create()
   cmd:addCommand("cd " .. path)
   cmd:addCommand("mkdir -p " .. name)
-  cmd:print()
   cmd:forceExcute()
 end
 

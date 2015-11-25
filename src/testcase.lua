@@ -134,11 +134,11 @@ function TestCase:createErrorReport()
   self:createReport(true)
 end
 
-function TestCase:getParameterTable(metric)
+function TestCase:getParameterTable(metric, blacklist)
   local parameter = TexTable.create("|l|r|l|", "ht")
   parameter:add("parameter", "value", "unit")
   for k,v in pairs(self.parameters) do
-    if (k ~= "name") then parameter:add(k, v, metric.units[k] or "") end
+    if (k ~= "name" or k ~= blacklist) then parameter:add(k, v, metric.units[k] or "") end
   end
   return parameter
 end

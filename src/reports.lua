@@ -61,7 +61,7 @@ function Reports.generateCombined(benchmark, doc, name, currentParameter, ids)
   local metric = config.metric[test.config.metric]
   local items = metric.advanced(currentParameter, benchmark.testcases, ids) 
   
-  local parameter = test:getParameterTable(metric)
+  local parameter = test:getParameterTable(metric, name)
   parameter:add("involved tests", table.tostring(ids, ","), "IDs")
   doc:addElement(parameter) 
   for _,item in pairs(items) do

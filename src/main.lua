@@ -53,13 +53,13 @@ local function main()
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
   if (parser:hasOption("--nocolor")) then disableColor() end
-  if (parser:hasOption("--tar")) then archiveResults() settings.config.archive = true end
+  if (parser:hasOption("--tar")) then Setup.archiveResults() settings.config.archive = true end
   settings:verify()
     
-  if (parser:hasOption("--init")) then initMoongen() end
-  if (parser:hasOption("--setup")) then setupMoongen() end
+  if (parser:hasOption("--init")) then Setup.initMoongen() end
+  if (parser:hasOption("--setup")) then Setup.setupMoongen() end
   if (parser:hasOption("--check")) then settings.config.checkSetup = true end
-  if (parser:hasOption("--clean")) then cleanUp() exit() end
+  if (parser:hasOption("--clean")) then Setup.cleanUp() exit() end
   if (parser:hasOption("--skipfeature")) then settings.config.skipfeature = true end
   if (parser:hasOption("--testfeature")) then settings.config.testfeature = parser:getOptionValue("--testfeature") end
   if (parser:hasOption("-O")) then settings.config[global.ofVersion] = string.gsub(parser:getOptionValue("-O"), "%.", "") end
