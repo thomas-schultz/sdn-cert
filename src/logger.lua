@@ -96,15 +96,15 @@ function Logger.printlog(msg, lvl, color)
 end
 
 function Logger.warn(msg)
-  logger.log("WARN", msg)
+  logger.log(msg, "WARN")
 end
 
 function Logger.err(msg)
-  logger.log("ERR", msg)
+  logger.log(msg, "ERR")
 end
 
 function Logger.debug(msg)
-  if (debugMode and msg) then Logger.log("DEBUG", msg) end
+  if (debugMode and msg) then Logger.log(msg, "DEBUG") end
 end 
 
 -- prints a bar to the command line

@@ -91,7 +91,7 @@ function Feature:runTest()
   out = cmd:execute()
   if (settings.config.simulate and not out) then
     out = "simulation mode" end
-  if (string.find(out, "cat: " .. settings:getLocalPath() .. "/" .. global.results .. "/feature_" .. self:getName() .. "_result:")) then
+  if (string.find(out, "cat: " .. template .. "_result:")) then
     out = "Feature test failed to run" end
   if (not settings.config.simulate) then
     if (string.trim(out) == "passed") then self.supported = true

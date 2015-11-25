@@ -95,7 +95,7 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
 end
 
 function savePattern(featureName, rxPattern, desiredPkts)
-  local outFile = "../results/feature_" .. featureName .. "_rx.pattern"
+  local outFile = "../results/feature_" .. featureName .. "_rx-pattern"
   local out = io.open(outFile, "w")
   local pattern = ""
   for i=1,math.max(desiredPkts, #rxPattern) do
@@ -111,7 +111,7 @@ function savePattern(featureName, rxPattern, desiredPkts)
 end
 
 function saveResult(featureName, message)
-  local outFile = "../results/feature_" .. featureName .. ".result"
+  local outFile = "../results/feature_" .. featureName .. "_result"
   local out = io.open(outFile, "w")
   out:write(message)
   io.close(out)
@@ -235,7 +235,7 @@ function featureTxSlave(featureName, txDevs, ports)
   if (not txSteps or txSteps <= 0) then txSteps = #txDevs end
   
   for i=1,#txDevs do txQueues[i] = txDevs[i]:getTxQueue(0) end
-  local txDump = io.open("../results/feature_" .. featureName .. "_tx.dump", "w")
+  local txDump = io.open("../results/feature_" .. featureName .. "_tx-dump", "w")
 
   local learnPkt = feature.getPkt(feature.pkt)
   local learningFrames = settings.learnFrames or 0
@@ -318,7 +318,7 @@ function featureRxSlave(featureName, rxDevs, ports)
   local timeout = dpdk.getTime() + settings.timeout
   local rxPkts = {}
   local rxPattern = {}
-  local rxDump = io.open("../results/feature_" .. featureName .. "_rx.dump", "w")
+  local rxDump = io.open("../results/feature_" .. featureName .. "_rx-dump", "w")
   local desiredPkts = settings.desiredCtr*settings.batchSize
   
   -- start actual receiving

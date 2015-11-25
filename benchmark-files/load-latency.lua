@@ -102,7 +102,7 @@ function counterSlave(id, queue, duration)
 	end
 	rxCtr:update()
 	rxCtr:finalize()
-	log:info("Saving txCounter to '" .. rxDump .. "'")
+	log:info("Saving rxCounter to '" .. rxDump .. "'")
 end
 
 
