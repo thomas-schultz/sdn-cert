@@ -79,7 +79,7 @@ function Setup.setupMoongen()
 end
 
 function Setup.killMoongen()
-  local cmd = CommandLine.getRunInstance(isLocal).create()
+  local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("pkill -f moongen")
   cmd:execute()
   cmd:execute()
