@@ -207,8 +207,8 @@ function Benchmark:prepare()
       for i,file in pairs(files) do
         logger.print("Selecting file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
         fileList[file] = true
-        self.output = settings:getLocalPath() .. "/" .. global.results .. "/" .. test:getName(true)
-        Setup.createFolder(self.output)
+        test.output = settings:getLocalPath() .. "/" .. global.results .. "/" .. test:getName(true)
+        Setup.createFolder(test.output)
       end
       local id = #testcases + 1
       test:setId(id)
@@ -250,8 +250,7 @@ function Benchmark:run()
     
     -- configure open-flow device
     logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
-    local path = self.output .. "/" .. test:getName(true)
-    local template = path .. "/" .. test:getName()
+    local template = test.output .. "/" .. test:getName()
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
     ofDev:reset()
     local flowData = ofDev:getFlowData(test)
@@ -277,7 +276,7 @@ function Benchmark:run()
     io.close(lgDump)
     logger.print("Collecting results", 1, global.headline2)
     local cmd = SCPCommand.create()
-    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*", path)
+    cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*", test.output)
     local out = cmd:execute(settings.config.verbose)
     if (not out) then
       self.reason = "Testcase failed, no files were created"
