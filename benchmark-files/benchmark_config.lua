@@ -88,8 +88,10 @@ BenchmarkConfig.metric = {
         for _,id in pairs(ids) do
           local test = testcases[id]
           local par = test:getParameterList()[parameter]
+          -- if par is a number, store data under the number, else use string
+          par = tonumber(par) or par
           data[par] = csv.parseAndCropCsv(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 1, false)
-          table.insert(entries, tonumber(par) or par)
+          table.insert(entries, par)
           isNumber = isNumber and tonumber(par)
         end
         table.sort(entries)
