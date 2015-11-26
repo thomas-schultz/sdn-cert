@@ -249,28 +249,29 @@ function Benchmark:run()
     
     -- configure open-flow device
     logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
-    local path = self.output .. "/" .. test:getName()
+    local path = self.output .. "/" .. test:getName(true)
+    local template = path .. "/" .. test:getName()
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
     ofDev:reset()
     local flowData = ofDev:getFlowData(test)
-    ofDev:createAllFiles(flowData, path)
-    ofDev:installAllFiles(path, "_ovs-output")
-    ofDev:dumpAll(path .. "_flowdump-before")
+    ofDev:createAllFiles(flowData, template)
+    ofDev:installAllFiles(template, "_ovs-output")
+    ofDev:dumpAll(template .. "_flowdump-before")
     if (not settings.config.simulate) then sleep(global.timeout) end   
-    test:export(path .. "_parameter.csv")
+    test:export(template .. "_parameter.csv")
     
     -- start loadgen
     local duration = test:getDuration() or "?"
     duration = " (measuring for " .. duration .. " sec)"
     logger.print("Starting measurement" .. duration, 1, global.headline2)
-    local lgDump = io.open(path .. "_loadgen-output", "w")
+    local lgDump = io.open(template .. "_loadgen-output", "w")
     local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
     cmd:addCommand("cd " .. settings:get(global.loadgenWd) .. "/MoonGen")
     cmd:addCommand("./" .. test:getLoadGen() .. " " .. test:getLgArgs())
     if (settings:isVerbose()) then cmd:print() end
     lgDump:write(cmd:execute(settings:isVerbose()))
     if (not Settings:doSimulate()) then
-      ofDev:dumpAll(path .. "_flowdump-after")
+      ofDev:dumpAll(template .. "_flowdump-after")
     end
     io.close(lgDump)
     logger.print("Collecting results", 1, global.headline2)
