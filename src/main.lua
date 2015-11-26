@@ -55,7 +55,7 @@ local function main()
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
   if (parser:hasOption("--nocolor")) then disableColor() end
   if (parser:hasOption("--tar")) then Setup.archive() settings.config.archive = true end
-  if (parser:hasOption("--eval")) then settings.config.evalonly = true end
+  if (parser:hasOption("--eval")) then settings.config.evalonly = true settings.config.skipfeature = true end
   settings:verify()
     
   if (parser:hasOption("--init")) then Setup.initMoongen() end

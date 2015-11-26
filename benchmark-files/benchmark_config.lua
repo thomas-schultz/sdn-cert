@@ -89,7 +89,7 @@ BenchmarkConfig.metric = {
           local test = testcases[id]
           local par = test:getParameterList()[parameter]
           data[par] = csv.parseAndCropCsv(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 1, false)
-          table.insert(entries, par)
+          table.insert(entries, tonumber(par) or par)
           isNumber = isNumber and tonumber(par)
         end
         table.sort(entries)
