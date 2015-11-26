@@ -18,23 +18,19 @@ local string_matches = {
 
 -- creates folder if not existent
 -- set remote true, if not local
-function Setup.createFolder(name, path, isLocal)
-  local path = path or "."
+function Setup.createFolder(name, isLocal)
   local isLocal = isLocal or true
   local cmd = CommandLine.getRunInstance(isLocal).create()
-  cmd:addCommand("cd " .. path)
   cmd:addCommand("mkdir -p " .. name)
   cmd:forceExcute()
 end
 
 -- creates parent folder of a given file or directory
 -- set remote true, if not local
-function Setup.createParentFolder(file, path, remote)
-  local path = path or "."
-  local remote = remote or false
-  local cmd = CommandLine.getRunInstance(not remote).create()
+function Setup.createParentFolder(file, isLocal)
+  local isLocal = isLocal or true
+  local cmd = CommandLine.getRunInstance(isLocal).create()
   local parent = string.match(file, "(.-)([^\\/]-%.?([^%.\\/]*))$")
-  cmd:addCommand("cd " .. path)
   cmd:addCommand("mkdir -p " .. parent)
   cmd:forceExcute()
 end
@@ -44,8 +40,8 @@ function Setup.cleanUp()
   logger.printBar()
   logger.printlog("Cleaning up testing system", 0, global.headline1)
   -- clean remote 
-  Setup.createFolder(global.results, settings:get(global.loadgenWd), settings:isLocal())
-  Setup.createFolder(global.scripts, settings:get(global.loadgenWd), settings:isLocal())
+  Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.results, settings:isLocal())
+  Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.scripts, settings:isLocal())
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create() 
   cmd:addCommand("cd " .. settings:get(global.loadgenWd))
   cmd:addCommand("rm -f " .. global.results .. "/*")
