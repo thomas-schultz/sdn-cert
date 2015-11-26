@@ -60,10 +60,10 @@ function Setup.cleanUp()
 end
 
 
-function Setup.archiveResults()
-  logger.printlog("Archive current results to " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", 0, global.headline1)
+function Setup.archive()
+  logger.printlog("Archive current results to " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", nil, global.headline1)
   Setup.createFolder(global.archive)
-  local cmd = CommandLine.create("tar -cvf " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar " .. settings:getLocalPath() .. "/" .. global.results .. "/*")
+  local cmd = CommandLine.create("tar -cvf " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar ./" .. global.results .. "/* ./" .. global.benchmarkCfgs .. "/*")
   cmd:execute()
   logger.printBar()
 end
@@ -79,15 +79,10 @@ function Setup.setupMoongen()
 end
 
 function Setup.killMoongen()
-  local kill = nil
-  if (settings:isLocal()) then
-    kill = CommandLine.create("pkill -f moongen")
-  else
-    kill = SSHCommand.create()
-    kill:addCommand("pkill -f moongen")
-  end
-  kill:execute()
-  kill:execute()
+  local cmd = CommandLine.getRunInstance(isLocal).create()
+  cmd:addCommand("pkill -f moongen")
+  cmd:execute()
+  cmd:execute()
 end
 
 function Setup.initMoongen()

@@ -43,7 +43,7 @@ function Reports.generate(benchmark)
             subtitle:add("\\begin{center}", "\\begin{huge}", "parameter: " .. currentParameter, "\\end{huge}", "\\end{center}")
             reports[currentParameter]:addElement(subtitle)
           end
-          Reports.generateCombined(benchmark, reports[currentParameter], currentTestName, currentParameter, data.ids)
+          Reports.generateCombined(benchmark, reports[currentParameter], currentParameter, data.ids)
         end
       end
     end
@@ -55,13 +55,13 @@ function Reports.generate(benchmark)
   logger.printBar()
 end
 
-function Reports.generateCombined(benchmark, doc, name, currentParameter, ids)
+function Reports.generateCombined(benchmark, doc, currentParameter, ids)
   local test = benchmark.testcases[ids[1]]
   local config = require("benchmark_config")
   local metric = config.metric[test.config.metric]
   local items = metric.advanced(currentParameter, benchmark.testcases, ids) 
   
-  local parameter = test:getParameterTable(metric, name)
+  local parameter = test:getParameterTable(metric, currentParameter)
   parameter:add("involved tests", table.tostring(ids, ","), "IDs")
   doc:addElement(parameter) 
   for _,item in pairs(items) do

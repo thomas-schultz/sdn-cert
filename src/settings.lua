@@ -19,6 +19,7 @@ function Settings:readSettings(configFile)
   self.config.runtex        = false
   self.config.checksetup    = false
   self.config.skipfeature   = false
+  self.config.evalonly      = false
   self.config[global.ofVersion] = "OpenFlow10"
   while (true) do
     local line = fh:read()
@@ -48,11 +49,11 @@ function Settings:readSettings(configFile)
     logger.debug("added link " .. ofLinks .. global.ch_connect .. lgLinks)
   end
   if (#self.ports == 0) then
-    printlog("Invalid settings, no phyLinks are assigned")
+    logger.err("Invalid settings, no phyLinks are assigned")
     exit()
   end
   if (#self.ports == 1) then
-    printlog_warn("You have configured only a single link, most of the features require at least two!")
+    logger.warn("You have configured only a single link, most of the features require at least two!")
   end
 end
 
@@ -86,6 +87,10 @@ end
 
 function Settings:doRunTex()
   return self.config.runtex == true
+end
+
+function Settings:evalOnly()
+  return self.config.evalonly == true
 end
 
 function Settings:getOFVersion()

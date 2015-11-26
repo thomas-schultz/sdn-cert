@@ -61,7 +61,7 @@ function OpenFlowDevice:installFlow(flow)
 end
 
 function OpenFlowDevice:installFlows(file)
-  if (not absfileExists(file)) then logger.printlog("Cannot add flows, no such file: '" .. file .. "'", "ERROR") return end
+  if (not absfileExists(file)) then logger.err("Cannot add flows, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-flows " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose) or "none"
 end
@@ -73,7 +73,7 @@ function OpenFlowDevice:installGroup(group)
 end
 
 function OpenFlowDevice:installGroups(file)
-  if (not absfileExists(file)) then logger.printlog("Cannot add groups, no such file: '" .. file .. "'", "ERROR") return end
+  if (not absfileExists(file)) then logger.err("Cannot add groups, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-groups " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose) or "none"
 end
@@ -85,7 +85,7 @@ function OpenFlowDevice:installMeter(group)
 end
 
 function OpenFlowDevice:installMeters(file)
-  if (not absfileExists(file)) then logger.printlog("Cannot add meters, no such file: '" .. file .. "'", "ERROR") return end
+  if (not absfileExists(file)) then logger.err("Cannot add meters, no such file: '" .. file .. "'") return end
   local cmd = CommandLine.create("ovs-ofctl add-meters " .. self.target .. " " .. file)
   return cmd:execute(settings.config.cervose) or "none"
 end
@@ -143,7 +143,7 @@ function OpenFlowDevice:getBenchmarkFlows(name, ...)
   local flowData = {flows  = {}, groups = {}, meters = {} }
   local addflows = benchConf[name]
   if (not addflows) then
-    logger.printlog("Failed to create flow entries for test '" .. name .. "'", "ERROR")
+    logger.err("Failed to create flow entries for test '" .. name .. "'")
   else
       addflows(flowData, ...) 
   end
@@ -154,7 +154,7 @@ function OpenFlowDevice:getFlowData(test, isFeature)
   local flowData = { flows  = {}, groups = {}, meters = {} }
   local flowEntries = test.config.flowEntries
   if (not flowEntries) then
-    logger.printlog("Failed to create flow entries for '" .. test:getName() .. "', check configuration file", "ERROR")
+    logger.err("Failed to create flow entries for '" .. test:getName() .. "', check configuration file")
     return flowData
   end
   logger.debug("FlowEntries arguments: '" .. table.tostring(test.ofArgs) .. "'")

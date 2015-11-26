@@ -79,7 +79,7 @@ function CommonTest.mapArgs(test, args, type, asTable, isFeature)
       value = test.settings[string.replace(key, "=", "")]
       if (not value) then value = CommonTest.getLinks(test, arg, type, isFeature) end
       if (not value) then
-        logger.printlog("Could not map variable '" .. key .. "' for '" .. test:getName() ..  "'", "ERROR")
+        logger.err("Could not map variable '" .. key .. "' for '" .. test:getName() ..  "'")
         exit("Abort")
       end
     end

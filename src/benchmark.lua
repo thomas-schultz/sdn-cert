@@ -92,7 +92,7 @@ function Benchmark:getFeatures(force)
   end
   local list = settings:getLocalPath() .. "/" .. global.featureFolder .. "/" .. global.featureList
   local fh = io.open(list)
-  if (not fh) then logger.printlog("Could not open feature list '" .. list .. "'", "ERR") return end
+  if (not fh) then logger.err("Could not open feature list '" .. list .. "'") return end
   self.featureList = {}
   self.featureCount = 0
   while true do
@@ -155,7 +155,7 @@ end
 -- returns the state of the given feature
 function Benchmark:isFeatureSupported(name)
   if (not self.features[name]) then
-    logger.printlog("Feature '" .. name .. "' disabled or not found, check log", "WARN")
+    logger.warn("Feature '" .. name .. "' disabled or not found, check log")
     return false
   end
   return self.features[name]:isSupported()
@@ -205,7 +205,9 @@ function Benchmark:prepare()
     if (not test:isDisabled() or settings.config.simulate) then
       local files = test:getLoadGenFiles()
       for i,file in pairs(files) do
-        logger.print("Selecting file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
+        if (not settings:evalOnly()) then
+          logger.print("Selecting file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
+        end
         fileList[file] = true
         test.output = settings:getLocalPath() .. "/" .. global.results .. "/" .. test:getName(true)
         Setup.createFolder(test.output)
@@ -216,6 +218,7 @@ function Benchmark:prepare()
     end
     logger.log("selecting files completed")
   end
+  if (settings:evalOnly()) then logger.printBar() return end
   logger.printlog("Copying files", nil, global.headline1)
   local n = 1
   for file,_ in pairs(fileList) do
@@ -298,7 +301,7 @@ function Benchmark:sumFeatures()
   end
   local compliance = true;
   for i,feature in pairs(self.featureList) do
-    logger.print(string.format("Feature:   ".. ColorCode.white .. "%-24s" .. ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
+    logger.print(string.format("Feature:   ".. Logger.ColorCode.white .. "%-24s" .. Logger.ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
     compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
   end
   if (not settings.config.testfeature) then

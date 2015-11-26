@@ -18,7 +18,7 @@ end
 function Feature:readConfig()
   local configFile = "config/" .. self.name .. ".lua"
   if (not localfileExists(global.featureFolder .. "/" .. configFile)) then
-    logger.printlog("Disabled feature '" .. self:getName() .. "', missing file '" .. configFile .. "'", "WARN")
+    logger.warn("Disabled feature '" .. self:getName() .. "', missing file '" .. configFile .. "'")
     self.disabled = true
     return
   end
@@ -29,7 +29,7 @@ function Feature:readConfig()
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())
   if (ver_comp == nil or ver_comp < 0) then
-    logger.printlog("Disabled feature '" .. self:getName() .. "', version is '" .. Settings:getOFVersion() .. "' but '" .. self:getRequiredOFVersion() .. "' is required", "WARN")
+    logger.warn("Disabled feature '" .. self:getName() .. "', version is '" .. Settings:getOFVersion() .. "' but '" .. self:getRequiredOFVersion() .. "' is required")
     self.disabled = true
   end
   self.settings.name = self:getName()
@@ -123,8 +123,8 @@ end
 
 function Feature:getStatus(noColor)
   local color
-  if (noColor) then color = noColorCode
-  else color = ColorCode end
+  if (noColor) then color = Logger.noColorCode
+  else color = Logger.ColorCode end
   
   if (self:isSupported()) then
     return color.lgreen .. "Test passed" .. color.normal

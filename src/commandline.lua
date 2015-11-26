@@ -49,7 +49,7 @@ end
 
 function CommandLine:execute(verbose)
   if (not self:get()) then
-    logger.printlog("Cannot execute empty command line", "ERROR") return end
+    logger.warn("Cannot execute empty command line") return end
   verbose = verbose ~= nil and verbose
   local out = nil
   if (settings.config.simulate) then
@@ -65,7 +65,7 @@ function CommandLine:tryExecute(errors, verbose)
   if (not ret) then return end
   for err,msg in pairs(errors) do
     if (string.find(ret, err)) then
-      logger.printlog(msg)
+      logger.warn(msg)
       logger.debug(ret)
       return nil
     end
@@ -159,19 +159,19 @@ end
 
 function SCPCommand:copyToHost(file, dst)
   if (not self.user or not self.host) then
-    printlog_err("Missing user or host field") return end
+    logger.err("Missing user or host field") return end
   self.line = "scp " .. file .. " " .. self.user .. "@" .. self.host .. ":" .. dst
 end
 
 function SCPCommand:copyFromHost(file, dst)
   if (not self.user or not self.host) then
-    printlog_err("Missing user or host field") return end
+    logger.err("Missing user or host field") return end
   self.line = "scp " .. self.user .. "@" .. self.host .. ":" .. file .. " " .. dst
 end
 
 function SCPCommand:get()
   if (not self.line) then
-    printlog_err("Invalid scp command") return end
+    logger.err("Invalid scp command") return end
   return self.line
 end
 

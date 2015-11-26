@@ -2,7 +2,7 @@ Logger = {}
 Logger.__index = Logger
 
 
-ColorCode = {
+Logger.ColorCode = {
   red     = "\27[31m",
   green   = "\27[32m",
   yellow  = "\27[33m",
@@ -22,13 +22,13 @@ ColorCode = {
   normal      = "\27[0m",
 }
 
-noColorCode = {}
-setmetatable(noColorCode, {__index = function () return "" end})
+Logger.noColorCode = {}
+setmetatable(Logger.noColorCode, {__index = function () return "" end})
 
-function disableColor()
-  ColorCode = {}
+function Logger.disableColor()
+  Logger.ColorCode = {}
   local mt = {__index = function () return "" end}
-  setmetatable(ColorCode, mt)
+  setmetatable(Logger.ColorCode, mt)
 end
 
 Logger.logFile = nil
@@ -84,23 +84,23 @@ end
 function Logger.print(msg, indent, color)
   local msg = msg or ""
   local indent = indent or 0
-  local preamble = ColorCode[color] or ColorCode.normal
-  local delim = ColorCode.normal
+  local preamble = Logger.ColorCode[color] or Logger.ColorCode.normal
+  local delim = Logger.ColorCode.normal
   print(preamble .. string.rep("  ", indent) .. msg .. delim)
 end
 
 function Logger.printlog(msg, lvl, color)
    Logger.log(msg, lvl)
-   local color = color or (Logger.lvl[lvl] and Logger.lvl[lvl].color) or ColorCode.normal
+   local color = color or (Logger.lvl[lvl] and Logger.lvl[lvl].color) or Logger.ColorCode.normal
    Logger.print(msg, 0, color)
 end
 
 function Logger.warn(msg)
-  logger.log(msg, "WARN")
+  logger.printlog(msg, "WARN")
 end
 
 function Logger.err(msg)
-  logger.log(msg, "ERR")
+  logger.printlog(msg, "ERR")
 end
 
 function Logger.debug(msg)
@@ -109,7 +109,7 @@ end
 
 -- prints a bar to the command line
 function Logger.printBar()
-  print(ColorCode.lyellow .. string.rep("-", 80) .. ColorCode.normal)
+  print(Logger.ColorCode.lyellow .. string.rep("-", 80) .. Logger.ColorCode.normal)
 end
 
 return Logger

@@ -38,6 +38,7 @@ local function main()
   parser:addOption("--setup", "installs MoonGen")
   parser:addOption("--init", "initializes MoonGen")
   parser:addOption("--sim", "all operations are printed, instead of executed")
+  parser:addOption("--eval", "only starts the evaluation process")
   parser:addOption("--nocolor", "disables the colored output")
   parser:addOption("--check", "checks if the test setup is correctly configured")
   parser:addOption("--tar", "creates a tar archive for the current and the final results folder")
@@ -53,7 +54,8 @@ local function main()
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
   if (parser:hasOption("--nocolor")) then disableColor() end
-  if (parser:hasOption("--tar")) then Setup.archiveResults() settings.config.archive = true end
+  if (parser:hasOption("--tar")) then Setup.archive() settings.config.archive = true end
+  if (parser:hasOption("--eval")) then settings.config.evalonly = true end
   settings:verify()
     
   if (parser:hasOption("--init")) then Setup.initMoongen() end
@@ -94,6 +96,12 @@ local function main()
 
   local benchmark = Benchmark.create(benchmark_file)
   if (settings.config.verbose) then settings:print() end
+  
+  if (settings:evalOnly()) then
+    benchmark:prepare()
+    Reports.generate(benchmark)
+    exit()
+  end
 
   Setup.cleanUp()
   benchmark:testFeatures()
@@ -102,7 +110,7 @@ local function main()
   benchmark:run()
   Reports.generate(benchmark)
   
-  if (settings:doArchive()) then Setup.archiveResults() end
+  if (settings:doArchive()) then Setup.archive() end
   
   logger.finalize()
 end

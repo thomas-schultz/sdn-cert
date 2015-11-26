@@ -20,14 +20,14 @@ function TestCase:readConfig(cfgLine)
   table.sort(self.parameters)
   self.name = self.parameters.name
   if (not self.name) then
-    logger.printlog("Skipping test, no name specified", "WARN")
+    logger.warn("Skipping test, no name specified")
     self.disabled = true
     return
   end
   logger.debug("test '" .. self.name .. " added")
   local cfgFile = global.benchmarkFolder .. "/config/" .. self.name .. ".lua"
   if (not localfileExists(cfgFile)) then
-    logger.printlog("Skipping test, config file not found '" .. cfgFile .. "'", "WARN")
+    logger.warn("Skipping test, config file not found '" .. cfgFile .. "'")
     self.disabled = true 
     return
   end
@@ -43,6 +43,7 @@ function TestCase:readConfig(cfgLine)
 end
 
 function TestCase:checkFeatures(benchmark)
+  if (settings:evalOnly()) then return end
   local require = ""
   for i,requires in pairs(self.require) do
     if (not benchmark:isFeatureSupported(requires)) then
@@ -51,7 +52,7 @@ function TestCase:checkFeatures(benchmark)
     end
   end
   if (string.len(require) > 0) then
-    logger.printlog("Skipping test, unsupported feature(s): " .. string.sub(require, 1 , #require-2), "WARN")
+    logger.warn("Skipping test, unsupported feature(s): " .. string.sub(require, 1 , #require-2))
   end
 end
 
@@ -105,7 +106,7 @@ function TestCase:createReport(error)
   local config = require("benchmark_config")
   local metric = config.metric[self.config.metric]
   if (not metric) then
-    printlog_err("Missing metric configuration in benchmark_config.lua")
+    logger.err("Missing metric configuration in benchmark_config.lua")
     return
   end
   local data = metric.getData(self)
@@ -138,7 +139,7 @@ function TestCase:getParameterTable(metric, blacklist)
   local parameter = TexTable.create("|l|r|l|", "ht")
   parameter:add("parameter", "value", "unit")
   for k,v in pairs(self.parameters) do
-    if (k ~= "name" or k ~= blacklist) then parameter:add(k, v, metric.units[k] or "") end
+    if (k ~= "name" and k ~= blacklist) then parameter:add(k, v, metric.units[k] or "") end
   end
   return parameter
 end
