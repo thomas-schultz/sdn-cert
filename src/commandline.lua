@@ -40,10 +40,10 @@ function CommandLine:forceExcute(verbose)
   while (true) do
     local line = handle:read("*l")
     if (not line) then break end
-    out = out .. line .. "\n"
+    out = string.format("%s%s\n", out, line)
     if (verbose and string.len(line) > 0) then print(line) end
   end
-  if (out) then logger.debug("Output:\n" .. out) end
+  if (out and out ~= "\n") then logger.debug("Output:\n" .. out) end
   return out
 end
 
