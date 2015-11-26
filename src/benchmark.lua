@@ -58,7 +58,8 @@ function Benchmark:readConfig(config)
             table.insert(self.testcases, test)
             logger.debug("added testcase " .. line)
           else
-            logger.debug("skipped testcase " .. line)
+            if (test:isDisabled()) then logger.debug("skipped disabled testcase " .. line) end
+            if (self.testLines[conf]) then logger.debug("skipped duplicate testcase " .. line) end
           end
           self.testLines[conf] = true
         end
