@@ -108,7 +108,7 @@ end
 
 function TestCase:createReport(error)
   local metric = require("metrics")
-  local config = metric.config[self.getMetric()]
+  local config = metric.config[self:getMetric()]
   if (not metric) then
     logger.err("Missing metric configuration in benchmark_config.lua")
     return
