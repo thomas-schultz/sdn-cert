@@ -103,7 +103,7 @@ function TestCase:getParameterConf()
 end
 
 function TestCase:createReport(error)
-  local config = require("benchmark_config")
+  local config = require("metrics")
   local metric = config.metric[self.config.metric]
   if (not metric) then
     logger.err("Missing metric configuration in benchmark_config.lua")

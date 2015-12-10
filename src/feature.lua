@@ -136,9 +136,9 @@ end
 
 function Feature:getTexStatus()
   if (self:isSupported()) then
-    return "{\\color{green} supported}"
+    return "{\\color{darkgreen} supported}"
   else
-    return "{\\color{red} not supported}"
+    return "{\\color{darkred} not supported}"
   end
 end
 

@@ -309,6 +309,10 @@ function Benchmark:sumFeatures()
     else logger.printlog("\nTestdevice is not compliant with " .. settings.config[global.ofVersion], nil, "lred") end
   end
   local doc = TexDocument.create()
+  local colorDef = TexText.create()
+  colorDef:add("\\definecolor{darkgreen}{rgb}{0, 0.45, 0}")
+  colorDef:add("\\definecolor{darkred}{rgb}{0.9, 0, 0}")
+  doc:addElement(colorDef)
   local title = TexText.create()
   title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Summary Feature-Tests}", "\\end{LARGE}", "\\end{center}")
   local ofvers = TexText.create()
