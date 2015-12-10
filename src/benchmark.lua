@@ -304,7 +304,8 @@ function Benchmark:sumFeatures()
   local compliance = true;
   for i,feature in pairs(self.featureList) do
     logger.print(string.format("Feature:   ".. Logger.ColorCode.white .. "%-24s" .. Logger.ColorCode.normal .. "%-24s %s", feature:getName(true), feature:getState()..",".. feature:getRequiredOFVersion(), feature:getStatus()))
-    compliance = compliance and (feature:getState() == global.featureState.optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
+    local optional = feature:getState() == global.featureState.optional or feature:getState() == global.featureState.recommended
+    compliance = compliance and (optional or (feature:isSupported() and feature:getState() == global.featureState.required)) 
   end
   if (not settings.config.testfeature) then
     if (compliance) then logger.printlog("\nTestdevice has passed all required tests for " .. settings.config[global.ofVersion], nil, "lgreen")
