@@ -76,12 +76,12 @@ Metrics.config = {
         end
         
         local throughput = TexFigure.create("ht")
-        local label = BenchmarkConfig.labels[parameter]
+        local label = Metrics.labels[parameter]
         if (not label) then
-          label = BenchmarkConfig.labels.load
+          label = Metrics.labels.load
           label.x = parameter
         end
-        if (not label.y) then label.y = BenchmarkConfig.labels.load.y end
+        if (not label.y) then label.y = Metrics.labels.load.y end
         if (isNumber) then
           throughput:add(TexBlocks.throughputStats(label, "rx.csv"))
         else
