@@ -113,8 +113,8 @@ function TestCase:createReport(error)
     logger.err("Missing metric configuration in benchmark_config.lua")
     return
   end
-  local data = metric.getData(self)
-  local plots = metric.getPlots(self)
+  local data = config.getData(self)
+  local plots = config.getPlots(self)
 
   local doc = TexDocument.create()
   local title = TexText.create()
@@ -124,7 +124,7 @@ function TestCase:createReport(error)
     title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
   end
   doc:addElement(title)
-  doc:addElement(self:getParameterTable(metric))
+  doc:addElement(self:getParameterTable(config))
   for _,item in pairs(data) do
     doc:addElement(item)
   end
