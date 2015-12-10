@@ -87,7 +87,7 @@ end
 
 local function getCsvInit(direction)
 	return function(stats, file)
-		file:write("time, total, mmps, mbit, wirembit\n")
+		file:write("time, total, mpps, mbit, wirembit\n")
 		file:flush()
 	end
 end

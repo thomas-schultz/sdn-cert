@@ -58,7 +58,7 @@ end
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
   local test = benchmark.testcases[ids[1]]
   local metric = require("metrics")
-  local config = metric.config[test.config.metric]
+  local config = metric.config[test:getMetric()]
   local items = config.advanced(currentParameter, benchmark.testcases, ids) 
   
   local parameter = test:getParameterTable(config, currentParameter)

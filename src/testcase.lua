@@ -94,6 +94,10 @@ function TestCase:getParameterList()
   return self.parameters
 end
 
+function TestCase:getMetric()
+  return self.config.metric
+end
+
 function TestCase:getParameterConf()
   local conf = ""
   for parameter,value in pairs(self.parameters) do
