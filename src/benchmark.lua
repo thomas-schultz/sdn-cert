@@ -199,6 +199,7 @@ function Benchmark:prepare()
   if (settings.config.testfeature) then return end
   local testcases = {}
   local fileList = {}
+  local fileCount = 0
   for id,test in pairs(self.testcases) do
     logger.printlog("Preparing test ( " .. id .. " / " .. #self.testcases .. " ): " .. test:getName(true), nil, global.headline1)
     test:checkFeatures(self)
@@ -209,6 +210,7 @@ function Benchmark:prepare()
           logger.print("Selecting file " .. i .. "/" .. #files .. " (" .. file .. ")", 1, global.headline2)
         end
         fileList[file] = true
+        fileCount = fileCount + 1
         test.output = settings:getLocalPath() .. "/" .. global.results .. "/" .. test:getName(true)
         Setup.createFolder(test.output)
       end
@@ -222,7 +224,7 @@ function Benchmark:prepare()
   logger.printlog("Copying files", nil, global.headline1)
   local n = 1
   for file,_ in pairs(fileList) do
-    logger.print("Copying file " .. n .. "/" .. #fileList .. " (" .. file .. ")", 1, global.headline2)
+    logger.print("Copying file " .. n .. "/" .. fileCount .. " (" .. file .. ")", 1, global.headline2)
     local cmd = SCPCommand.create()
     cmd:switchCopyTo(settings:isLocal(), settings:getLocalPath() .. "/" .. global.benchmarkFolder .. "/" .. file, settings:get(global.loadgenWd) .. "/" .. global.scripts)
     cmd:execute(settings.config.verbose)
