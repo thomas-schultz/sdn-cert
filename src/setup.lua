@@ -62,8 +62,9 @@ end
 
 function Setup.archive()
   logger.printlog("Archive current results to " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", nil, global.headline1)
+  local files = "./" .. global.logFile " ./" .. global.results .. "/* ./" .. global.benchmarkCfgs .. "/*"
   Setup.createFolder(global.archive)
-  local cmd = CommandLine.create("tar -cvf " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar ./" .. global.results .. "/* ./" .. global.benchmarkCfgs .. "/*")
+  local cmd = CommandLine.create("tar -cvf " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar " .. files)
   cmd:execute()
   logger.printBar()
 end

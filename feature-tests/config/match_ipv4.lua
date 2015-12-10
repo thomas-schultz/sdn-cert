@@ -15,20 +15,20 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_SRC_IP4 = "10.0.2.1"
-feature.new_DST_IP4 = "10.0.2.2"
+local new_SRC_IP4 = "10.0.2.1"
+local new_DST_IP4 = "10.0.2.2"
 
 feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, nw_src=" .. feature.pkt.SRC_IP4 .. ", nw_dst=" .. feature.pkt.DST_IP4 .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_src=" .. feature.new_SRC_IP4 .. ", nw_dst=" .. feature.new_DST_IP4 .. ", actions=DROP")
+    table.insert(flowData.flows, "ip, nw_src=" .. new_SRC_IP4 .. ", nw_dst=" .. new_DST_IP4 .. ", actions=DROP")
   end
 
 feature.config{
 } 
   
 feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.SRC_IP4 = feature.new_SRC_IP4 
-    feature.pkt.DST_IP4 = feature.new_DST_IP4
+    feature.pkt.SRC_IP4 = new_SRC_IP4 
+    feature.pkt.DST_IP4 = new_DST_IP4
   end
   
   

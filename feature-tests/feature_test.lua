@@ -54,7 +54,7 @@ function evaluate(featureName, rxPkts, rxCtrs, ports)
   -- if not specified, use default threshold value: desiredbatchSize * tolerance value
   local desiredBatchSize = settings.desiredCtr * settings.batchSize
   settings.maxDeviation = settings.maxDeviation or 0
-  settings.threshold = settings.threshold or math.ceil(desiredBatchSize * settings.maxDeviation)
+  settings.threshold = math.max(settings.threshold or 0, math.ceil(desiredBatchSize * settings.maxDeviation))
   local logicalOp = feature.logicalOps[settings.ctrType]
     
   print("Checking device packet counters")

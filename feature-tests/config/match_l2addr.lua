@@ -15,20 +15,20 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_SRC_MAC = "aa:00:00:00:00:a2"
-feature.new_DST_MAC = "aa:aa:aa:aa:aa:aa"
+local new_SRC_MAC = "aa:00:00:00:00:a2"
+local new_DST_MAC = "aa:aa:aa:aa:aa:aa"
 
 feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "dl_src=" .. feature.pkt.SRC_MAC .. ", dl_dst=" .. feature.pkt.DST_MAC .. ", actions=ALL")
-    table.insert(flowData.flows, "dl_src=" .. feature.new_SRC_MAC .. ", dl_dst=" .. feature.new_DST_MAC .. ", actions=DROP")
+    table.insert(flowData.flows, "dl_src=" .. new_SRC_MAC .. ", dl_dst=" .. new_DST_MAC .. ", actions=DROP")
   end
 
 feature.config{
 } 
   
 feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.SRC_MAC = feature.new_SRC_MAC 
-    feature.pkt.DST_MAC = feature.new_DST_MAC
+    feature.pkt.SRC_MAC = new_SRC_MAC 
+    feature.pkt.DST_MAC = new_DST_MAC
   end
   
   

@@ -27,7 +27,9 @@ bench.settings = {
 
 -- creating of the flow entries in flowData = { flows, groups, meters }
 bench.flowEntries = function(flowData, inPort, outPort)
-    table.insert(flowData.flows, "in_port=" .. inPort .. ", actions=output:" .. outPort)
+    table.insert(flowData.flows, string.format("in_port=%d, actions=output:%d", inPort, outPort))
   end
 
+bench.metric = "load-latency"
+  
 return bench

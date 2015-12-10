@@ -31,11 +31,11 @@ FeatureConfig.enum = {
   
 -- default settings
 FeatureConfig.settings = {
-    pktSize       = 80,       -- default packet size in bytes, without crc
+    pktSize       = 80,       -- default packet size in bytes, without CRC
     bufSize       = 32,       -- number of packets in one buffer
     loops         = 1,        -- loop count, each is sending bufSize packets
     maxDeviation  = 0.05,     -- percentage of allowed deviation for received packets
-    --threshold   = 5         -- fixed number of deviating packets, maxDeviation is ignored
+    threshold     = 5,         -- lower bound for the maximum number of deviating packets
     learnTime     = 500,      -- time in milliseconds, where learning packets are generated and discarded by the receiver
     learnPkts     = 2,        -- number of packets, that will be generated for learning
     timeout       = 2,        -- timeout in seconds until the receiving loop is stopped

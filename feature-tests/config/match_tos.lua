@@ -15,18 +15,18 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_TOS = FeatureConfig.enum.TOS.mod
+local new_TOS = FeatureConfig.enum.TOS.mod
 
 feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, nw_tos=" .. feature.pkt.TOS .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_tos=" .. feature.new_TOS .. ", actions=DROP")
+    table.insert(flowData.flows, "ip, nw_tos=" .. new_TOS .. ", actions=DROP")
   end
 
 feature.config{
 } 
   
 feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.TOS = feature.new_TOS
+    feature.pkt.TOS = new_TOS
   end
   
   

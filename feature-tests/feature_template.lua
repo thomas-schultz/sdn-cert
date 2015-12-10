@@ -6,7 +6,7 @@
 require "feature_config"
 
 -- creates new Feature from feature_config file, do not remove!
-feature = FeatureConfig.new()
+local feature = FeatureConfig.new()
 
 -- required OpenFlow Version
 feature.require = "OpenFlow10"
@@ -23,7 +23,7 @@ feature.lgArgs  = "$file=1 $name $links"
 feature.ofArgs  = "$link*"
 
 -- allowing for specific settings, default values can be overwritten, may be omitted
-feature.set{
+feature.config{
   iterations = 1
 } 
 
@@ -38,19 +38,21 @@ feature.flowEntries = function(flowData, ...)
 feature.pkt  = getPkt(FeatureConfig.defaultPkt)
 
 -- local variable for modifying packet, can be chosen freely
-new_ETH_TYPE = feature.enum.ETH_TYPE.wol
+local new_ETH_TYPE = feature.enum.ETH_TYPE.wol
+local new_SRC_IP4 = "10.0.2.1"
+local new_DST_IP4 = "10.0.2.2"
 
 -- modify function, called after every iteration, ignored if only one pass is used, may be omitted  
 feature.modifyPkt = function(iteration)
-    feature.pkt.ETH_TYPE = feature.new_ETH_TYPE
+    feature.pkt.ETH_TYPE = new_ETH_TYPE
     feature.pkt.PROTO = feature.enum.PROTO.undef
   end
 
 -- packet classifier functions, every entry evaluates to a boolean value, then the packet
 -- get classified with the index of this function in the table, may be omitted 
 feature.pktClassifier = {
-    function(pkt) return (pkt.src_ip == FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip ~= FeatureConfig.modPkt.DST_IP4) end,
-    function(pkt) return (pkt.src_ip ~= FeatureConfig.modPkt.SRC_IP4 and pkt.dst_ip == FeatureConfig.modPkt.DST_IP4) end,
+    function(pkt) return (pkt.src_ip == new_SRC_IP4 and pkt.dst_ip ~= new_DST_IP4) end,
+    function(pkt) return (pkt.src_ip ~= new_SRC_IP4 and pkt.dst_ip == new_DST_IP4) end,
   }
 
 -- function of how the classified packet counters should be compared, returns test result, may be omitted

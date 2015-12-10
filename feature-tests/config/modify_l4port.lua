@@ -15,19 +15,19 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_SRC_PORT = 4321
-feature.new_DST_PORT = 8765
+local new_SRC_PORT = 4321
+local new_DST_PORT = 8765
 
 feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, udp, actions=mod_tp_src=" .. feature.new_SRC_PORT .. ", mod_tp_dst=" .. feature.new_DST_PORT .. ", ALL")
-    table.insert(flowData.flows, "ip, tcp, actions=mod_tp_src=" .. feature.new_SRC_PORT .. ", mod_tp_dst=" .. feature.new_DST_PORT .. ", ALL")
+    table.insert(flowData.flows, "ip, udp, actions=mod_tp_src=" .. new_SRC_PORT .. ", mod_tp_dst=" .. new_DST_PORT .. ", ALL")
+    table.insert(flowData.flows, "ip, tcp, actions=mod_tp_src=" .. new_SRC_PORT .. ", mod_tp_dst=" .. new_DST_PORT .. ", ALL")
   end
 
 feature.config{
 } 
 
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.src_port == feature.new_SRC_PORT and pkt.dst_port == feature.new_DST_PORT) end
+    function(pkt) return (pkt.src_port == new_SRC_PORT and pkt.dst_port == new_DST_PORT) end
   }
 
 return feature

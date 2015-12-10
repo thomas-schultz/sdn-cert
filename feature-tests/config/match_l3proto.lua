@@ -15,11 +15,11 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_PROTO = feature.enum.PROTO.tcp
+local new_PROTO = feature.enum.PROTO.tcp
 
 feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, nw_proto=" .. feature.pkt.PROTO .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_proto=" .. feature.new_PROTO .. ", actions=DROP")
+    table.insert(flowData.flows, "ip, nw_proto=" .. new_PROTO .. ", actions=DROP")
   end
 
 feature.config{

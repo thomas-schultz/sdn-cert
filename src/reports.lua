@@ -57,11 +57,11 @@ end
 
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
   local test = benchmark.testcases[ids[1]]
-  local config = require("benchmark_config")
-  local metric = config.metric[test.config.metric]
-  local items = metric.advanced(currentParameter, benchmark.testcases, ids) 
+  local metric = require("metrics")
+  local config = metric.config[test.config.metric]
+  local items = config.advanced(currentParameter, benchmark.testcases, ids) 
   
-  local parameter = test:getParameterTable(metric, currentParameter)
+  local parameter = test:getParameterTable(config, currentParameter)
   parameter:add("involved tests", table.tostring(ids, ","), "IDs")
   doc:addElement(parameter) 
   for _,item in pairs(items) do

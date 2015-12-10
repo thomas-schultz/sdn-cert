@@ -15,18 +15,18 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_TTL = feature.enum.TTL.min
+local new_TTL = feature.enum.TTL.min
 
 feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, actions=mod_nw_ttl=" .. feature.new_TTL .. ", ALL")
-    table.insert(flowData.flows, "ipv6, actions=mod_nw_ttl=" .. feature.new_TTL .. ", ALL")
+    table.insert(flowData.flows, "ip, actions=mod_nw_ttl=" .. new_TTL .. ", ALL")
+    table.insert(flowData.flows, "ipv6, actions=mod_nw_ttl=" .. new_TTL .. ", ALL")
   end
 
 feature.config{
 } 
 
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.ttl == feature.new_TTL) end
+    function(pkt) return (pkt.ttl == new_TTL) end
   }
 
 return feature

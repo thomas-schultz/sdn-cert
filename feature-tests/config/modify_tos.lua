@@ -15,18 +15,18 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_TOS = feature.enum.TOS.mod
+local new_TOS = feature.enum.TOS.mod
 
 feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, actions=mod_nw_tos=" .. feature.new_TOS .. ", ALL")
-    table.insert(flowData.flows, "ipv6, actions=mod_nw_tos=" .. feature.new_TOS .. ", ALL")
+    table.insert(flowData.flows, "ip, actions=mod_nw_tos=" .. new_TOS .. ", ALL")
+    table.insert(flowData.flows, "ipv6, actions=mod_nw_tos=" .. new_TOS .. ", ALL")
   end
 
 feature.config{
 } 
 
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.tos == feature.new_TOS) end
+    function(pkt) return (pkt.tos == new_TOS) end
   }
 
 return feature

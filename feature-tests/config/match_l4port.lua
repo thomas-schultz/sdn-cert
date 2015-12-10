@@ -15,20 +15,20 @@ feature.lgArgs  = "$file=1 $name $link*"
     
 feature.pkt = feature.getDefaultPkt()
 
-feature.new_SRC_PORT = 4321
-feature.new_DST_PORT = 8765
+local new_SRC_PORT = 4321
+local new_DST_PORT = 8765
 
 feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, udp, tp_src=" .. feature.pkt.SRC_PORT .. ", tp_dst=" .. feature.pkt.DST_PORT .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, udp, tp_src=" .. feature.new_SRC_PORT .. ", tp_dst=" .. feature.new_DST_PORT .. ", actions=DROP")
+    table.insert(flowData.flows, "ip, udp, tp_src=" .. new_SRC_PORT .. ", tp_dst=" .. new_DST_PORT .. ", actions=DROP")
   end
 
 feature.config{
 } 
   
 feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.SRC_PORT = feature.new_SRC_PORT
-    feature.pkt.DST_PORT = feature.new_DST_PORT
+    feature.pkt.SRC_PORT = new_SRC_PORT
+    feature.pkt.DST_PORT = new_DST_PORT
   end
   
   
