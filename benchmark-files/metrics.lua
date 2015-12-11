@@ -52,27 +52,29 @@ Metrics.config = {
         return {mpps, mbit, hist}
     end,
     advanced = function(parameter, testcases, ids)
-        local entries = {}
+        local items = {}
         local isNumber = true
         local data = {}
         for _,id in pairs(ids) do
           local test = testcases[id]
           local par = test:getParameterList()[parameter]
           -- if par is a number, store data under the number, else use string
-          par = tonumber(par) or par
-          data[par] = csv.parseAndCropCsv(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 1, false)
-          table.insert(entries, par)
-          isNumber = isNumber and tonumber(par)
+          par = float.tonumber(par) or par
+          data[par] = csv.parseAndCropCsv(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 0, false)
+          table.insert(items, par)
+          isNumber = isNumber and float.tonumber(par)
         end
-        table.sort(entries)
+        table.sort(items)
         local rx = FileContent.create("rx")
         rx:addCsvLine("parameter, min, avg, max")
-        for _,par in pairs(entries) do
-          local stats = csv.getStats(data[par], true)
-          if (not stats or not stats[4]) then stats = {[4] = {min = 0, avg = 0, max = 0}} end
-          local line = ("%s;%.5f;%.5f;%.5f"):format(par, stats[4].min, stats[4].avg, stats[4].max)
-          line = string.replaceAll(line, ",", ".")
-          rx:addCsvLine(string.replaceAll(line, ";", ","))
+        for _,par in pairs(items) do
+          local stats = csv.getStats(data[par], 1)
+          local row = 4 -- select mbit row
+          if (stats[row].num > 0) then
+            local line = ("%s;%.5f;%.5f;%.5f"):format(par, stats[row].min, stats[row].avg, stats[row].max)
+            line = string.replaceAll(line, ",", ".")
+            rx:addCsvLine(string.replaceAll(line, ";", ","))
+          end
         end
         
         local throughput = TexFigure.create("ht")

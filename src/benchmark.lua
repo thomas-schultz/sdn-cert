@@ -296,9 +296,11 @@ end
 function Benchmark:sumFeatures()
   if (self.featureCount == 0) then
     logger.print("No features tested")
+    logger.printBar()
     return
   elseif (settings:doSkipfeature()) then
     logger.print("Skipping feature report, using " ..global.featureFile)
+    logger.printBar()
     return
   end
   local compliance = true;

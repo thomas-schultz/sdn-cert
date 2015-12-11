@@ -9,6 +9,7 @@ require "float"
 require "tables"
 require "strings"
 require "files"
+require "statistic"
 
 
 function pack(...)

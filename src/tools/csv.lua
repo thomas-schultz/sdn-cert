@@ -4,6 +4,17 @@
 
 csv = {}
 
+function csv.transpose(data)
+  local res = {} 
+  for i = 1, #data[1] do
+      res[i] = {}
+      for j = 1, #data do
+          res[i][j] = data[j][i]
+      end
+  end
+  return res
+end
+
 csv.parseCsv = function(file, separator)
   local separator = separator or ","
   local t = {}
@@ -44,27 +55,13 @@ csv.parseAndCropCsv = function(file, crop, header, separator)
   return t
 end
 
-csv.getStats = function(data, clipBorder)
-  clipBorder = clipBorder or false
+csv.getStats = function(data, crop)
+  local crop = crop or 0
+  local data = csv.transpose(data)
   local stats = {}
-  if (not data[1]) then return stats end
-  for j,_ in pairs(data[1]) do
-    stats[j] = {}
-    stats[j].num = 0
-    stats[j].sum = 0
-  end
   for i,row in pairs(data) do
-    if (not clipBorder or (i>1) and (i<#data)) then
-      for j,col in pairs(row) do
-        local value = float.tonumber(col)
-        if (value) then        
-          stats[j].num = stats[j].num + 1
-          stats[j].sum = stats[j].sum + value
-          stats[j].min = math.min(stats[j].min or value,value)
-          stats[j].max = math.max(stats[j].max or value,value)
-          stats[j].avg = stats[j].sum / stats[j].num 
-        end
-      end
+    if (i>crop and i<(#data-crop)) then
+      stats[i-crop] = statistic.getFullStats(row)
     end
   end
   return stats
