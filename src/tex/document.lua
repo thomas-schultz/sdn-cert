@@ -6,6 +6,7 @@ package.path = package.path .. ';src/tex/?.lua'
 require "blocks"
 require "figure"
 require "filecontent"
+require "graphs"
 require "latex"
 require "tabular"
 require "text"

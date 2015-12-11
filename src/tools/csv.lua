@@ -2,20 +2,29 @@
 -- CSV Tools --
 ---------------
 
-csv = {}
+CSV = {}
 
-function csv.transpose(data)
-  local res = {} 
+function CSV.print(data)
+  for i,row in pairs(data) do
+    for j,value in pairs(row) do
+      io.write(value .. ",\t")
+    end
+    io.write("\n")
+  end
+end
+
+function CSV.transpose(data)
+  local res = {}
   for i = 1, #data[1] do
-      res[i] = {}
-      for j = 1, #data do
-          res[i][j] = data[j][i]
-      end
+    res[i] = {}
+    for j = 1, #data do
+        res[i][j] = data[j][i]
+    end
   end
   return res
 end
 
-csv.parseCsv = function(file, separator)
+CSV.parseCSV = function(file, separator)
   local separator = separator or ","
   local t = {}
   local data = io.open(file, "r")
@@ -29,7 +38,7 @@ csv.parseCsv = function(file, separator)
   return t
 end
 
-csv.parseAndCropCsv = function(file, crop, header, separator)
+CSV.parseAndCropCSV = function(file, crop, header, separator)
   local separator = separator or ","
   local t = {}
   local data = io.open(file, "r")
@@ -55,13 +64,12 @@ csv.parseAndCropCsv = function(file, crop, header, separator)
   return t
 end
 
-csv.getStats = function(data, crop)
+CSV.getStats = function(data, crop, lowP, highP)
   local crop = crop or 0
-  local data = csv.transpose(data)
   local stats = {}
   for i,row in pairs(data) do
     if (i>crop and i<(#data-crop)) then
-      stats[i-crop] = statistic.getFullStats(row)
+      stats[i-crop] = Statistic.getFullStats(row)
     end
   end
   return stats

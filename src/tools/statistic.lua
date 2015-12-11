@@ -2,49 +2,49 @@
 -- Statistic functions --
 -------------------------
 
-statistic = {}
+Statistic = {}
 
 
-function statistic.sortList(list)
+function Statistic.sortList(list)
   local sortedList = { }
   for _, value in pairs(list) do
-    table.insert(sortedList, float.tonumber(value))
+    table.insert(sortedList, Float.tonumber(value))
   end
   table.sort(sortedList)
   return sortedList
 end
 
-function statistic.getPercentile(list, p, isSorted)
+function Statistic.getPercentile(list, p, isSorted)
   local isSorted = isSorted or false
   if (not isSorted) then
-    list = statistic.sortList(list)
+    list = Statistic.sortList(list)
   end
   return list[math.ceil(#list * p / 100)]
 end
 
-function statistic.getQuantiles(list, isSorted)
+function Statistic.getQuantiles(list, isSorted)
   local isSorted = isSorted or false
   if (not isSorted) then
-    list = statistic.sortList(list)
+    list = Statistic.sortList(list)
   end
   return list[math.ceil(#list * 1/4)], list[math.ceil(#list * 3/4)]
 end
 
-function statistic.getMedian(list, isSorted)
+function Statistic.getMedian(list, isSorted)
   local isSorted = isSorted or false
   if type(list) ~= 'table' then return list end
   if (not isSorted) then
-    list = statistic.sortList(list)
+    list = Statistic.sortList(list)
   end
   if #list %2 == 0 then return (list[#list/2] + list[#list/2+1]) / 2 end
   return list[math.ceil(#list/2)]
 end
 
-function statistic.getAvarage(list)
+function Statistic.getAvarage(list)
   if type(list) ~= 'table' then return list end
   local sum, num = 0, 0
   for _,value in pairs(list) do
-    local value = float.tonumber(value)
+    local value = Float.tonumber(value)
     if (value) then
       sum = sum + value
       num = num + 1
@@ -53,11 +53,11 @@ function statistic.getAvarage(list)
   return sum/num
 end
 
-function statistic.getMinMax(list)
+function Statistic.getMinMax(list)
   if type(list) ~= 'table' then return list end
   local min, max
   for _,value in pairs(list) do
-    local value = float.tonumber(value)
+    local value = Float.tonumber(value)
     if (value) then
       min = math.min(min or value,value)
       max = math.max(max or value,value)
@@ -66,14 +66,14 @@ function statistic.getMinMax(list)
   return min, max
 end
 
-function statistic.getFullStats(list, pl, ph)
-  local pl = pl or 9
-  local ph = ph or 91
+function Statistic.getFullStats(list, lowP, highP)
+  local lowP = lowP or 25
+  local highP = highP or 75
   if type(list) ~= 'table' then return list end
   local stats = {num = 0, sum = 0}
   local sortedList = {}
   for _,value in pairs(list) do
-    local value = float.tonumber(value)
+    local value = Float.tonumber(value)
     if (value) then
       stats.num = stats.num + 1
       stats.sum = stats.sum + value
@@ -84,8 +84,8 @@ function statistic.getFullStats(list, pl, ph)
   end
   table.sort(sortedList)
   stats.avg = stats.sum / stats.num 
-  stats.median = statistic.getMedian(sortedList, true)
-  stats.lowP = statistic.getPercentile(sortedList, pl, true)
-  stats.highP = statistic.getPercentile(sortedList, ph, true)
+  stats.median = Statistic.getMedian(sortedList, true)
+  stats.lowP = Statistic.getPercentile(sortedList, lowP, true)
+  stats.highP = Statistic.getPercentile(sortedList, highP, true)
   return stats
 end

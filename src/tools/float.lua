@@ -2,9 +2,9 @@
 -- Float Tools --
 -----------------
 
-float = {}
+Float = {}
 
-float.tonumber = function(float)
+Float.tonumber = function(float)
   local dot = string.find(float,"%.")
   if (not dot) then return tonumber(float) end
   local N_ = string.sub(float,1,dot-1)

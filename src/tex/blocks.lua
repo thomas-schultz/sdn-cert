@@ -1,148 +1,51 @@
 TexBlocks = {}
 TexBlocks.__index = TexBlocks
 
-TexBlocks.mppsGraph = function(columns, rxFile, txFile)
-return [[
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.5\textwidth,
-ymin=0,
-xlabel={time in [s]},
-ylabel={packets in [mpps]},
-grid=major,
-legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
-]
-\addlegendentry{tx}
-\addplot [color=red,mark=*] table []] .. columns .. [[,col sep=comma] {]] .. txFile ..[[};
-\addlegendentry{rx}
-\addplot [color=blue,mark=x] table []] .. columns .. [[,col sep=comma] {]] .. rxFile ..[[};
-\end{axis}
-\end{tikzpicture}
-\caption{throughput graph}
-\label{fig:throughput}
+TexBlocks.boxplotSettings = [[
+  \usepgfplotslibrary{statistics}
+  \definecolor{whiskergrey}{rgb}{0.7, 0.7, 0.7}
+  \pgfplotsset{
+      boxplot/every whisker/.style={dashed, whiskergrey},
+      boxplot/every median/.style={ultra thick,blue},
+      boxplot prepared from table/.code={
+          \def\tikz@plot@handler{\pgfplotsplothandlerboxplotprepared}%
+          \pgfplotsset{
+              /pgfplots/boxplot prepared from table/.cd,
+              #1,
+          }
+      },
+      /pgfplots/boxplot prepared from table/.cd,
+          table/.code={\pgfplotstablecopy{#1}\to\boxplot@datatable},
+          row/.initial=0,
+          make style readable from table/.style={
+              #1/.code={
+                  \pgfplotstablegetelem{\pgfkeysvalueof{/pgfplots/boxplot prepared from table/row}}{##1}\of\boxplot@datatable
+                  \pgfplotsset{boxplot/#1/.expand once={\pgfplotsretval}}
+              }
+          },
+          make style readable from table=lower whisker,
+          make style readable from table=upper whisker,
+          make style readable from table=lower quartile,
+          make style readable from table=upper quartile,
+          make style readable from table=median,
+          make style readable from table=lower notch,
+          make style readable from table=upper notch
+  }
+  \makeatother
 ]]
-end
 
-TexBlocks.mbitGraph = function(columns, rxFile, txFile)
-return [[
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.5\textwidth,
-ymin=0,
-xlabel={time in [s]},
-ylabel={packets in [mbit]},
-grid=major,
-legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
-]
-\addlegendentry{tx}
-\addplot [color=red,mark=*] table []] .. columns .. [[,col sep=comma] {]] .. txFile ..[[};
-\addlegendentry{rx}
-\addplot [color=blue,mark=x] table []] .. columns .. [[,col sep=comma] {]] .. rxFile ..[[};
-\end{axis}
-\end{tikzpicture}
-\caption{throughput graph}
-\label{fig:throughput}
-]]
-end
-
-TexBlocks.pktLoss = function(total, loss)
-return [[
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.2\textwidth,
-xbar, xmin=0,
-xlabel={packet loss},
-symbolic y coords={total,loss},
-ytick=data,
-enlarge y limits=0.5,
-nodes near coords, 
-nodes near coords align={horizontal},
-legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
-]
-\addplot coordinates {(]] .. total .. [[,total)(]] .. loss .. [[,loss)};
-\end{axis}
-\end{tikzpicture}
-\caption{packet loss}
-\label{fig:pktloss}
-]]
-end
-
-TexBlocks.throughputStats = function(labels, file)
-return [[
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.8\textwidth,
-ymin=0,
-xlabel={]] .. labels.x .. [[},
-ylabel={]] .. labels.y .. [[},
-grid=major,
-xtick=data,
-legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
-]
-\addlegendentry{max}
-\addplot [color=gray,style=loosely dashed, mark=x] table [x=parameter, y=max, col sep=comma] {]] .. file ..[[};
-\addlegendentry{min}
-\addplot [color=gray,style=dashed,mark=x] table [x=parameter, y=min, col sep=comma] {]] .. file ..[[};
-\addlegendentry{avg}
-\addplot [color=blue,mark=square*] table [x=parameter, y=avg, col sep=comma] {]] .. file ..[[};
-\end{axis}
-\end{tikzpicture}
-\caption{throughput graph}
-\label{fig:throughput}
-]]
-end
-
-TexBlocks.throughputStatsBars = function(labels, file)
-return [[
-\pgfplotstableread[col sep=comma]{]] .. file ..[[}\datatable
-\definecolor{mingrey}{rgb}{0.7, 0.75, 0.71}
-\definecolor{maxgrey}{rgb}{0.43, 0.5, 0.5}
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.8\textwidth,
-ybar,
-ymin=0,
-xlabel={]] .. labels.x .. [[},
-ylabel={]] .. labels.y .. [[},
-grid=major,
-xticklabels from table={\datatable}{parameter},
-x tick label style={rotate=60,anchor=east},
-xtick=data,
-legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}
-]
-\addlegendentry{min}
-\addplot [color=black, fill=mingrey, style=dashed] table [x expr=\coordindex, y=min] {\datatable};
-\addlegendentry{avg}
-\addplot [color=black, fill=blue] table [x expr=\coordindex, y=avg] {\datatable};
-\addlegendentry{max}
-\addplot [color=black, fill=maxgrey, style=dashed] table [x expr=\coordindex, y=max] {\datatable};
-\end{axis}
-\end{tikzpicture}
-\caption{throughput graph}
-\label{fig:throughput}
-]]
-end
-
-TexBlocks.histogram = function(labels, file)
-return [[
-\begin{tikzpicture}
-\begin{axis}[
-width=\textwidth,
-height=0.5\textwidth,
-xlabel={]] .. labels.x .. [[},
-ylabel={]] .. labels.y .. [[},
-]
-\addplot[ybar,fill=blue,draw=none]table[col sep=comma]{]] .. file .. [[};
-\end{axis}
-\end{tikzpicture}
-\caption{latency histogram}
-\label{fig:latency}
-]]
-end
-
-return TexBlocks
+TexBlocks.boxplotPlot = function(index)
+  return [[
+  \addplot[
+  boxplot prepared from table={
+    table=\datatable,
+    row=]] .. index .. [[,
+    lower whisker=min,
+    upper whisker=max,
+    lower quartile=low,
+    upper quartile=high,
+    median=med
+  }, boxplot prepared]
+  coordinates {};
+  ]]
+  end
