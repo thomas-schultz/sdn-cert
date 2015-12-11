@@ -48,7 +48,7 @@ CSV.parseAndCropCSV = function(file, crop, header, separator)
   while (true) do
     local line = data:read()
     if (line == nil) then break end
-    if ( (lines == 0 and header)) then
+    if (lines == 0 and header) then
       header = false
       table.insert(t, string.split(line, separator))
     else
@@ -64,13 +64,10 @@ CSV.parseAndCropCSV = function(file, crop, header, separator)
   return t
 end
 
-CSV.getStats = function(data, crop, lowP, highP)
-  local crop = crop or 0
+CSV.getStats = function(data, lowP, highP)
   local stats = {}
   for i,row in pairs(data) do
-    if (i>crop and i<(#data-crop)) then
-      stats[i-crop] = Statistic.getFullStats(row)
-    end
+    stats[i] = Statistic.getFullStats(row)
   end
   return stats
 end

@@ -2,6 +2,29 @@ Reports = {}
 Reports.__index = Reports
 
 
+function Reports.generateFeatureReport(featureList)
+  local doc = TexDocument.create()
+  local colorDef = TexText.create()
+  colorDef:add("\\definecolor{darkgreen}{rgb}{0, 0.45, 0}")
+  colorDef:add("\\definecolor{darkred}{rgb}{0.9, 0, 0}")
+  doc:addElement(colorDef)
+  local title = TexText.create()
+  title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Summary Feature-Tests}", "\\end{LARGE}", "\\end{center}")
+  local ofvers = TexText.create()
+  title:add("\\begin{center}", "\\begin{huge}", "Version: " .. settings:getOFVersion(), "\\end{huge}", "\\end{center}")
+  doc:addElement(ofvers)
+  doc:addElement(title)
+  local features = TexTable.create("|l|l|l|l|","ht")
+  features:add("\\textbf{feature}", "\\textbf{type}", "\\textbf{version}", "\\textbf{status}")
+  for i,feature in pairs(featureList) do
+    features:add(feature:getName(true), feature:getState(), feature:getRequiredOFVersion(), feature:getTexStatus())
+  end
+  doc:addElement(features)
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
+  doc:generatePDF()
+end
+
+
 function Reports.generate(benchmark)
   for id,test in pairs(benchmark.testcases) do
     logger.printlog("Generating reports ( " .. id .. " / " .. #benchmark.testcases .. " ): " .. test:getName(true), nil, global.headline1)

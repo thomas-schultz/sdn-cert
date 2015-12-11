@@ -60,7 +60,7 @@ Metrics.config = {
           local par = test:getParameterList()[parameter]
           -- if par is a number, store data under the number, else use string
           par = Float.tonumber(par) or par
-          data[par] = CSV.parseAndCropCSV(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 0, false)
+          data[par] = CSV.parseAndCropCSV(test:getOutputPath() .. "test_" .. id .. "_load_rx.csv", 1, true)
           table.insert(items, par)
           isNumber = isNumber and Float.tonumber(par)
         end
@@ -68,8 +68,8 @@ Metrics.config = {
         local rx = FileContent.create("rx")
         rx:addCsvLine("parameter, min, low, med, high, max, avg")
         for _,par in pairs(items) do
-          -- get data, cropping first and last line, use percentiles 1% and 99% 
-          local stats = CSV.getStats(CSV.transpose(data[par], 1, 1, 99))
+          -- get data, cropping first and last line, use percentiles 10% and 90% 
+          local stats = CSV.getStats(CSV.transpose(data[par], 10, 90))
           local row = 4 -- select mbit values
           if (stats[row].num > 0) then
             local line = ("%s;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f"):format(par, stats[row].min, stats[row].lowP, stats[row].median, stats[row].highP, stats[row].max, stats[row].avg)
