@@ -156,7 +156,7 @@ Graphs.throughputBoxplot = function(labels, file, count)
   ]] .. plots .. [[
   \end{axis}
   \end{tikzpicture}
-  \caption{}
+  \caption{throughput graph}
   \label{fig:throughput:boxplot}
   ]]
   end
