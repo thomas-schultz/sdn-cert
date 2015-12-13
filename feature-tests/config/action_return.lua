@@ -4,27 +4,27 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-feature.flowEntries = function(flowData)
+Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=output:IN_PORT")
   end
 
-feature.config{
+Feature.config{
   firstRxDev = 1,
 } 
 
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.devId == feature.settings.txDev) end,
+    function(pkt) return (pkt.devId == Feature.settings.txDev) end,
   }
 
 return feature

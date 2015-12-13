@@ -56,10 +56,10 @@ function Benchmark:readConfig(config)
           local conf = test:getParameterConf()
           if (not test:isDisabled() and not self.testLines[conf]) then
             table.insert(self.testcases, test)
-            logger.debug("added testcase " .. line)
+            logger.debug("added test-case " .. line)
           else
-            if (test:isDisabled()) then logger.debug("skipped disabled testcase " .. line) end
-            if (self.testLines[conf]) then logger.debug("skipped duplicate testcase " .. line) end
+            if (test:isDisabled()) then logger.debug("skipped disabled test-case " .. line) end
+            if (self.testLines[conf]) then logger.debug("skipped duplicate test-case " .. line) end
           end
           self.testLines[conf] = true
         end
@@ -83,7 +83,7 @@ function Benchmark:getFeatures(force)
   local force = force or false
   if (not force and settings.isTestFeature()) then
     self.featureList = {}
-    local feature = Feature.create(settings.getTestFeature())
+    local Feature = Feature.create(settings.getTestFeature())
     if feature:isDisabled() then return end
     self.features[settings.getTestFeature()] = feature
     self.featureCount = 1
@@ -99,7 +99,7 @@ function Benchmark:getFeatures(force)
     local line = fh:read()
     if line == nil then break end
     if (not (string.sub(line, 1,1) == global.ch_comment) and string.len(line) > 0 ) then
-      local feature = Feature.create(line)
+      local Feature = Feature.create(line)
       if (not feature:isDisabled()) then
         self.features[line] = feature
         self.featureCount = self.featureCount + 1
@@ -142,7 +142,7 @@ function Benchmark:importFeatures()
       if (split) then
         local name = string.trim(string.sub(line, 1, split-1))
         local state = string.trim(string.sub(line, split+1, -1))
-        local feature = self.features[name]
+        local Feature = self.features[name]
         if (feature and state == "true") then feature.supported = true end
         logger.debug("imported feature " .. name .. " as " .. state) 
       end
@@ -284,7 +284,7 @@ function Benchmark:run()
     cmd:switchCopyFrom(settings:isLocal(), settings:get(global.loadgenWd) .. "/" .. global.results .."/test_" .. id .. "_*", test.output)
     local out = cmd:execute(settings.config.verbose)
     if (not out) then
-      self.reason = "Testcase failed, no files were created"
+      self.reason = "Test-case failed, no files were created"
       test.disabled = true
     end 
     logger.log("done")

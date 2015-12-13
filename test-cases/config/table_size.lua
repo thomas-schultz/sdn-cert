@@ -5,21 +5,21 @@
 
 require "benchmark_config"
   
-local bench = {} 
+local Test = {} 
 
-bench.require = "match_ipv4, modify_ipv4"
+Test.require = "match_ipv4, modify_ipv4"
  
-bench.loadGen = "moongen"
-bench.files   = "load-latency.lua"
-bench.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
-bench.ofArgs  = "$numIP $link=2"
+Test.loadGen = "moongen"
+Test.files   = "load-latency.lua"
+Test.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
+Test.ofArgs  = "$numIP $link=2"
    
-bench.settings = {
+Test.settings = {
   BASE_IP = "10.0.0.0",
 }
 
-bench.flowEntries = function(flowData, numIP, outPort)
-  local pkt = bench.settings
+Test.flowEntries = function(flowData, numIP, outPort)
+  local pkt = Test.settings
   local ip = BenchmarkConfig.IP.parseIP(pkt.BASE_IP)
   for i=1,tonumber(numIP) do
     local currentMatch = BenchmarkConfig.IP.getIP(ip)
@@ -29,6 +29,6 @@ bench.flowEntries = function(flowData, numIP, outPort)
   end
 end
 
-bench.metric = "load-latency"
+Test.metric = "load-latency"
 
-return bench
+return Test

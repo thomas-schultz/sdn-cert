@@ -4,27 +4,27 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "recommended"
+Feature.require = "OpenFlow10"
+Feature.state   = "recommended"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-feature.flowEntries = function(flowData)
+Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
     table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
   end
 
-feature.config{
+Feature.config{
 } 
 
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.ttl == feature.pkt.TTL - 1) end,
+    function(pkt) return (pkt.ttl == Feature.pkt.TTL - 1) end,
   }
 
 return feature

@@ -4,23 +4,23 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "optional"
+Feature.require = "OpenFlow10"
+Feature.state   = "optional"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
-feature.ofArgs  = "$link=2"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
+Feature.ofArgs  = "$link=2"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-feature.flowEntries = function(flowData, outPort)
+Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, "actions=output:" .. tostring(outPort) .. "," .. tostring(outPort))
   end
 
-feature.config{
+Feature.config{
   desiredCtr = 2,
 }
 

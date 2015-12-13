@@ -1,13 +1,13 @@
---Benchmark config file
+-- Test-case library
 
-BenchmarkConfig = {}
-BenchmarkConfig.__index = BenchmarkConfig
+TestcaseConfig = {}
+TestcaseConfig.__index = TestcaseConfig
 
-function BenchmarkConfig.new()
-  return setmetatable({}, BenchmarkConfig)
+function TestcaseConfig.new()
+  return setmetatable({}, TestcaseConfig)
 end
 
-BenchmarkConfig.IP = {
+TestcaseConfig.IP = {
   parseIP = function(addr)
       local oct1,oct2,oct3,oct4 = addr:match("(%d%d?%d?)%.(%d%d?%d?)%.(%d%d?%d?)%.(%d%d?%d?)")
       return {oct1, oct2, oct3, oct4}
@@ -32,4 +32,4 @@ BenchmarkConfig.IP = {
     end,
 }
 
-return BenchmarkConfig
+return TestcaseConfig

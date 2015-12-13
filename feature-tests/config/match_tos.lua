@@ -4,29 +4,29 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
 local new_TOS = FeatureConfig.enum.TOS.mod
 
-feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, nw_tos=" .. feature.pkt.TOS .. ", actions=ALL")
+Feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ip, nw_tos=" .. Feature.pkt.TOS .. ", actions=ALL")
     table.insert(flowData.flows, "ip, nw_tos=" .. new_TOS .. ", actions=DROP")
   end
 
-feature.config{
+Feature.config{
 } 
   
-feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.TOS = new_TOS
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.pkt.TOS = new_TOS
   end
   
   

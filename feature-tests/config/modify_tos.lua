@@ -4,25 +4,25 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "recommended"
+Feature.require = "OpenFlow10"
+Feature.state   = "recommended"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-local new_TOS = feature.enum.TOS.mod
+local new_TOS = Feature.enum.TOS.mod
 
-feature.flowEntries = function(flowData)
+Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, actions=mod_nw_tos=" .. new_TOS .. ", ALL")
     table.insert(flowData.flows, "ipv6, actions=mod_nw_tos=" .. new_TOS .. ", ALL")
   end
 
-feature.config{
+Feature.config{
 } 
 
 FeatureConfig.pktClassifier = {

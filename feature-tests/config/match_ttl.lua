@@ -4,29 +4,29 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-feature.new_TTL = FeatureConfig.enum.TTL.min
+Feature.new_TTL = FeatureConfig.enum.TTL.min
 
-feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, nw_ttl=" .. feature.pkt.TTL .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_ttl=" .. feature.new_TTL .. ", actions=DROP")
+Feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ip, nw_ttl=" .. Feature.pkt.TTL .. ", actions=ALL")
+    table.insert(flowData.flows, "ip, nw_ttl=" .. Feature.new_TTL .. ", actions=DROP")
   end
 
-feature.config{
+Feature.config{
 } 
   
-feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.TTL = feature.new_TTL
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.pkt.TTL = Feature.new_TTL
   end
   
   

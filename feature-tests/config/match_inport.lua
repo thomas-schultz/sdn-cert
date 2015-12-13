@@ -4,19 +4,19 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
-feature.ofArgs  = "$link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
+Feature.ofArgs  = "$link*"
   	
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-feature.flowEntries = function(flowData, ...)
+Feature.flowEntries = function(flowData, ...)
     local action = "ALL"
     for i,v in pairs({...}) do
       table.insert(flowData.flows, "in_port=" .. v .. ", actions=" .. action)
@@ -24,14 +24,14 @@ feature.flowEntries = function(flowData, ...)
     end
   end
 
-feature.config{
+Feature.config{
   firstRxDev = 1,
   txIterations = 2,
   learnFrames = 0,
 } 
   
-feature.modifyPkt = function(pkt, iteration)
-    feature.set("txDev", 2)
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.set("txDev", 2)
   end
 
 

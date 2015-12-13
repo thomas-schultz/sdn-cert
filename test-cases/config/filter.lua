@@ -6,16 +6,16 @@
 
 require "benchmark_config"
   
-local bench = {} 
+local Test = {} 
 
-bench.require = "match_inport match_ethertype match_l2addr match_ipv4 match_l3proto match_l4port"
+Test.require = "match_inport match_ethertype match_l2addr match_ipv4 match_l3proto match_l4port"
  
-bench.loadGen = "moongen"
-bench.files   = "load-latency.lua"
-bench.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate 1 $pktSize"
-bench.ofArgs  = "$link=1 $link=2 $filter"
+Test.loadGen = "moongen"
+Test.files   = "load-latency.lua"
+Test.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate 1 $pktSize"
+Test.ofArgs  = "$link=1 $link=2 $filter"
 
-bench.settings = {
+Test.settings = {
   SRC_MAC = "aa:bb:cc:dd:ee:ff",
   DST_MAC = "ff:ff:ff:ff:ff:ff",
   SRC_IP = "10.0.0.0",
@@ -25,8 +25,8 @@ bench.settings = {
   DST_PORT = 1234,
 }
 
-bench.flowEntries = function(flowData, inPort, outPort, filterString)
-    local pkt = bench.settings
+Test.flowEntries = function(flowData, inPort, outPort, filterString)
+    local pkt = Test.settings
     local match = string.format("in_port=%d", inPort)
     local filters = string.split(filterString, "+")
     for _,filter in pairs(filters) do
@@ -45,6 +45,6 @@ bench.flowEntries = function(flowData, inPort, outPort, filterString)
     table.insert(flowData.flows, flow)
   end
   
-bench.metric = "load-latency"
+Test.metric = "load-latency"
 
-return bench
+return Test

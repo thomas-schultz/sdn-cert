@@ -4,31 +4,31 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
 local new_SRC_PORT = 4321
 local new_DST_PORT = 8765
 
-feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, udp, tp_src=" .. feature.pkt.SRC_PORT .. ", tp_dst=" .. feature.pkt.DST_PORT .. ", actions=ALL")
+Feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ip, udp, tp_src=" .. Feature.pkt.SRC_PORT .. ", tp_dst=" .. Feature.pkt.DST_PORT .. ", actions=ALL")
     table.insert(flowData.flows, "ip, udp, tp_src=" .. new_SRC_PORT .. ", tp_dst=" .. new_DST_PORT .. ", actions=DROP")
   end
 
-feature.config{
+Feature.config{
 } 
   
-feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.SRC_PORT = new_SRC_PORT
-    feature.pkt.DST_PORT = new_DST_PORT
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.pkt.SRC_PORT = new_SRC_PORT
+    Feature.pkt.DST_PORT = new_DST_PORT
   end
   
   

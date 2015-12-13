@@ -4,32 +4,32 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "required"
+Feature.require = "OpenFlow10"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
   	
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
-local new_ETH_TYPE = feature.enum.ETH_TYPE.wol
+local new_ETH_TYPE = Feature.enum.ETH_TYPE.wol
 
-feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "dl_type=" .. feature.enum.ETH_TYPE.ip4 .. ", actions=ALL")
-    table.insert(flowData.flows, "dl_type=" .. feature.enum.ETH_TYPE.ip6 .. ", actions=ALL")
+Feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "dl_type=" .. Feature.enum.ETH_TYPE.ip4 .. ", actions=ALL")
+    table.insert(flowData.flows, "dl_type=" .. Feature.enum.ETH_TYPE.ip6 .. ", actions=ALL")
     table.insert(flowData.flows, "dl_type=" .. new_ETH_TYPE .. ", actions=DROP")
   end
 
-feature.config{
+Feature.config{
   txIterations = 2,
 } 
 	
-feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.ETH_TYPE = new_ETH_TYPE
-    feature.pkt.PROTO = feature.enum.PROTO.undef
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.pkt.ETH_TYPE = new_ETH_TYPE
+    Feature.pkt.PROTO = Feature.enum.PROTO.undef
   end
 
 

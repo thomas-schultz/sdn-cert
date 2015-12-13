@@ -4,25 +4,25 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "recommended"
+Feature.require = "OpenFlow10"
+Feature.state   = "recommended"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
 local new_SRC_MAC = "aa:00:00:00:00:a2"
 local new_DST_MAC = "aa:aa:aa:aa:aa:aa" 
 
-feature.flowEntries = function(flowData)
+Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=mod_dl_src=" .. new_SRC_MAC .. ", mod_dl_dst=" .. new_DST_MAC .. ", ALL")
   end
 
-feature.config{
+Feature.config{
 } 
  
 FeatureConfig.pktClassifier = {

@@ -5,25 +5,25 @@
 
 require "benchmark_config"
   
-local bench = {} 
+local Test = {} 
 
-bench.require = "match_ethertype modify_ipv4"
+Test.require = "match_ethertype modify_ipv4"
  
-bench.loadGen = "moongen"
-bench.files   = "load-latency.lua"
-bench.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
-bench.ofArgs  = "$link=1 $link=2"
+Test.loadGen = "moongen"
+Test.files   = "load-latency.lua"
+Test.lgArgs  = "$file=1 $id $link=1 $link=2 $duration $rate $numIP $pktSize"
+Test.ofArgs  = "$link=1 $link=2"
 
-bench.settings = {
+Test.settings = {
   SRC_DST = "128.0.0.1"
 }
 
-bench.flowEntries = function(flowData, inPort, outPort)
-    local pkt = bench.settings
+Test.flowEntries = function(flowData, inPort, outPort)
+    local pkt = Test.settings
     local flow = string.format("ip,in_port=%d, actions=mod_nw_dst=%s,output:%d", inPort, pkt.SRC_DST, outPort)
     table.insert(flowData.flows, flow)
   end
   
-bench.metric = "load-latency"
+Test.metric = "load-latency"
 
-return bench
+return Test

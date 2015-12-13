@@ -1,4 +1,4 @@
--- general Feature configuration file
+-- general library for feature configuration
 
 FeatureConfig = {}
 FeatureConfig.__index = FeatureConfig

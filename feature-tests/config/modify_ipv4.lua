@@ -4,28 +4,28 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow10"
-feature.state   = "recommended"
+Feature.require = "OpenFlow10"
+Feature.state   = "recommended"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
+Feature.pkt = Feature.getDefaultPkt()
 
 local new_SRC_IP4 = "10.0.2.1"
 local new_DST_IP4 = "10.0.2.2"
 
-feature.flowEntries = function(flowData)
+Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "ip, actions=mod_nw_src=" .. new_SRC_IP4 .. ",mod_nw_dst=" .. new_DST_IP4 .. ", ALL")
   end
 
-feature.config{
+Feature.config{
 } 
   
-feature.modifyPkt = function(pkt, iteration)
+Feature.modifyPkt = function(pkt, iteration)
     pkt.SRC_IP4 = new_SRC_IP4
     pkt.DST_IP4 = new_DST_IP4
   end

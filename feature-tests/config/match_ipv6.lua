@@ -4,32 +4,32 @@
 
 require "feature_config"
 
-local feature = FeatureConfig.new()
+local Feature = FeatureConfig.new()
 
-feature.require = "OpenFlow12"
-feature.state   = "required"
+Feature.require = "OpenFlow12"
+Feature.state   = "required"
   
-feature.loadGen = "moongen"
-feature.files   = "feature_test.lua"
-feature.lgArgs  = "$file=1 $name $link*"
+Feature.loadGen = "moongen"
+Feature.files   = "feature_test.lua"
+Feature.lgArgs  = "$file=1 $name $link*"
     
-feature.pkt = feature.getDefaultPkt()
-feature.pkt.ETH_TYPE = feature.enum.ETH_TYPE.ip6
+Feature.pkt = Feature.getDefaultPkt()
+Feature.pkt.ETH_TYPE = Feature.enum.ETH_TYPE.ip6
 
 local new_SRC_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0001"
 local new_DST_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0002"
 
-feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip6, ipv6_src=" .. feature.pkt.SRC_IP6 .. ", ipv6_dst=" .. feature.pkt.DST_IP6 .. ", actions=ALL")
+Feature.flowEntries = function(flowData)
+    table.insert(flowData.flows, "ip6, ipv6_src=" .. Feature.pkt.SRC_IP6 .. ", ipv6_dst=" .. Feature.pkt.DST_IP6 .. ", actions=ALL")
     table.insert(flowData.flows, "ip6, ipv6_src=" .. new_SRC_IP6 .. ", ipv6_dst=" .. new_DST_IP6 .. ", actions=DROP")
   end
 
-feature.config{
+Feature.config{
 } 
   
-feature.modifyPkt = function(pkt, iteration)
-    feature.pkt.SRC_IP6 = new_SRC_IP6 
-    feature.pkt.DST_IP6 = new_DST_IP6
+Feature.modifyPkt = function(pkt, iteration)
+    Feature.pkt.SRC_IP6 = new_SRC_IP6 
+    Feature.pkt.DST_IP6 = new_DST_IP6
   end
   
   
