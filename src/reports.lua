@@ -122,7 +122,7 @@ function Reports.createTestReport(testcase, error)
   end 
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
   doc:generatePDF()
-  Reports.addReport(doc, testcase:getName(true))
+  Reports.addReport(doc, testcase:getId() .. " " .. testcase:getName(true))
 end
 
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
@@ -141,11 +141,15 @@ function Reports.generateCombined(benchmark, doc, currentParameter, ids)
 end
 
 function Reports.summarize()
+  logger.printlog("Generating full report, may take a while")
   local doc = TexDocument.create()
   doc:usePackage("standalone")
-  local content = TexText.create()
-  content:add("\\tableofcontents")
-  doc:addElement(content)
+  doc:usePackage("hyperref")
+  local pre = TexText.create()
+  pre:add("\\tableofcontents")
+  pre:add("\\renewcommand{\\chaptername}{}")
+  pre:add("\\renewcommand{\\thechapter}{}")
+  doc:addElement(pre)
   for _,report in pairs(Reports.allReports) do
     local item = TexText.create()
     item:add("\\chapter{" .. report.title .. "}")

@@ -34,6 +34,9 @@ function TexDocument:usePackage(name, args)
   else args = "" end
   local use = "\\usepackage" .. args .. "{" .. name .. "}"
   table.insert(self.usepackage, use)
+  if (name == "hyperref") then
+    self.compiletwice = true
+  end
 end
 
 function TexDocument:addElement(obj)
@@ -88,6 +91,9 @@ function TexDocument:generatePDF(path, file)
   logger.print("Saving PDF to " .. self.file .. ".pdf",1)
   local cmd = CommandLine.create("cd " .. self.path)
   cmd:addCommand("pdflatex " .. self.file .. ".tex")
+  if (self.compiletwice) then
+    cmd:addCommand("pdflatex " .. self.file .. ".tex")
+  end
   cmd:addCommand("rm *.aux")
   cmd:addCommand("rm *.log")
   cmd:addCommand("rm *.csv")
