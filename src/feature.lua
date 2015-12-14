@@ -36,7 +36,7 @@ function Feature:readConfig()
   self.settings.require = self:getRequiredOFVersion()
   self.settings.state = self.config.state or global.featureState.undefined
   
-  self.files = {configFile, global.featureLibrary}
+  self.files = {configFile, global.featureLibrary .. ".lua"}
   self.files = CommonTest.readInFiles(self, global.featureFolder, self.files, true)
   self.lgArgs = CommonTest.mapArgs(self, self.config.lgArgs, "lg", false, true)
   self.ofArgs = CommonTest.mapArgs(self, self.config.ofArgs, "of", true, true)
