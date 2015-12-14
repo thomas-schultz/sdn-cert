@@ -11,59 +11,6 @@ function Reports.addReport(doc, title)
   table.insert(Reports.allReports, item)
 end
 
-function Reports.generateFeatureReport(featureList)
-  local doc = TexDocument.create()
-  local colorDef = TexText.create()
-  colorDef:add("\\definecolor{darkgreen}{rgb}{0, 0.45, 0}")
-  colorDef:add("\\definecolor{darkred}{rgb}{0.9, 0, 0}")
-  doc:addElement(colorDef)
-  local title = TexText.create()
-  title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Summary Feature-Tests}", "\\end{LARGE}", "\\end{center}")
-  local ofvers = TexText.create()
-  title:add("\\begin{center}", "\\begin{huge}", "Version: " .. settings:getOFVersion(), "\\end{huge}", "\\end{center}")
-  doc:addElement(ofvers)
-  doc:addElement(title)
-  local features = TexTable.create("|l|l|l|l|","ht")
-  features:add("\\textbf{feature}", "\\textbf{type}", "\\textbf{version}", "\\textbf{status}")
-  for i,feature in pairs(featureList) do
-    features:add(feature:getName(true), feature:getState(), feature:getRequiredOFVersion(), feature:getTexStatus())
-  end
-  doc:addElement(features)
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
-  doc:generatePDF()
-  Reports.addReport(doc, "Feature-Tests")
-end
-
-
-function Reports.createTestReport(testcase, error)
-  local metric = require("metrics")
-  local config = metric.config[testcase:getMetric()]
-  if (not metric) then
-    logger.err("Missing metric configuration in benchmark_config.lua")
-    return
-  end
-  local data = config.getData(testcase)
-  local plots = config.getPlots(testcase)
-
-  local doc = TexDocument.create()
-  local title = TexText.create()
-  if (not error) then
-    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
-  else
-    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
-  end
-  doc:addElement(title)
-  doc:addElement(testcase:getParameterTable(config))
-  for _,item in pairs(data) do
-    doc:addElement(item)
-  end
-  for _,item in pairs(plots) do
-    doc:addElement(item)
-  end 
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
-  doc:generatePDF()
-  Reports.addReport(doc, testcase:getName(true))
-end
 
 function Reports.generate(benchmark)
   for id,test in pairs(benchmark.testcases) do
@@ -118,8 +65,64 @@ function Reports.generate(benchmark)
       report:generatePDF()
       Reports.addReport(report, currentTestName .. " - " .. par)
     end
-  end  
+  end
+  Reports.summarize() 
   logger.printBar()
+end
+
+
+function Reports.generateFeatureReport(featureList)
+  local doc = TexDocument.create()
+  local colorDef = TexText.create()
+  colorDef:add("\\definecolor{darkgreen}{rgb}{0, 0.45, 0}")
+  colorDef:add("\\definecolor{darkred}{rgb}{0.9, 0, 0}")
+  doc:addElement(colorDef)
+  local title = TexText.create()
+  title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Summary Feature-Tests}", "\\end{LARGE}", "\\end{center}")
+  local ofvers = TexText.create()
+  title:add("\\begin{center}", "\\begin{huge}", "Version: " .. settings:getOFVersion(), "\\end{huge}", "\\end{center}")
+  doc:addElement(ofvers)
+  doc:addElement(title)
+  local features = TexTable.create("|l|l|l|l|","ht")
+  features:add("\\textbf{feature}", "\\textbf{type}", "\\textbf{version}", "\\textbf{status}")
+  for i,feature in pairs(featureList) do
+    features:add(feature:getName(true), feature:getState(), feature:getRequiredOFVersion(), feature:getTexStatus())
+  end
+  doc:addElement(features)
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
+  doc:generatePDF()
+  Reports.addReport(doc, "Feature-Tests")
+end
+
+
+function Reports.createTestReport(testcase, error)
+  local metric = require("metrics")
+  local config = metric.config[testcase:getMetric()]
+  if (not metric) then
+    logger.err("Missing metric configuration in benchmark_config.lua")
+    return
+  end
+  local data = config.getData(testcase)
+  local plots = config.getPlots(testcase)
+
+  local doc = TexDocument.create()
+  local title = TexText.create()
+  if (not error) then
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
+  else
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
+  end
+  doc:addElement(title)
+  doc:addElement(testcase:getParameterTable(config))
+  for _,item in pairs(data) do
+    doc:addElement(item)
+  end
+  for _,item in pairs(plots) do
+    doc:addElement(item)
+  end 
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
+  doc:generatePDF()
+  Reports.addReport(doc, testcase:getName(true))
 end
 
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
