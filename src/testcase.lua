@@ -107,36 +107,11 @@ function TestCase:getParameterConf()
 end
 
 function TestCase:createReport(error)
-  local metric = require("metrics")
-  local config = metric.config[self:getMetric()]
-  if (not metric) then
-    logger.err("Missing metric configuration in benchmark_config.lua")
-    return
-  end
-  local data = config.getData(self)
-  local plots = config.getPlots(self)
-
-  local doc = TexDocument.create()
-  local title = TexText.create()
-  if (not error) then
-    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
-  else
-    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. self:getId() .. ": " .. self:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
-  end
-  doc:addElement(title)
-  doc:addElement(self:getParameterTable(config))
-  for _,item in pairs(data) do
-    doc:addElement(item)
-  end
-  for _,item in pairs(plots) do
-    doc:addElement(item)
-  end 
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. self:getName(true) .. "/eval", self:getName())
-  doc:generatePDF()
+  Reports.createTestReport(self)
 end
 
 function TestCase:createErrorReport()
-  self:createReport(true)
+  Reports.createTestReport(self, true)
 end
 
 function TestCase:getParameterTable(metric, blacklist)

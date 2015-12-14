@@ -1,6 +1,15 @@
 Reports = {}
 Reports.__index = Reports
 
+Reports.allReports = {}
+
+function Reports.addReport(doc, title)
+  local item = {
+    file = doc:getFile(),
+    title = title
+  }
+  table.insert(Reports.allReports, item)
+end
 
 function Reports.generateFeatureReport(featureList)
   local doc = TexDocument.create()
@@ -22,8 +31,39 @@ function Reports.generateFeatureReport(featureList)
   doc:addElement(features)
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
   doc:generatePDF()
+  Reports.addReport(doc, "Feature-Tests")
 end
 
+
+function Reports.createTestReport(testcase, error)
+  local metric = require("metrics")
+  local config = metric.config[testcase:getMetric()]
+  if (not metric) then
+    logger.err("Missing metric configuration in benchmark_config.lua")
+    return
+  end
+  local data = config.getData(testcase)
+  local plots = config.getPlots(testcase)
+
+  local doc = TexDocument.create()
+  local title = TexText.create()
+  if (not error) then
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")
+  else
+    title:add("\\begin{center}", "\\begin{LARGE}", "\\textbf{FAILED - Test " .. testcase:getId() .. ": " .. testcase:getName(true) .. "}", "\\end{LARGE}", "\\end{center}")  
+  end
+  doc:addElement(title)
+  doc:addElement(testcase:getParameterTable(config))
+  for _,item in pairs(data) do
+    doc:addElement(item)
+  end
+  for _,item in pairs(plots) do
+    doc:addElement(item)
+  end 
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", self:getName())
+  doc:generatePDF()
+  Reports.addReport(doc, testcase:getName(true))
+end
 
 function Reports.generate(benchmark)
   for id,test in pairs(benchmark.testcases) do
@@ -76,6 +116,7 @@ function Reports.generate(benchmark)
     for par,report in pairs(reports) do
       report:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. currentTestName .. "/eval", "parameter_" .. par)
       report:generatePDF()
+      Reports.addReport(report, currentTestName .. " - " .. par)
     end
   end  
   logger.printBar()
@@ -94,4 +135,20 @@ function Reports.generateCombined(benchmark, doc, currentParameter, ids)
     doc:addElement(item)
   end
   doc:addClearPage()
+end
+
+function Reports.summarize()
+  local doc = TexDocument.create()
+  doc:usePackage("standalone")
+  local content = TexText.create()
+  content:add("\\tableofcontents")
+  doc:addElement(content)
+  for _,report in pairs(Reports.allReports) do
+    local item = TexText.create()
+    item:add("\\chapter{" .. report.title .. "}")
+    item:add("\\input{" .. report.file .. "}")
+    doc:addElement(item)
+  end
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results, "Report")
+  doc:generatePDF()
 end

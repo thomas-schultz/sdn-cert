@@ -75,6 +75,10 @@ function TexDocument:saveToFile(path, file)
   io.close(reportFile)  
 end
 
+function TexDocument:getFile()
+  return self.path .. "/" .. self.file
+end
+
 function TexDocument:generatePDF(path, file)
   if (not settings:doRunTex()) then
     logger.debug("Skipping pdflatex")
