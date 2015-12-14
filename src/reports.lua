@@ -61,7 +61,7 @@ function Reports.generate(benchmark)
       end
     end
     for par,report in pairs(reports) do
-      report:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. currentTestName .. "/eval", "parameter_" .. par)
+      report:saveToFile("./" .. global.results .. "/" .. currentTestName .. "/eval", "parameter_" .. par)
       report:generatePDF()
       Reports.addReport(report, currentTestName .. " - " .. par)
     end
@@ -89,7 +89,7 @@ function Reports.generateFeatureReport(featureList)
     features:add(feature:getName(true), feature:getState(), feature:getRequiredOFVersion(), feature:getTexStatus())
   end
   doc:addElement(features)
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
+  doc:saveToFile("./" .. global.results .. "/features/eval", "Feature-Tests")
   doc:generatePDF()
   Reports.addReport(doc, "Feature-Tests")
 end
@@ -120,7 +120,7 @@ function Reports.createTestReport(testcase, error)
   for _,item in pairs(plots) do
     doc:addElement(item)
   end 
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
+  doc:saveToFile("./" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
   doc:generatePDF()
   Reports.addReport(doc, testcase:getName(true))
 end
@@ -152,6 +152,6 @@ function Reports.summarize()
     item:add("\\input{" .. report.file .. "}")
     doc:addElement(item)
   end
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results, "Report")
+  doc:saveToFile("./" .. global.results, "Report")
   doc:generatePDF()
 end
