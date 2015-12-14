@@ -15,7 +15,7 @@ global = {}
   global.tempdir          = "/tmp"
   global.cfgFiletype      = ".cfg"
   
-  global.testLibrary     = "testcase_config"
+  global.testLibrary     = "testcase_lib"
   global.featureLibrary  = "feature_config"
   
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
