@@ -122,7 +122,7 @@ function Reports.createTestReport(testcase, error)
   end 
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
   doc:generatePDF()
-  Reports.addReport(doc, testcase:getId() .. " " .. testcase:getName(true))
+  Reports.addReport(doc, "Test " .. testcase:getId() .. " " .. testcase:getName(true))
 end
 
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
@@ -141,7 +141,7 @@ function Reports.generateCombined(benchmark, doc, currentParameter, ids)
 end
 
 function Reports.summarize()
-  logger.printlog("Generating full report, may take a while")
+  logger.printlog("Generating full report, may take a while", nil, global.headline1)
   local doc = TexDocument.create()
   doc:usePackage("standalone")
   doc:usePackage("hyperref")
