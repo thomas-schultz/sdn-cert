@@ -149,7 +149,7 @@ function Reports.summarize()
   for _,report in pairs(Reports.allReports) do
     local item = TexText.create()
     item:add("\\chapter{" .. report.title .. "}")
-    item:add("\\input{" .. report.file .. "}")
+    item:addCmd("\\input{" .. report.file .. "}")
     doc:addElement(item)
   end
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results, "Report")

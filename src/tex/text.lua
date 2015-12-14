@@ -15,6 +15,13 @@ function TexText:add(...)
   end
 end
 
+function TexText:addCmd(...)
+  local args = {...}
+  for i,line in pairs(args) do
+    table.insert(self.lines, line)
+  end
+end
+
 function TexText:getTex()
   local tex = ""
   for i=1,#self.lines do
