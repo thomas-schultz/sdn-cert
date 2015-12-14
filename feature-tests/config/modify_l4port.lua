@@ -30,4 +30,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.src_port == new_SRC_PORT and pkt.dst_port == new_DST_PORT) end
   }
 
-return feature
+return Feature

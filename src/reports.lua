@@ -29,6 +29,7 @@ function Reports.generate(benchmark)
   for id,test in pairs(benchmark.testcases) do
     logger.printlog("Generating reports ( " .. id .. " / " .. #benchmark.testcases .. " ): " .. test:getName(true), nil, global.headline1)
     if (not test:isDisabled()) then test:createReport()
+    elseif (settings:doSimulate()) then logger.print("skipping report, no data available") 
     else logger.warn("Test failed, skipping report") end
   end
 
@@ -66,7 +67,9 @@ function Reports.generate(benchmark)
             subtitle:add("\\begin{center}", "\\begin{huge}", "parameter: " .. currentParameter, "\\end{huge}", "\\end{center}")
             reports[currentParameter]:addElement(subtitle)
           end
-          Reports.generateCombined(benchmark, reports[currentParameter], currentParameter, data.ids)
+          if (not settings:doSimulate()) then
+            Reports.generateCombined(benchmark, reports[currentParameter], currentParameter, data.ids)
+          end
         end
       end
     end

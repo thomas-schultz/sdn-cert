@@ -30,4 +30,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.src_ip == new_SRC_IP4 and pkt.dst_ip == new_DST_IP4) end,
   }
 
-return feature
+return Feature

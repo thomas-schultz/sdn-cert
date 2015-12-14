@@ -23,4 +23,4 @@ Feature.config{
   ctrType = "all",
 }
 
-return feature
+return Feature

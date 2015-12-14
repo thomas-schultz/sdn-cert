@@ -23,4 +23,4 @@ Feature.flowEntries = function(flowData, outPort)
 Feature.config{
 }
 
-return feature
+return Feature

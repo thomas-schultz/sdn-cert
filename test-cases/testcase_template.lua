@@ -1,9 +1,9 @@
 --[[
-  Benchmark template
+  Test-case template file
 ]]
 
 -- imports all needed function and default values, do not remove!
-require "benchmark_config"
+require "testcase_config"
   
 local Test = {} 
 

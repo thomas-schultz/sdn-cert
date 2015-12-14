@@ -27,4 +27,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.devId == Feature.settings.txDev) end,
   }
 
-return feature
+return Feature

@@ -3,7 +3,7 @@
   Result: throughput and latency
 ]]
 
-require "benchmark_config"
+require "testcase_config"
   
 local Test = {} 
 
@@ -23,13 +23,13 @@ Test.settings = {
 
 Test.flowEntries = function(flowData, numIP, inPort, outPort)
     math.randomseed(os.time())
-    local ip = BenchmarkConfig.IP.parseIP(Test.settings.BASE_IP)
+    local ip = TestcaseConfig.IP.parseIP(Test.settings.BASE_IP)
     for i=1,tonumber(numIP) do
-      local matchIP = BenchmarkConfig.IP.getIP(ip)
+      local matchIP = TestcaseConfig.IP.getIP(ip)
       local newPort = math.random(Test.settings.minPort, Test.settings.maxPort)
       local flow = string.format("ip,udp,in_port=%d,nw_src=%s, actions=mod_nw_src=%s,mod_tp_src=%d,output:%d", inPort, matchIP, Test.settings.SRC_IP, newPort, outPort)
       table.insert(flowData.flows, flow)
-      BenchmarkConfig.IP.incAndWrap(ip)
+      TestcaseConfig.IP.incAndWrap(ip)
     end
   end
   

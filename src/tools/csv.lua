@@ -15,6 +15,7 @@ end
 
 function CSV.transpose(data)
   local res = {}
+  if (not data[1]) then return res end
   for i = 1, #data[1] do
     res[i] = {}
     for j = 1, #data do

@@ -29,4 +29,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.src_mac == new_SRC_MAC and pkt.dst_mac == new_DST_MAC) end
   }
 
-return feature
+return Feature

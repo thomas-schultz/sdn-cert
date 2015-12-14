@@ -30,4 +30,4 @@ Feature.modifyPkt = function(pkt, iteration)
   end
   
   
-return feature
+return Feature

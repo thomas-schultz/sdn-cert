@@ -29,4 +29,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.tos == new_TOS) end
   }
 
-return feature
+return Feature

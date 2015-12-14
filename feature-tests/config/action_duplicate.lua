@@ -24,4 +24,4 @@ Feature.config{
   desiredCtr = 2,
 }
 
-return feature
+return Feature

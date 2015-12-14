@@ -53,7 +53,7 @@ local function main()
   if (parser:hasOption("--help")) then parser:printHelp() exit() end
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
-  if (parser:hasOption("--nocolor")) then disableColor() end
+  if (parser:hasOption("--nocolor")) then logger.disableColor() end
   if (parser:hasOption("--tar")) then Setup.archive() settings.config.archive = true end
   if (parser:hasOption("--eval")) then settings.config.evalonly = true settings.config.skipfeature = true end
   settings:verify()

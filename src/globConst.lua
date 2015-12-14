@@ -15,6 +15,9 @@ global = {}
   global.tempdir          = "/tmp"
   global.cfgFiletype      = ".cfg"
   
+  global.testLibrary     = "testcase_config"
+  global.featureLibrary  = "feature_config"
+  
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion        = "openflow"
   global.sshTimeOut       = 5

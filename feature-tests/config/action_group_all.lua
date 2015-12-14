@@ -36,4 +36,4 @@ Feature.evalCounters = function(ctrs, batch, threshold)
     return (Feature.eval(ctrs[1],batch/2,threshold) and Feature.eval(ctrs[2],batch/2,threshold))
   end
 
-return feature
+return Feature

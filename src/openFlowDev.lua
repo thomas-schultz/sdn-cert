@@ -139,7 +139,7 @@ function OpenFlowDevice:createAllFiles(flowData, file)
 end
 
 function OpenFlowDevice:getBenchmarkFlows(name, ...)
-  local benchConf = require "benchmark_config"
+  local benchConf = require(global.testLibrary)
   local flowData = {flows  = {}, groups = {}, meters = {} }
   local addflows = benchConf[name]
   if (not addflows) then

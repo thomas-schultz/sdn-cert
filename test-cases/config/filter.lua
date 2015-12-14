@@ -4,11 +4,11 @@
   Result: throughput and latency
 ]]
 
-require "benchmark_config"
+require "testcase_config"
   
 local Test = {} 
 
-Test.require = "match_inport match_ethertype match_l2addr match_ipv4 match_l3proto match_l4port"
+Test.require = "match_inport match_ethertype match_l2addr match_ipv4 match_l4proto match_l4port"
  
 Test.loadGen = "moongen"
 Test.files   = "load-latency.lua"

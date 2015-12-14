@@ -3,7 +3,7 @@
   Result: throughput and latency
 ]]
 
-require "benchmark_config"
+require "testcase_config"
   
 local Test = {} 
 
@@ -20,11 +20,11 @@ Test.settings = {
 
 Test.flowEntries = function(flowData, numIP, outPort)
   local pkt = Test.settings
-  local ip = BenchmarkConfig.IP.parseIP(pkt.BASE_IP)
+  local ip = TestcaseConfig.IP.parseIP(pkt.BASE_IP)
   for i=1,tonumber(numIP) do
-    local currentMatch = BenchmarkConfig.IP.getIP(ip)
-    BenchmarkConfig.IP.incAndWrap(ip)
-    local currentTarget = BenchmarkConfig.IP.getIP(ip)
+    local currentMatch = TestcaseConfig.IP.getIP(ip)
+    TestcaseConfig.IP.incAndWrap(ip)
+    local currentTarget = TestcaseConfig.IP.getIP(ip)
     table.insert(flowData.flows, "ip, nw_dst=" .. currentMatch ..", actions=mod_nw_dst=" .. currentTarget .. ",output:" .. outPort)
   end
 end

@@ -3,7 +3,7 @@
   Result: throughput and latency
 ]]
 
-require "benchmark_config"
+require "testcase_config"
   
 local Test = {}
  

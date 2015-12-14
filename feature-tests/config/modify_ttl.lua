@@ -29,4 +29,4 @@ FeatureConfig.pktClassifier = {
     function(pkt) return (pkt.ttl == new_TTL) end
   }
 
-return feature
+return Feature

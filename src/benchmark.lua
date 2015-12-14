@@ -83,7 +83,7 @@ function Benchmark:getFeatures(force)
   local force = force or false
   if (not force and settings.isTestFeature()) then
     self.featureList = {}
-    local Feature = Feature.create(settings.getTestFeature())
+    local feature = Feature.create(settings.getTestFeature())
     if feature:isDisabled() then return end
     self.features[settings.getTestFeature()] = feature
     self.featureCount = 1
@@ -99,7 +99,7 @@ function Benchmark:getFeatures(force)
     local line = fh:read()
     if line == nil then break end
     if (not (string.sub(line, 1,1) == global.ch_comment) and string.len(line) > 0 ) then
-      local Feature = Feature.create(line)
+      local feature = Feature.create(line)
       if (not feature:isDisabled()) then
         self.features[line] = feature
         self.featureCount = self.featureCount + 1
