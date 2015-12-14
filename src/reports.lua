@@ -5,7 +5,7 @@ Reports.allReports = {}
 
 function Reports.addReport(doc, title)
   local item = {
-    file = doc:getFile(),
+    file = string.replace(doc:getFile(), settings:getLocalPath() .. "/" .. global.results, ".") .. ".tex",
     title = title
   }
   table.insert(Reports.allReports, item)
@@ -149,7 +149,7 @@ function Reports.summarize()
   for _,report in pairs(Reports.allReports) do
     local item = TexText.create()
     item:add("\\chapter{" .. report.title .. "}")
-    item:add("\\input{" .. string.replace(report.file, settings:getLocalPath() .. "/" .. global.results, ".") .. "}")
+    item:add("\\input{" .. report.file .. "}")
     doc:addElement(item)
   end
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results, "Report")
