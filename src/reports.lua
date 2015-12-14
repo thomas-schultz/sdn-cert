@@ -60,7 +60,7 @@ function Reports.createTestReport(testcase, error)
   for _,item in pairs(plots) do
     doc:addElement(item)
   end 
-  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", self:getName())
+  doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
   doc:generatePDF()
   Reports.addReport(doc, testcase:getName(true))
 end
