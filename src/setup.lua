@@ -173,12 +173,12 @@ function Setup.checkMoongen()
 end
 
 function Setup.isReady()
-  local result = Setup.checkOpenFlow()
-  if (not result and not settings.config.simulate) then logger.print("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
-  result = Setup.checkMoongen() and result
-  if (not result and not settings.config.simulate) then logger.print("Make sure MoonGen is installed correctly") end
-  if (not result) then logger.printlog("Test setup is not ready, check log", "INFO", "lred")
-  else logger.printlog("Test setup is ready", "INFO", "lgreen") end
+  local of = Setup.checkOpenFlow()
+  if (not of and not settings.config.simulate) then logger.print("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
+  local lg = Setup.checkMoongen()
+  if (not lg and not settings.config.simulate) then logger.print("Make sure MoonGen is installed correctly") end
+  if (of and lg) then logger.printlog("Test setup is ready", "INFO", "lgreen")
+  else logger.printlog("Test setup is not ready, check log", "INFO", "lred") end
   return result
 end
 
