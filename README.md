@@ -20,9 +20,10 @@ OpenFlow Switch certification tool (work in progress)
 	Testcases are defined in multiple layers:
 	Layer 1:
 		benchmark.cfg: List of testcases with name and variables in form of key=value
+		files are stored in ./benchmarks/
 	Layer 2:
-		stored in benchmark-files/config/<name>.lua
-		See benchmark-files/benchmark_template.lua for details
+		stored in test-cases/config/<name>.lua
+		See test-cases/benchmark_template.lua for details
 
 		All Arguments beginning with '$' are treated as variables. All variables from the
 		upper layer is passed downwards. So it is possible to define or override variables
