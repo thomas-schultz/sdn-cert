@@ -1,0 +1,27 @@
+# settings file
+
+# Debugging settings
+debug = true
+
+# Make archive before delting everything
+archive = false
+
+# Automatically run LaTeX to create PDFs
+runTex = true
+
+# Used OpenFlow protocol version
+OpenFlow = OpenFlow12
+
+# set to true if this host is used as load-generator
+local = false
+# ip,name or ssh alias of load-generator host, ignored if local is true
+loadgenHost = moongen
+# working directory on load-gen
+loadgenWd = /root/tmp
+
+# switch configuration
+switchIP = 131.159.14.178
+switchPort = 6653
+
+# physical links between switch and load-generator
+links = 1-0, 2-1

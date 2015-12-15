@@ -3,8 +3,8 @@ Setup.__index = Setup
 
 
 local error_messages = {
-  openflow_fail     = "failes",
-  openflow_socket   = "failed to connect to socket",
+  general_fail     = "failes",
+  failed_socket   = "failed to connect to socket",
   moongen_hugepage  = "Cannot get hugepage information",
   moongen_bash      = "bash: ./moongen: No such file or directory",
   }
@@ -19,7 +19,7 @@ local string_matches = {
 -- creates folder if not existent
 -- set remote true, if not local
 function Setup.createFolder(name, isLocal)
-  local isLocal = isLocal or true
+  if (isLocal == nil) then isLocal = true end
   local cmd = CommandLine.getRunInstance(isLocal).create()
   cmd:addCommand("mkdir -p " .. name)
   cmd:forceExcute()
@@ -28,7 +28,7 @@ end
 -- creates parent folder of a given file or directory
 -- set remote true, if not local
 function Setup.createParentFolder(file, isLocal)
-  local isLocal = isLocal or true
+  if (isLocal == nil) then isLocal = true end
   local cmd = CommandLine.getRunInstance(isLocal).create()
   local parent = string.match(file, "(.-)([^\\/]-%.?([^%.\\/]*))$")
   cmd:addCommand("mkdir -p " .. parent)
@@ -39,7 +39,7 @@ end
 function Setup.cleanUp()
   logger.printBar()
   logger.printlog("Cleaning up testing system", 0, global.headline1)
-  -- clean remote 
+  -- clean remote
   Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.results, settings:isLocal())
   Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.scripts, settings:isLocal())
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create() 
@@ -105,13 +105,13 @@ function Setup.checkOpenFlow()
   local cmd = CommandLine.create("ovs-ofctl dump-ports tcp:" .. settings:get(global.switchIP) .. ":" .. settings:get(global.switchPort))
   local out = cmd:execute()
   if (out == nil or settings.config.simulate) then return false end
-  if (string.find(out, error_messages.openflow_socket)) then
-    logger.print("OpenFlow device is not reachable!")
-    logger.printlog(string.replaceAll("  " .. out, "\n", " "), "red")
+  if (string.find(out, error_messages.failed_socket)) then
+    logger.err("OpenFlow device is not reachable!")
+    logger.printlog(string.replaceAll("  " .. out, "\n", " "))
     return false
-  elseif (string.find(out, error_messages.openflow_fail)) then
-    logger.print("OpenFlow device seem not to be ready!")
-    logger.printlog(string.replaceAll("  " .. out, "\n", " "), "red")
+  elseif (string.find(out, error_messages.general_fail)) then
+    logger.err("OpenFlow device seem not to be ready!")
+    logger.printlog(string.replaceAll("  " .. out, "\n", " "))
     return false
   else
     logger.print("Available logical ports on the switch:")
@@ -148,7 +148,11 @@ function Setup.checkMoongen()
     logger.debug("Could not get output of MoonGen to detect available ports")
     return false
   end
-  if (string.find(out, error_messages.moongen_hugepage)) then
+  if (string.find(out, error_messages.failed_socket)) then
+    logger.err("Measurement host is not reachable!")
+    logger.printlog(string.replaceAll("  " .. out, "\n", " "))
+    return false
+  elseif (string.find(out, error_messages.moongen_hugepage)) then
     logger.print("MoonGen is either running or not initialized, stop it or try '--init'")
     return false
   elseif (string.find(out, error_messages.moongen_bash)) then
