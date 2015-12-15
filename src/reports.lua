@@ -8,7 +8,7 @@ function Reports.addReport(doc, title)
     file = string.replace(doc:getFile(), settings:getLocalPath() .. "/" .. global.results, ".") .. ".tex",
     title = title
   }
-  table.insert(Reports.allReports, item)
+  table.insert(Reports.allReports, 1, item)
 end
 
 
