@@ -24,7 +24,7 @@ Graphs.mppsGraph = function(columns, rxFile, txFile)
   ]]
   end
 
-Graphs.mbitGraph = function(columns, rxFile, txFile)
+Graphs.mbpsGraph = function(columns, rxFile, txFile)
   return [[
   \begin{tikzpicture}
   \begin{axis}[
@@ -170,7 +170,7 @@ Graphs.histogram = function(labels, file)
   xlabel={]] .. labels.x .. [[},
   ylabel={]] .. labels.y .. [[},
   ]
-  \addplot[ybar,fill=blue,draw=none]table[col sep=comma]{]] .. file .. [[};
+  \addplot[ybar interval,fill=blue,draw=none]table[col sep=comma]{]] .. file .. [[};
   \end{axis}
   \end{tikzpicture}
   \caption{latency histogram}

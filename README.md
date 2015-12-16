@@ -3,7 +3,7 @@ OpenFlow Switch certification tool (work in progress)
 
 
 # dependencies:
-	packages: lua, cmake, openvwitch
+	packages: lua, gcc, cmake, openvwitch
 	ssh keys for root@loadgen_host
 	link moongen to ./build/MoonGen in moongen directory
 	LaTeX: texlive + pdfplots, csvsimple
