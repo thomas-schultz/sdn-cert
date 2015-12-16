@@ -2,13 +2,20 @@ Reports = {}
 Reports.__index = Reports
 
 Reports.allReports = {}
+Reports.frontReport = 1
 
-function Reports.addReport(doc, title)
+function Reports.addReport(doc, title, front)
+  if (front == nil) then fron = false end
   local item = {
     file = string.replace(doc:getFile(), settings:getLocalPath() .. "/" .. global.results, ".") .. ".tex",
     title = title
   }
-  table.insert(Reports.allReports, 1, item)
+  if (front) then 
+    table.insert(Reports.allReports, Reports.frontReport, item)
+    Reports.frontReport = Reports.frontReport + 1
+  else
+    table.insert(Reports.allReports, item)
+  end
 end
 
 
@@ -63,10 +70,12 @@ function Reports.generate(benchmark)
     for par,report in pairs(reports) do
       report:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. currentTestName .. "/eval", "parameter_" .. par)
       report:generatePDF()
-      Reports.addReport(report, currentTestName .. " - " .. par)
+      Reports.addReport(report, currentTestName .. " - " .. par, true)
     end
   end
-  Reports.summarize() 
+  if (not benchmark:checkExit()) then
+    Reports.summarize()
+  end 
   logger.printBar()
 end
 
@@ -91,7 +100,7 @@ function Reports.generateFeatureReport(featureList)
   doc:addElement(features)
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/features/eval", "Feature-Tests")
   doc:generatePDF()
-  Reports.addReport(doc, "Feature-Tests")
+  Reports.addReport(doc, "Feature-Tests", true)
 end
 
 

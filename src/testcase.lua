@@ -116,7 +116,7 @@ end
 
 function TestCase:getParameterTable(metric, blacklist)
   local parameter = TexTable.create("|l|r|l|", "ht")
-  parameter:add("\textbf{parameter}", "\textbf{value}", "\textbf{unit}")
+  parameter:add("\\textbf{parameter}", "\\textbf{value}", "\\textbf{unit}")
   for k,v in pairs(self.parameters) do
     if (k ~= "name" and k ~= blacklist) then parameter:add(k, v, metric.units[k] or "") end
   end

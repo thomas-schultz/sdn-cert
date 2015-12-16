@@ -150,7 +150,7 @@ Graphs.throughputBoxplot = function(labels, file, count)
   ylabel={]] .. labels.y .. [[},
   xtick={]] .. ticks .. [[},
   xticklabels from table={\datatable}{parameter},
-  x tick label style={rotate=60,anchor=east},
+  x tick label style={rotate=45,anchor=east},
   legend style={at={(1.05,0.5)},anchor=north,legend cell align=left}]
   
   ]] .. plots .. [[

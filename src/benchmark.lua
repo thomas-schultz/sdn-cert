@@ -79,7 +79,7 @@ end
 -- reads the feature list files
 -- creates the feature objects
 function Benchmark:getFeatures(force)
-  logger.debug("retrieving features") 
+  logger.log("retrieving features") 
   local force = force or false
   if (not force and settings.isTestFeature()) then
     self.featureList = {}
@@ -112,7 +112,7 @@ end
 
 -- exports features and their states to make it persistent
 function Benchmark:exportFeatures()
-  logger.debug("exporting features") 
+  logger.log("exporting features") 
   if (settings.config.skipfeature or settings.config.simulate) then return end
   local file = io.open(global.featureFile, "w")
   file:write("#Feature status\n#Last update: " .. logger.getTimestamp() .. "\n\n")
