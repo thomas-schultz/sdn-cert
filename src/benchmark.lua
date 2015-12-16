@@ -130,7 +130,7 @@ end
 
 -- imports features and their states from a previous run
 function Benchmark:importFeatures()
-  logger.debug("importing features") 
+  logger.log("importing features") 
   self:getFeatures(true) 
   if (not localfileExists(global.featureFile)) then return end
   local fh = io.open(global.featureFile)
@@ -142,7 +142,7 @@ function Benchmark:importFeatures()
       if (split) then
         local name = string.trim(string.sub(line, 1, split-1))
         local state = string.trim(string.sub(line, split+1, -1))
-        local Feature = self.features[name]
+        local feature = self.features[name]
         if (feature and state == "true") then feature.supported = true end
         logger.debug("imported feature " .. name .. " as " .. state) 
       end
