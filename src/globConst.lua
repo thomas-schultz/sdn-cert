@@ -21,6 +21,8 @@ global = {}
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion        = "openflow"
   global.sshTimeOut       = 5
+  global.ofResetTimeOut   = 1
+  global.ofSetupTime      = 2
   
   -- logger
   global.logFile = "sdn-cert.log"
@@ -29,7 +31,6 @@ global = {}
   global.results = "results"
   global.archive = "archive"
   global.scripts = "scripts"
-  global.timeout = 2
   
   -- Keywords are stored lower-case and without underscore
   

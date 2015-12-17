@@ -53,14 +53,15 @@ function Feature:runTest()
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
-  logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
+  local dur = global.ofSetupTime + global.ofResetTimeOut
+  logger.print("Configuring OpenFlow device (~" .. dur .. " sec)", 1, global.headline2)
   local path = settings:getLocalPath() .. "/" .. global.results .. "/features"
   Setup.createFolder(path)
   local template = path .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
   -- wait for reset process to finish
-  sleep(1)
+  sleep(global.ofResetTimeOut)
   local flowData = ofDev:getFlowData(self)
   ofDev:createAllFiles(flowData, template)
   ofDev:installAllFiles(template, "_ovs-output")

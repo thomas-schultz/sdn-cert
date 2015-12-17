@@ -254,12 +254,13 @@ function Benchmark:run()
     if (settings.config.verbose) then test:print() end
     
     -- configure open-flow device
-    logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
+    local dur = global.ofSetupTime + global.ofResetTimeOut
+    logger.print("Configuring OpenFlow device (~" .. dur .. " sec)", 1, global.headline2)
     local template = test.output .. "/" .. test:getName()
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
     ofDev:reset()
     -- wait for reset process to finish
-    sleep(1)
+    sleep(global.ofResetTimeOut)
     local flowData = ofDev:getFlowData(test)
     ofDev:createAllFiles(flowData, template)
     ofDev:installAllFiles(template, "_ovs-output")
