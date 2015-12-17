@@ -12,16 +12,13 @@ Feature.state   = "required"
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
 Feature.lgArgs  = "$file=1 $name $link*"
-Feature.ofArgs  = "$link*"
+Feature.ofArgs  = "$link=1 $link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.flowEntries = function(flowData, ...)
-    local action = "ALL"
-    for i,v in pairs({...}) do
-      table.insert(flowData.flows, "in_port=" .. v .. ", actions=" .. action)
-      action = "DROP"
-    end
+Feature.flowEntries = function(flowData, inPort, outPort)
+    table.insert(flowData.flows, "in_port=" .. inPort .. ", actions=output:" .. outPort)
+    table.insert(flowData.flows, "in_port=" .. outPort .. ", actions=DROP")
   end
 
 Feature.config{
