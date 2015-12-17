@@ -238,17 +238,17 @@ function featureTxSlave(featureName, txDevs, ports)
   local txDump = io.open("../results/feature_" .. featureName .. "_tx-dump", "w")
 
   local learnPkt = feature.getPkt(feature.pkt)
-  local learningFrames = settings.learnFrames or 0
-  if (learningFrames > 0) then 
+  local learnFrames = settings.learnFrames or 0
+  if (learnFrames > 0) then 
     -- send learning packet for the switch
     for n=1,txSteps do
       local ip6 = feature.isIPv6(learnPkt)
       local mempool = memory.createMemPool(function(buf)
           fillPacket(buf, settings.pktSize)
         end)
-      local learningFrames = settings.learnFrames or 0
-      local learnBuf = mempool:bufArray(learningFrames)
-      print("Sending " .. tostring(learningFrames) ..  " learning Frames in " .. settings.learnTime .. " msec")
+      local learnFrames = settings.learnFrames or 0
+      local learnBuf = mempool:bufArray(learnFrames)
+      print("Sending " .. tostring(learnFrames) ..  " learning Frames in " .. settings.learnTime .. " msec")
       learnBuf:alloc(settings.pktSize)
       txQueues[settings.txDev]:send(learnBuf)
       feature.modifyPkt(learnPkt, n)
@@ -303,13 +303,13 @@ function featureRxSlave(featureName, rxDevs, ports)
   for i=firstRxDev,#rxDevs do rxQueues[i] = rxDevs[i]:getRxQueue(0) end 
   
   --wait until the learning packets are received and discarded
-  local learningFrames = settings.learnFrames or 0
-  if (learningFrames > 0) then 
+  local learnFrames = settings.learnFrames or 0
+  if (learnFrames > 0) then 
     local learnBuf = mempool:bufArray()
     dpdk.sleepMillis(settings.learnTime)
     for i=settings.firstRxDev,#rxDevs do 
       local rx = rxQueues[i]:tryRecv(learnBuf, 0)
-      print("Discarded " .. tostring(rx) .. "/" .. tiostring(learningFrames) .. " learning frames on device " .. tostring(ports[i]))
+      print("Discarded " .. tostring(rx) .. "/" .. tostring(learnFrames) .. " learning frames on device " .. tostring(ports[i]))
     end
   end
   

@@ -25,9 +25,9 @@ Feature.flowEntries = function(flowData, ...)
   end
 
 Feature.config{
-  firstRxDev = 1,
-  txIterations = 2,
-  learnFrames = 0,
+  firstRxDev    = 1,
+  txIterations  = 2,
+  learnFrames   = 0,
 } 
   
 Feature.modifyPkt = function(pkt, iteration)
