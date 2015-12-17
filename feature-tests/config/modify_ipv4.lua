@@ -23,7 +23,7 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, actions=mod_nw_src=%s, mod_nw_dst=%s, actions=output:%s", conf.new_SRC_IP4, conf.new_DST_IP4, outPort))
+    table.insert(flowData.flows, string.format("ip, actions=mod_nw_src=%s, mod_nw_dst=%s, output:%s", conf.new_SRC_IP4, conf.new_DST_IP4, outPort))
   end
   
 Feature.modifyPkt = function(pkt, iteration)

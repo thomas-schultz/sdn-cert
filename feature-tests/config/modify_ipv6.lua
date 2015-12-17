@@ -24,7 +24,7 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ipv6, actions=set_field=%s->ipv6_src, set_field:%s->ipv6_dst, actions=output:%s", conf.new_SRC_IP6, conf.new_DST_IP6, outPort))
+    table.insert(flowData.flows, string.format("ipv6, actions=set_field=%s->ipv6_src, set_field:%s->ipv6_dst, output:%s", conf.new_SRC_IP6, conf.new_DST_IP6, outPort))
   end
 
 FeatureConfig.pktClassifier = {

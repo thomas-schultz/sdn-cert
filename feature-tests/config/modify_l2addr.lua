@@ -23,7 +23,7 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("actions=mod_dl_src=%s, mod_dl_dst=%s, actions=output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
+    table.insert(flowData.flows, string.format("actions=mod_dl_src=%s, mod_dl_dst=%s, output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
   end
  
 FeatureConfig.pktClassifier = {
