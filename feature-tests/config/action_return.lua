@@ -23,7 +23,7 @@ Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=output:IN_PORT")
   end
 
-FeatureConfig.pktClassifier = {
+Feature.pktClassifier = {
     function(pkt) return (pkt.devId == Feature.settings.txDev) end,
   }
 

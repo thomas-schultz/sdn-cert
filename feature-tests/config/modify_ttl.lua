@@ -26,7 +26,7 @@ Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, string.format("ipv6, actions=mod_nw_ttl=%s, output:%s", conf.new_TTL, outPort))
   end
 
-FeatureConfig.pktClassifier = {
+Feature.pktClassifier = {
     function(pkt) return (pkt.ttl == conf.new_TTL) end
   }
 
