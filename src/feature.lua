@@ -66,7 +66,7 @@ function Feature:runTest()
   ofDev:createAllFiles(flowData, template)
   ofDev:installAllFiles(template, "_ovs-output")
   ofDev:dumpAll(template .. "_flowdump-before")
-  if (not settings.config.simulate) then sleep(global.timeout) end
+  if (not settings.config.simulate) then sleep(global.ofSetupTime) end
   
   -- start loadgen
   logger.print("Starting feature test (~10 sec)", 1, global.headline2)

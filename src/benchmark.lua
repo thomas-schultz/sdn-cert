@@ -265,7 +265,7 @@ function Benchmark:run()
     ofDev:createAllFiles(flowData, template)
     ofDev:installAllFiles(template, "_ovs-output")
     ofDev:dumpAll(template .. "_flowdump-before")
-    if (not settings.config.simulate) then sleep(global.timeout) end   
+    if (not settings.config.simulate) then sleep(global.ofSetupTime) end   
     test:export(template .. "_parameter.csv")
     
     -- start loadgen

@@ -33,8 +33,8 @@ function compareVersion(ver1, ver2)
 end
 
 -- sleeps for n secconds 
-function sleep(n)
-  os.execute("sleep " .. tonumber(n))
+function sleep(time)
+  os.execute("sleep " .. time)
 end
 
 
