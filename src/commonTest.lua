@@ -110,8 +110,9 @@ function CommonTest.checkLinkCount(test, arg, isFeature)
   local linkId = tonumber(select(2, string.getKeyValue(arg)))
   if (linkId and linkId > #settings.ports) then
     local msg = msg or "Disabled test"
-    logger.print(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports), "WARN")
+    logger.warn(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports))
     test.disabled = true
+    return -1
   end
   return linkId
 end

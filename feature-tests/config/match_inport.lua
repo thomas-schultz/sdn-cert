@@ -11,7 +11,7 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
 Feature.ofArgs  = "$link=1 $link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()

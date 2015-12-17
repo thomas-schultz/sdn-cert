@@ -16,8 +16,8 @@ Feature.lgArgs  = "$file=1 $name $link*"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, actions=dec_ttl, ALL")
-    table.insert(flowData.flows, "ipv6, actions=dec_ttl, ALL")
+    table.insert(flowData.flows, "ip, actions=dec_ttl, action=ALL")
+    table.insert(flowData.flows, "ipv6, actions=dec_ttl, action=ALL")
   end
 
 Feature.config{
