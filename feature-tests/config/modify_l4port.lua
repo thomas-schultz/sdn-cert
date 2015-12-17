@@ -30,7 +30,7 @@ Feature.flowEntries = function(flowData, outPort)
 Feature.config{
 } 
 
-FeatureConfig.pktClassifier = {
+Feature.pktClassifier = {
     function(pkt) return (pkt.src_port == conf.new_SRC_PORT and pkt.dst_port == conf.new_DST_PORT) end
   }
 

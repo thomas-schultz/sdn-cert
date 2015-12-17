@@ -20,8 +20,8 @@ Feature.config{
 }
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, actions=dec_ttl, action=output:%s", outPort))
-    table.insert(flowData.flows, string.format("ipv6, actions=dec_ttl, action=output:%s", outPort))
+    table.insert(flowData.flows, string.format("ip, actions=dec_ttl, output:%s", outPort))
+    table.insert(flowData.flows, string.format("ipv6, actions=dec_ttl, output:%s", outPort))
   end
 
 Feature.pktClassifier = {
