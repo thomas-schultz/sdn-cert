@@ -1,5 +1,5 @@
 --[[
-  Feature test for flooding packets
+  Feature test for all out-ports packets
 ]]
 
 require "feature_config"
@@ -20,7 +20,7 @@ Feature.config{
 }
 
 Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "actions=FLOOD")
+    table.insert(flowData.flows, "actions=ALL")
   end
 
 return Feature

@@ -11,17 +11,17 @@ Feature.state   = "optional"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
 Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, "actions=output:" .. tostring(outPort) .. "," .. tostring(outPort))
-  end
-
 Feature.config{
   desiredCtr = 2,
 }
+
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.find("actions=output:%s,%s", outPort, outPort))
+  end
 
 return Feature
