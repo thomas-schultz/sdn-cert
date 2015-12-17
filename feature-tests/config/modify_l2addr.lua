@@ -18,7 +18,7 @@ Feature.pkt = Feature.getDefaultPkt()
 
 Feature.config{
   new_SRC_MAC = "aa:00:00:00:00:a2",
-  new_DST_MAC = "aa:aa:aa:aa:aa:aa" ,
+  new_DST_MAC = "aa:aa:aa:aa:aa:aa",
 }
 local conf = Feature.settings
 
@@ -26,7 +26,7 @@ Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, string.format("actions=mod_dl_src=%s, mod_dl_dst=%s, output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
   end
  
-FeatureConfig.pktClassifier = {
+Feature.pktClassifier = {
     function(pkt) return (pkt.src_mac == conf.new_SRC_MAC and pkt.dst_mac == conf.new_DST_MAC) end
   }
 
