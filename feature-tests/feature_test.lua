@@ -237,24 +237,22 @@ function featureTxSlave(featureName, txDevs, ports)
   for i=1,#txDevs do txQueues[i] = txDevs[i]:getTxQueue(0) end
   local txDump = io.open("../results/feature_" .. featureName .. "_tx-dump", "w")
 
-  local learnPkt = feature.getPkt(feature.pkt)
   local learnFrames = settings.learnFrames or 0
-  if (learnFrames > 0) then 
+  if (learnFrames > 0) then
+    local learnPkt = feature.getPkt(feature.pkt)
+    local learnTime = settings.learnTime or 500
     -- send learning packet for the switch
     for n=1,txSteps do
-      local ip6 = feature.isIPv6(learnPkt)
       local mempool = memory.createMemPool(function(buf)
           fillPacket(buf, settings.pktSize)
         end)
-      local learnFrames = settings.learnFrames or 0
       local learnBuf = mempool:bufArray(learnFrames)
-      print("Sending " .. tostring(learnFrames) ..  " learning Frames in " .. settings.learnTime .. " msec")
+      print("Sending " .. tostring(learnFrames * txSteps) ..  " learning Frames in " .. learnTime .. " msec")
       learnBuf:alloc(settings.pktSize)
       txQueues[settings.txDev]:send(learnBuf)
       feature.modifyPkt(learnPkt, n)
     end
-    importFeature(featureName)
-    dpdk.sleepMillis(settings.learnTime)
+    dpdk.sleepMillis(learnTime)
   end
 
   -- start actual feature traffic
@@ -285,7 +283,7 @@ function featureTxSlave(featureName, txDevs, ports)
       txQueues[settings.txDev]:send(txBuf)
     end
     txCtrs[settings.txDev]:finalize()
-    feature.modifyPkt(learnPkt, n)
+    feature.modifyPkt(txPkt, n)
   end
   io.close(txDump)
 end
