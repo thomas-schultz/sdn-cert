@@ -22,8 +22,8 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, actions=mod_nw_ttl=%s, actions=output:%s", conf.new_TTL, outPort))
-    table.insert(flowData.flows, string.format("ipv6, actions=mod_nw_ttl=%s, actions=output:%s", conf.new_TTL, outPort))
+    table.insert(flowData.flows, string.format("ip, actions=mod_nw_ttl=%s, output:%s", conf.new_TTL, outPort))
+    table.insert(flowData.flows, string.format("ipv6, actions=mod_nw_ttl=%s, output:%s", conf.new_TTL, outPort))
   end
 
 FeatureConfig.pktClassifier = {
