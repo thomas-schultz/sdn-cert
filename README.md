@@ -7,6 +7,7 @@ OpenFlow Switch certification tool (work in progress)
 	ssh keys for root@loadgen_host
 	link moongen to ./build/MoonGen in moongen directory
 	LaTeX: texlive + pdfplots, csvsimple
+	for example apt-get install texlive-base texlive-latex-extra
 
 # start:	
 	make changes in settings.conf
