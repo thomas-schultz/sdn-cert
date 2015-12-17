@@ -28,9 +28,9 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("priority=1, dl_type=%s, actions=set_field:%s->dl_src, output:%s", tostring(Feature.enum.ETH_TYPE.wol), conf.new_SRC_MAC, outPort))
-    table.insert(flowData.flows, string.format("priority=2, ip, actions=set_field:%s->nw_src, output:%s", tostring(Feature.enum.ETH_TYPE.wol), conf.new_SRC_IP4, outPort))
-    --table.insert(flowData.flows, string.format("priority=3, ip, udp, actions=set_field:%s->tp_src, output:%s", Feature.enum.ETH_TYPE.wol, conf.new_SRC_PORT, outPort))
+    table.insert(flowData.flows, string.format("priority=1, dl_type=%s, actions=set_field:%s->dl_src, output:%s", Feature.enum.ETH_TYPE.wol, conf.new_SRC_MAC, outPort))
+    table.insert(flowData.flows, string.format("priority=2, ip, actions=set_field:%s->nw_src, output:%s", conf.new_SRC_IP4, outPort))
+    --table.insert(flowData.flows, string.format("priority=3, ip, udp, actions=set_field:%s->tp_src, output:%s", conf.new_SRC_PORT, outPort))
   end
 
 Feature.modifyPkt = function(pkt, iteration)
