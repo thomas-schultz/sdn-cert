@@ -7,7 +7,7 @@ require "feature_config"
 local Feature = FeatureConfig.new()
 
 Feature.require = "OpenFlow10"
-Feature.state   = "optional"
+Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
