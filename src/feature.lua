@@ -59,6 +59,8 @@ function Feature:runTest()
   local template = path .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
+  -- wait for reset process to finish
+  sleep(1)
   local flowData = ofDev:getFlowData(self)
   ofDev:createAllFiles(flowData, template)
   ofDev:installAllFiles(template, "_ovs-output")

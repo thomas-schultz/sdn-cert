@@ -258,6 +258,8 @@ function Benchmark:run()
     local template = test.output .. "/" .. test:getName()
     local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
     ofDev:reset()
+    -- wait for reset process to finish
+    sleep(1)
     local flowData = ofDev:getFlowData(test)
     ofDev:createAllFiles(flowData, template)
     ofDev:installAllFiles(template, "_ovs-output")
