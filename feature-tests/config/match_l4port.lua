@@ -11,24 +11,27 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-local new_SRC_PORT = 4321
-local new_DST_PORT = 8765
+Feature.config{
+  new_SRC_PORT = 4321,
+  new_DST_PORT = 8765,
+}
+local conf = Feature.settings
 
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, udp, tp_src=" .. Feature.pkt.SRC_PORT .. ", tp_dst=" .. Feature.pkt.DST_PORT .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, udp, tp_src=" .. new_SRC_PORT .. ", tp_dst=" .. new_DST_PORT .. ", actions=DROP")
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=output:%s", Feature.pkt.SRC_PORT, Feature.pkt.DST_PORT, outPort))
+    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=DROP", conf.new_SRC_PORT, conf.new_DST_PORT))
   end
 
-Feature.config{
-} 
+
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.pkt.SRC_PORT = new_SRC_PORT
-    Feature.pkt.DST_PORT = new_DST_PORT
+    pkt.SRC_PORT = conf.new_SRC_PORT
+    pkt.DST_PORT = conf.new_DST_PORT
   end
   
   

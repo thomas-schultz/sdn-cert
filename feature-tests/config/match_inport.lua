@@ -16,16 +16,17 @@ Feature.ofArgs  = "$link=1 $link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.flowEntries = function(flowData, inPort, outPort)
-    table.insert(flowData.flows, "in_port=" .. inPort .. ", actions=output:" .. outPort)
-    table.insert(flowData.flows, "in_port=" .. outPort .. ", actions=DROP")
-  end
-
 Feature.config{
   firstRxDev    = 1,
   txIterations  = 2,
   learnFrames   = 0,
-} 
+}
+local conf = Feature.settings
+
+Feature.flowEntries = function(flowData, inPort, outPort)
+    table.insert(flowData.flows, string.format("in_port=%s, actions=output:%s", inPort, outPort))  
+    table.insert(flowData.flows, string.format("in_port=%s, actions=DROP", outPort))  
+  end
   
 Feature.modifyPkt = function(pkt, iteration)
     Feature.set("txDev", 2)

@@ -11,22 +11,23 @@ Feature.state   = "recommended"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-local new_TTL = Feature.enum.TTL.min
+Feature.config{
+  new_TTL = Feature.enum.TTL.min,
+} 
+local conf = Feature.settings
 
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, actions=mod_nw_ttl=" .. new_TTL .. ", ALL")
-    table.insert(flowData.flows, "ipv6, actions=mod_nw_ttl=" .. new_TTL .. ", ALL")
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("ip, actions=mod_nw_ttl=%s, actions=output:%s", conf.new_TTL, outPort))
+    table.insert(flowData.flows, string.format("ipv6, actions=mod_nw_ttl=%s, actions=output:%s", conf.new_TTL, outPort))
   end
 
-Feature.config{
-} 
-
 FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.ttl == new_TTL) end
+    function(pkt) return (pkt.ttl == conf.new_TTL) end
   }
 
 return Feature

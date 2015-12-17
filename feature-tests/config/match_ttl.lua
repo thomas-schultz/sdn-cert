@@ -11,22 +11,23 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.new_TTL = FeatureConfig.enum.TTL.min
-
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, nw_ttl=" .. Feature.pkt.TTL .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_ttl=" .. Feature.new_TTL .. ", actions=DROP")
-  end
-
 Feature.config{
-} 
+  new_TTL = FeatureConfig.enum.TTL.min,
+}
+local conf = Feature.settings
+
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=output:%s", Feature.pkt.TTL, outPort))
+    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=DROP", conf.new_TTL))  
+  end
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.pkt.TTL = Feature.new_TTL
+    pkt.TTL = conf.new_TTL
   end
   
   
