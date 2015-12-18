@@ -18,19 +18,19 @@ Feature.loadGen = "moongen"
 -- list of files to copy to the load generator host, use space as separator or specify as table
 Feature.files   = "feature_test.lua"
 -- argument list for the load generator, use space as separator or specify as table
-Feature.lgArgs  = "$file=1 $name $links"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
 -- argument list which will be mapped and than passed to the flowEntries function, can be omitted
-Feature.ofArgs  = "$link*"
+Feature.ofArgs  = "$link=2"
 
 -- sepcifies the packet, either use the default, or define your own
-Feature.pkt  = getPkt(FeatureConfig.defaultPkt)
+Feature.pkt  = Feature.getDefaultPkt()
 -- modifing certain fields of the packets is possible 
 Feature.pkt.ETH_TYPE = Feature.enum.ETH_TYPE.ip6
 
--- allowing for specific settings, default values can be overwritten, may be omitted
+-- allows to specify settings, default values can be overwritten, may be omitted
 -- can be used to store feature relevant information, like IPs, ports etc
-Feature.config{
-  iterations = 1,
+Feature.settings = {
+  txIterations = 1,
   new_ETH_TYPE = Feature.enum.ETH_TYPE.wol,
   new_SRC_IP4 = "10.0.2.1",
   new_DST_IP4 = "10.0.2.2",
@@ -39,13 +39,12 @@ Feature.config{
 local conf = Feature.settings
 
 -- creating of the flow entries in flowData = { flows, groups, meters }
-Feature.flowEntries = function(flowData, ...)
-    table.insert(flowData.flows, "actions=DROP")
+Feature.flowEntries = function(flowData, link2)
+    table.insert(flowData.flows, "actions=output:" .. link2)
     table.insert(flowData.groups, "group_id=1,type=all,bucket=DROP")
     table.insert(flowData.meters, "meter=1,kbps,burst,band=type=drop,rate=1000")
   end
  
-
 -- modify function, called after every iteration, ignored if only one pass is used, may be omitted  
 Feature.modifyPkt = function(pkt, iteration)
     pkt.ETH_TYPE = conf.new_ETH_TYPE -- simplified version of 'Feature.settings.new_ETH_TYPE'
