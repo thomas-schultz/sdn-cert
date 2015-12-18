@@ -29,7 +29,7 @@ Feature.flowEntries = function(flowData, inPort, outPort)
   end
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.set("txDev", 2)
+    Feature:set("txDev", 2)
   end
 
 

@@ -53,6 +53,11 @@ FeatureConfig.getDefaultSettings = function()
   return _settings
 end
 
+-- returns copy of the default settings
+function FeatureConfig:set(key, value)
+  self.settings[key] = value
+end
+
 -- default packet
 FeatureConfig.defaultPkt = {
     ETH_TYPE  = FeatureConfig.enum.ETH_TYPE.ip4,
