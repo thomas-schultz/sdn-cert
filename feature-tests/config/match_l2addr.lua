@@ -17,6 +17,7 @@ Feature.ofArgs  = "$link=2"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.config{
+  xIterations = 2,
   new_SRC_MAC = "aa:00:00:00:00:a2",
   new_DST_MAC = "aa:aa:aa:aa:aa:aa",
 }

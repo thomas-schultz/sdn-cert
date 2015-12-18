@@ -17,6 +17,7 @@ Feature.ofArgs  = "$link=2"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.config{
+  xIterations = 2,
   new_SRC_PORT = 4321,
   new_DST_PORT = 8765,
 }

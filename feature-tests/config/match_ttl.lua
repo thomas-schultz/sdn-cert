@@ -17,6 +17,7 @@ Feature.ofArgs  = "$link=2"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.config{
+  xIterations = 2,
   new_TTL = FeatureConfig.enum.TTL.min,
 }
 local conf = Feature.settings
