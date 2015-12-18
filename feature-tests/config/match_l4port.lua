@@ -16,11 +16,11 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config{
+Feature.config(Feature, {
   xIterations = 2,
   new_SRC_PORT = 4321,
   new_DST_PORT = 8765,
-}
+})
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

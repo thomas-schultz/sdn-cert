@@ -18,13 +18,13 @@ Feature.pkt = Feature.getDefaultPkt()
 Feature.pkt.ETH_TYPE = Feature.enum.ETH_TYPE.wol
 Feature.pkt.PROTO = Feature.enum.PROTO.undef
 
-Feature.config{
+Feature.config(Feature, {
   txIterations = 2,
   desiredCtr = 2,
   new_SRC_MAC = "aa:aa:aa:aa:aa:aa",
   new_SRC_IP4 = "10.0.2.1",
   --local new_SRC_PORT = 4321,
-} 
+})
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

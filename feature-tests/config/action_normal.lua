@@ -20,7 +20,7 @@ Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, "priority=0, actions=DROP")
   end
 
-Feature.config{
+Feature.config(Feature, {
 }
 
 return Feature

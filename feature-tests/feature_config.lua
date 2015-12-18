@@ -47,8 +47,8 @@ FeatureConfig.settings = {
   }
 
 -- append given settings to default values    
-FeatureConfig.config = function(settings)
-    for k,v in pairs(settings) do FeatureConfig.settings[k] = v end
+FeatureConfig.config = function(feature, settings)
+    for k,v in pairs(settings) do feature.settings[k] = v end
   end
  
 -- overrides given settings concrete values    

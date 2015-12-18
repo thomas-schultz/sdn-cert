@@ -16,10 +16,10 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config{
+Feature.config(Feature, {
   new_SRC_MAC = "aa:00:00:00:00:a2",
   new_DST_MAC = "aa:aa:aa:aa:aa:aa",
-}
+})
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

@@ -16,11 +16,11 @@ Feature.ofArgs  = "$link=1 $link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config{
+Feature.config(Feature, {
   firstRxDev    = 1,
   txIterations  = 2,
   learnFrames   = 0,
-}
+})
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, inPort, outPort)
