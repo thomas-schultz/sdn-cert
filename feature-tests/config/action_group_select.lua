@@ -27,9 +27,6 @@ Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, "actions=group:1")
   end
 
-Feature.config(Feature, {
-}
-
 Feature.pktClassifier = {
     function(pkt) return (pkt.src_ip == conf.new_SRC_IP4 and pkt.dst_ip ~= conf.new_DST_IP4) end,
     function(pkt) return (pkt.src_ip ~= conf.new_SRC_IP4 and pkt.dst_ip == conf.new_DST_IP4) end,
