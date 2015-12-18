@@ -22,9 +22,9 @@ function Feature:readConfig()
     self.disabled = true
     return
   end
-  local config = require(self.name)
-  self.config = config
-  self.settings = config.settings
+  local feature = require(self.name)
+  self.config = feature
+  self.settings = table.deepcopy(feature.settings)
 
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())
