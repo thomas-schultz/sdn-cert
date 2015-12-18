@@ -28,7 +28,7 @@ Feature.flowEntries = function(flowData, outPort)
   end
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.pkt.PROTO = Feature.new_PROTO
+    Feature.pkt.PROTO = conf.new_PROTO
   end
   
 return Feature
