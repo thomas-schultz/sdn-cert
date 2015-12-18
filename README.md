@@ -42,7 +42,8 @@ OpenFlow Switch certification tool (work in progress)
 		moongen scripts: invidual scripts for generating and evaluating the result
 			
 # Feature-Test
-	uses nearly the same structure as benchmarks, but without Layer 1
+	Layer 1:
+		feature-test/feature_list.cfg: List of feature-tests
 	Layer 2:
 		stored in feature-tests/config/<name>.lua
 		See feature-tests/feature_template.lua for details
