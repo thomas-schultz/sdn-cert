@@ -23,4 +23,4 @@ Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=FLOOD")
   end
 
-return setmetatable({}, Feature)
+return Feature

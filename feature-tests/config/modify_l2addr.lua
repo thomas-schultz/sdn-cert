@@ -30,4 +30,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.src_mac == conf.new_SRC_MAC and pkt.dst_mac == conf.new_DST_MAC) end
   }
 
-return setmetatable({}, Feature)
+return Feature

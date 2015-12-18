@@ -30,4 +30,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.ttl == conf.new_TTL) end
   }
 
-return setmetatable({}, Feature)
+return Feature

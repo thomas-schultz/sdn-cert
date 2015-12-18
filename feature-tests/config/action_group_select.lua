@@ -37,4 +37,4 @@ Feature.evalCounters = function(ctrs, batch, threshold)
            (not Feature.eval(ctrs[1],batch,threshold) and Feature.eval(ctrs[2],batch,threshold))
   end
 
-return setmetatable({}, Feature)
+return Feature
