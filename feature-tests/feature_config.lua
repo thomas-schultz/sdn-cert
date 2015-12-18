@@ -30,7 +30,7 @@ FeatureConfig.enum = {
   }
   
 -- default settings
-FeatureConfig.dftSettings = {
+FeatureConfig.defaultSettings = {
     pktSize       = 80,       -- default packet size in bytes, without CRC
     bufSize       = 32,       -- number of packets in one buffer
     loops         = 1,        -- loop count, each is sending bufSize packets
@@ -45,6 +45,13 @@ FeatureConfig.dftSettings = {
     ctrType       = "any",    -- counter type specified in logicalOps
     desiredCtr    = 1.0,      -- factor for received packet, applies to batch size (bufSize*loops)
   }
+
+-- returns copy of the default settings
+FeatureConfig.getDefaultSettings = function()
+  local _settings = {}
+  for k,v in pairs(FeatureConfig.defaultSettings) do _settings[k] = v end
+  return _settings
+end
 
 -- default packet
 FeatureConfig.defaultPkt = {

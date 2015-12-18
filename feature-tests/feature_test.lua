@@ -35,7 +35,8 @@ end
 
 function importFeature(name)
   feature = require(name)
-  settings = feature.settings
+  settings = feature.getDefaultSettings()
+  for k,v in pairs(feature.settings) do settings[k] = v end
   settings.batchSize = settings.bufSize * settings.loops
 end
 

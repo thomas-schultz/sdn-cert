@@ -24,7 +24,7 @@ function Feature:readConfig()
   end
   local feature = require(self.name)
   self.config = feature
-  self.settings = feature.dftSettings
+  self.settings = table.deepcopy(feature.defaultSettings)
   self.settings = table.deepcopy(feature.settings, self.settings)
 
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
