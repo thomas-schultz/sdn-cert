@@ -264,7 +264,7 @@ function featureTxSlave(featureName, txDevs, ports)
     local mempool = memory.createMemPool(function(buf)
         fillPacket(buf, txPkt, settings.pktSize)
       end)    
-    txCtrs[settings.txDev] = stats:newDevTxCounter(txDevs[settings.txDev], "plain") 
+    txCtrs[txPkt.TX_DEV] = stats:newDevTxCounter(txDevs[txPkt.TX_DEV], "plain") 
       
     -- start actual feature traffic
     local txBuf = mempool:bufArray(settings.bufSize)
@@ -281,9 +281,9 @@ function featureTxSlave(featureName, txDevs, ports)
       elseif (txPkt.PROTO == feature.enum.PROTO.tcp) then
         txBuf:offloadTcpChecksums(not ip6)
       end
-      txQueues[settings.txDev]:send(txBuf)
+      txQueues[txPkt.TX_DEV]:send(txBuf)
     end
-    txCtrs[settings.txDev]:finalize()
+    txCtrs[txPkt.TX_DEV]:finalize()
     feature.modifyPkt(txPkt, n)
   end
   io.close(txDump)

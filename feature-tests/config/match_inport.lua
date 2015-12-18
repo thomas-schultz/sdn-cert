@@ -17,9 +17,10 @@ Feature.ofArgs  = "$link=1 $link=2"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.settings = {
-  firstRxDev    = 1,
   txIterations  = 2,
   learnFrames   = 0,
+  firstRxDev    = 1,
+  new_TX_DEV = 2,
 }
 local conf = Feature.settings
 
@@ -29,7 +30,7 @@ Feature.flowEntries = function(flowData, inPort, outPort)
   end
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature:set("txDev", 2)
+    pkt.TX_DEV = conf.new_TX_DEV
   end
 
 

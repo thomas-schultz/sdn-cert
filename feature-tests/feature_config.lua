@@ -40,7 +40,6 @@ FeatureConfig.defaultSettings = {
     learnFrames   = 2,        -- number of packets, that will be generated for learning
     timeout       = 2,        -- timeout in seconds until the receiving loop is stopped
     txIterations  = 1,        -- number of sending steps, modifyPkt is called after each, nil means number of devices
-    txDev         = 1,        -- number of sending devices
     firstRxDev    = 2,        -- first device for receiving
     ctrType       = "any",    -- counter type specified in logicalOps
     desiredCtr    = 1.0,      -- factor for received packet, applies to batch size (bufSize*loops)
@@ -53,13 +52,9 @@ FeatureConfig.getDefaultSettings = function()
   return _settings
 end
 
--- returns copy of the default settings
-function FeatureConfig:set(key, value)
-  self.settings[key] = value
-end
-
 -- default packet
 FeatureConfig.defaultPkt = {
+    TX_DEV    = 1,
     ETH_TYPE  = FeatureConfig.enum.ETH_TYPE.ip4,
     SRC_MAC   = "aa:00:00:00:00:a1",
     DST_MAC   = "ff:ff:ff:ff:ff:ff", 
