@@ -23,8 +23,8 @@ Feature.settings = {
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, nw_proto=%s, actions=DROP", Feature.pkt.PROTO)
-    table.insert(flowData.flows, string.format("ip, nw_proto=%s, actions=output:%s", conf.new_PROTO, outPort)
+    table.insert(flowData.flows, string.format("ip, nw_proto=%s, actions=DROP", Feature.pkt.PROTO))
+    table.insert(flowData.flows, string.format("ip, nw_proto=%s, actions=output:%s", conf.new_PROTO, outPort))
   end
   
 Feature.modifyPkt = function(pkt, iteration)
