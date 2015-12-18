@@ -24,7 +24,7 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.groups, string.format("group_id=1, type=all, bucket=mod_nw_src=%s,actions=output:%s, bucket=mod_nw_dst=%s, actions=output:%s", conf.new_SRC_IP4, outPort, conf.new_DST_IP4, outPort))
+    table.insert(flowData.groups, string.format("group_id=1, type=all, bucket=mod_nw_src=%s,output:%s, bucket=mod_nw_dst=%s,output:%s", conf.new_SRC_IP4, outPort, conf.new_DST_IP4, outPort))
     table.insert(flowData.flows, "actions=group:1")
   end
 
