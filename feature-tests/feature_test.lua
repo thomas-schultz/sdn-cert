@@ -250,7 +250,7 @@ function featureTxSlave(featureName, txDevs, ports)
       local learnBuf = mempool:bufArray(learnFrames)
       print("Sending " .. tostring(learnFrames) ..  " learning Frames in " .. learnTime .. " msec")
       learnBuf:alloc(settings.pktSize)
-      txQueues[txPkt.TX_DEV]:send(learnBuf)
+      txQueues[learnPkt.TX_DEV]:send(learnBuf)
       feature.modifyPkt(learnPkt, n)
     end
     dpdk.sleepMillis(learnTime)
