@@ -17,7 +17,7 @@ Feature.ofArgs  = "$link=2"
 Feature.pkt = Feature.getDefaultPkt()
 
 Feature.settings = {
-  xIterations = 2,
+  txIterations = 2,
   new_PROTO = Feature.enum.PROTO.tcp,
 }
 local conf = Feature.settings
