@@ -28,4 +28,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.ttl == Feature.pkt.TTL - 1) end,
   }
 
-return Feature
+return setmetatable({}, Feature)

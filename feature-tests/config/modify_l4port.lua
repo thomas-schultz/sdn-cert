@@ -31,4 +31,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.src_port == conf.new_SRC_PORT and pkt.dst_port == conf.new_DST_PORT) end
   }
 
-return Feature
+return setmetatable({}, Feature)

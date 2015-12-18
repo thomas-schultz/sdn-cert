@@ -33,4 +33,4 @@ Feature.modifyPkt = function(pkt, iteration)
     pkt.DST_IP4 = conf.new_DST_IP4
   end
   
-return Feature
+return setmetatable({}, Feature)

@@ -35,4 +35,4 @@ Feature.modifyPkt = function(pkt, iteration)
   end
   
   
-return Feature
+return setmetatable({}, Feature)

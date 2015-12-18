@@ -27,4 +27,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.devId == Feature.settings.txDev) end,
   }
 
-return Feature
+return setmetatable({}, Feature)

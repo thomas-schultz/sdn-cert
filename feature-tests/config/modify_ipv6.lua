@@ -31,4 +31,4 @@ Feature.pktClassifier = {
     function(pkt) return (pkt.src_ip == conf.new_SRC_IP6 and pkt.dst_ip == conf.new_DST_IP6) end,
   }
 
-return Feature
+return setmetatable({}, Feature)
