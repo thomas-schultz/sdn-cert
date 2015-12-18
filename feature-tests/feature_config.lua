@@ -48,6 +48,7 @@ FeatureConfig.settings = {
 
 -- append given settings to default values    
 FeatureConfig.config = function(feature, settings)
+  if (not feature or not settings) then return end
     for k,v in pairs(settings) do feature.settings[k] = v end
   end
  
