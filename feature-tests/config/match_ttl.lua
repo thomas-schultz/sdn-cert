@@ -22,8 +22,8 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=output:%s", Feature.pkt.TTL, outPort))
-    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=DROP", conf.new_TTL))  
+    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=DROP", Feature.pkt.TTL))  
+    table.insert(flowData.flows, string.format("ip, nw_ttl=%s, actions=output:%s", conf.new_TTL, outPort))
   end
   
 Feature.modifyPkt = function(pkt, iteration)

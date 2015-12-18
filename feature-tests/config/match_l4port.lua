@@ -23,8 +23,8 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=output:%s", Feature.pkt.SRC_PORT, Feature.pkt.DST_PORT, outPort))
-    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=DROP", conf.new_SRC_PORT, conf.new_DST_PORT))
+    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=DROP", Feature.pkt.SRC_PORT, Feature.pkt.DST_PORT))
+    table.insert(flowData.flows, string.format("ip, udp, tp_src=%s, tp_dst=%s, actions=output:%s", conf.new_SRC_PORT, conf.new_DST_PORT, outPort))
   end
 
 

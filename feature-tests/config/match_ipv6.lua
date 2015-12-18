@@ -25,8 +25,8 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("ip6, ipv6_src=%s, ipv6_dst=%s, actions=output:%s", Feature.pkt.SRC_IP6, Feature.pkt.DST_IP6, outPort))
-    table.insert(flowData.flows, string.format("ip6, ipv6_src=%s, ipv6_dst=%s, actions=DROP", conf.new_SRC_IP6, conf.new_DST_IP6))
+    table.insert(flowData.flows, string.format("ip6, ipv6_src=%s, ipv6_dst=%s, actions=DROP", Feature.pkt.SRC_IP6, Feature.pkt.DST_IP6))
+    table.insert(flowData.flows, string.format("ip6, ipv6_src=%s, ipv6_dst=%s, actions=output:%s", conf.new_SRC_IP6, conf.new_DST_IP6, outPort))
   end
 
 Feature.modifyPkt = function(pkt, iteration)

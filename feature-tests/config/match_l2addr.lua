@@ -23,8 +23,8 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=output:%s", Feature.pkt.SRC_MAC, Feature.pkt.DST_MAC, outPort))
-    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=DROP", conf.new_SRC_MAC, conf.new_DST_MAC))
+    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=DROP", Feature.pkt.SRC_MAC, Feature.pkt.DST_MAC))
+    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
   end
   
 Feature.modifyPkt = function(pkt, iteration)

@@ -23,9 +23,9 @@ Feature.config{
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)
-    table.insert(flowData.flows, string.format("dl_type=%s, actions=output:%s", Feature.enum.ETH_TYPE.ip4, outPort))
-    table.insert(flowData.flows, string.format("dl_type=%s, actions=output:%s", Feature.enum.ETH_TYPE.ip6, outPort)) 
-    table.insert(flowData.flows, string.format("dl_type=%s, actions=DROP", conf.new_ETH_TYPE)) 
+    table.insert(flowData.flows, string.format("dl_type=%s, actions=DROP", Feature.enum.ETH_TYPE.ip4, outPort))
+    table.insert(flowData.flows, string.format("dl_type=%s, actions=DROP", Feature.enum.ETH_TYPE.ip6, outPort)) 
+    table.insert(flowData.flows, string.format("dl_type=%s, actions=output:%s", conf.new_ETH_TYPE, outPort))
   end
 	
 Feature.modifyPkt = function(pkt, iteration)
