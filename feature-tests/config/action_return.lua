@@ -24,7 +24,7 @@ Feature.flowEntries = function(flowData)
   end
 
 Feature.pktClassifier = {
-    function(pkt) return (pkt.devId == Feature.settings.txDev) end,
+    function(pkt) return (pkt.devId == pkt.TX_DEV) end,
   }
 
 return Feature
