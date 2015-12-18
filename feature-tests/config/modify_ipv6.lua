@@ -17,10 +17,10 @@ Feature.ofArgs  = "$link=2"
 Feature.pkt = Feature.getDefaultPkt()
 Feature.pkt.ETH_TYPE = Feature.enum.ETH_TYPE.ip6
 
-Feature.config(Feature, {
+Feature.settings = {
   new_SRC_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0001",
   new_DST_IP6 = "fc00:0000:0000:0000:0000:0000:0002:0002",
-})
+}
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

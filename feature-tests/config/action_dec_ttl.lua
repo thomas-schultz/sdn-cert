@@ -16,8 +16,8 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
-})
+Feature.settings = {
+}
 
 Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, string.format("ip, actions=dec_ttl, output:%s", outPort))

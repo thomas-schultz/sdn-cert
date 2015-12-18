@@ -17,8 +17,8 @@ table.flatten = function(t, _t)
   return _t
 end
 
-table.deepcopy = function(t)
-  local _t = {}
+table.deepcopy = function(t, _t)
+  local _t = _t or {}
   for k,v in pairs(t) do
     if (type(v) == 'table') then _t[k] = table.deepcopy(v)
     else _t[k] = v end          

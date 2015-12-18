@@ -15,9 +15,9 @@ Feature.lgArgs  = "$file=1 $name $link=1"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   firstRxDev = 1,
-})
+}
 
 Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=output:IN_PORT")

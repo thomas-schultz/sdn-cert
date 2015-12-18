@@ -16,10 +16,10 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   new_SRC_IP4 = "10.0.2.1",
   new_DST_IP4 = "10.0.2.2",
-})
+}
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

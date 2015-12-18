@@ -15,9 +15,9 @@ Feature.lgArgs  = "$file=1 $name $link=1 $link=2 $link=3"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   ctrType = "all",
-})
+}
 
 Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=FLOOD")

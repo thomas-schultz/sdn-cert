@@ -16,10 +16,10 @@ Feature.ofArgs  = "$link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   txIterations = 2,
   new_ETH_TYPE = Feature.enum.ETH_TYPE.wol,
-})
+}
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

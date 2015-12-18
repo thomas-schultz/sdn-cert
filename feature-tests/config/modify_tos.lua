@@ -16,9 +16,9 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   new_TOS = Feature.enum.TOS.mod,
-})
+}
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

@@ -16,9 +16,9 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   new_TTL = Feature.enum.TTL.min,
-})
+}
 local conf = Feature.settings
 
 Feature.flowEntries = function(flowData, outPort)

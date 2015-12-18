@@ -16,9 +16,9 @@ Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.config(Feature, {
+Feature.settings = {
   desiredCtr = 2,
-})
+}
 
 Feature.flowEntries = function(flowData, outPort)
     table.insert(flowData.flows, string.format("actions=output:%s,%s", outPort, outPort))
