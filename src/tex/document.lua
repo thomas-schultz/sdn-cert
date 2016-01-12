@@ -84,13 +84,13 @@ end
 
 function TexDocument:generatePDF(path, file)
   if (not settings:doRunTex()) then
-    logger.debug("Skipping pdflatex")
+    logger.debug("Skipping " .. global.tex)
     return
   end
   if (not self.file or not self.path) then self:saveToFile(path, file) end
   logger.print("Saving PDF to " .. self.file .. ".pdf",1)
   local cmd = CommandLine.create("cd " .. self.path)
-  cmd:addCommand("pdflatex " .. self.file .. ".tex")
+  cmd:addCommand(global.tex " " .. self.file .. ".tex")
   if (self.compiletwice) then
     cmd:addCommand("pdflatex " .. self.file .. ".tex")
   end

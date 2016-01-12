@@ -5,6 +5,57 @@
 Statistic = {}
 
 
+function Statistic.readHistogram(hist, resolution)
+  local occurrence = {}
+  local times = {}
+  local min, max
+  if (not hist) then return occurrence end
+  local dataFile = io.open(hist, "r")
+  if (not dataFile) then return occurrence end
+  while (true) do
+    local line = dataFile:read()
+    if (line == nil) then break end
+    local item = string.split(line, ",")
+    local time, value = Float.tonumber(item[1]), item[2]
+    occurrence[time] = value
+    table.insert(times, time)
+    min = math.min(min or time, time)
+    max = math.max(max or time, time)
+  end
+  io.close(dataFile)
+  table.sort(times)
+  local collapsedOccurrence = {}
+  local collapsedTimes = {}
+  local stepSize = (max - min) / (resolution or 2048)
+  local step = min
+  local time, count = min, occurrence[min]
+  local avgTime = 0
+  for _,t in pairs(times) do
+    local v = occurrence[t]
+    if (t <= step + stepSize) then
+      time = time + v*t
+      count = count + v
+    else
+      local avgTime = (time / count)
+      collapsedOccurrence[avgTime] = count
+      table.insert(collapsedTimes, avgTime)
+      step = t
+      time = v*t
+      count = v
+    end
+  end
+  collapsedOccurrence[avgTime] = count
+  local result = {}
+  table.sort(collapsedTimes)
+  for _,t in pairs(collapsedTimes) do 
+    local line = string.replace(""..t, ",", ".") .. "," ..collapsedOccurrence[t]
+    print(line)
+    table.insert(result, line)
+  end
+  return result
+end
+
+
 function Statistic.sortList(list)
   local sortedList = { }
   for _, value in pairs(list) do
@@ -59,8 +110,8 @@ function Statistic.getMinMax(list)
   for _,value in pairs(list) do
     local value = Float.tonumber(value)
     if (value) then
-      min = math.min(min or value,value)
-      max = math.max(max or value,value)
+      min = math.min(min or value, value)
+      max = math.max(max or value, value)
     end
   end
   return min, max

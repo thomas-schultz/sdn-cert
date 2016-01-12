@@ -102,7 +102,7 @@ local function main()
     Reports.generate(benchmark)
     exit()
   end
-
+  
   Setup.cleanUp()
   benchmark:testFeatures()
   benchmark:sumFeatures()

@@ -1,13 +1,18 @@
 Setup = {}
 Setup.__index = Setup
 
+--------------------------------------------------------------------------------
+--  Class for managing the test setup
+--------------------------------------------------------------------------------
 
+-- string matches of error messages
 local error_messages = {
   general_fail     = "failes",
   failed_socket   = "failed to connect to socket",
   moongen_hugepage  = "Cannot get hugepage information",
   moongen_bash      = "bash: ./moongen: No such file or directory",
   }
+-- general string matches
 local string_matches = {
   openflow_port     = "port",
   openflow_port_delm = ":",
@@ -16,7 +21,7 @@ local string_matches = {
   moongen_build      = "Built target MoonGen",
   }
 
--- creates folder if not existent
+--- Creates folder if not existent
 -- set remote true, if not local
 function Setup.createFolder(name, isLocal)
   if (isLocal == nil) then isLocal = true end
@@ -25,7 +30,7 @@ function Setup.createFolder(name, isLocal)
   cmd:forceExcute()
 end
 
--- creates parent folder of a given file or directory
+--- Creates parent folder of a given file or directory
 -- set remote true, if not local
 function Setup.createParentFolder(file, isLocal)
   if (isLocal == nil) then isLocal = true end
@@ -35,11 +40,12 @@ function Setup.createParentFolder(file, isLocal)
   cmd:forceExcute()
 end
 
-
+--- Cleans up the test environment. Local and remote paths are created
+-- if not existent and their content is deleted 
 function Setup.cleanUp()
   logger.printBar()
   logger.printlog("Cleaning up testing system", 0, global.headline1)
-  -- clean remote
+  --clean remote
   Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.results, settings:isLocal())
   Setup.createFolder(settings:get(global.loadgenWd) .. "/" .. global.scripts, settings:isLocal())
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create() 
@@ -47,19 +53,20 @@ function Setup.cleanUp()
   cmd:addCommand("rm -f " .. global.results .. "/*")
   cmd:addCommand("rm -f " .. global.scripts .. "/*")
   cmd:execute()
-  -- clean local 
+  --clean local 
   Setup.createFolder(settings:getLocalPath() .. "/" .. global.results)
   local cmd = CommandLine.create()
   cmd:addCommand("rm -rf " .. settings:getLocalPath() .. "/" .. global.results .. "/*")
   cmd:execute(settings.config.verbose)
-  -- reset OpenFlow dev
+  --reset OpenFlow dev
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort])
   ofDev:reset()
   logger.log("Step complete")
   logger.printBar()
 end
 
-
+--- Archives the content of the results and the input files. The archive
+-- is stored in the archive folder with a time-stamped name.
 function Setup.archive()
   logger.printlog("Archive current results to " .. settings:getLocalPath() .. "/" .. global.archive .. "/" .. logger.getTimestamp("file") .. ".tar", nil, global.headline1)
   local files = "./" .. global.logFile .. " ./" .. global.results .. "/* ./" .. global.benchmarkCfgs .. "/*"
@@ -69,6 +76,8 @@ function Setup.archive()
   logger.printBar()
 end
 
+--- Installs MoonGen on the measurement host. For thi spurpose, a script is
+-- copied and executed, which then downloads and builds MoonGen
 function Setup.setupMoongen()
   local cmd = nil
   if (settings:isLocal()) then cmd = CommandLine.create(settings:getLocalPath() .. "/tools/setup_MoonGen.sh " .. settings:get(global.loadgenWd) .. " " .. global.moongenRepo) 
@@ -79,6 +88,7 @@ function Setup.setupMoongen()
   exit()
 end
 
+--- Kills all running instances of MoonGen
 function Setup.killMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand("pkill -f moongen")
@@ -86,6 +96,7 @@ function Setup.killMoongen()
   cmd:execute()
 end
 
+--- Initializes MoonGen.
 function Setup.initMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
   cmd:addCommand(settings:get(global.loadgenWd) .. "/MoonGen/build.sh")
@@ -99,6 +110,8 @@ function Setup.initMoongen()
   exit()
 end
 
+--- Checks if the configured OpenFlow Device is reachable and displays
+-- all available port numbers of it.
 function Setup.checkOpenFlow()
   logger.printBar()
   logger.printlog("Checking test setup", 0, global.headline1)
@@ -138,6 +151,8 @@ function Setup.checkOpenFlow()
   end 
 end
 
+--- Checks if MoonGen is working properly. Displays a list of
+-- all available device numbers.
 function Setup.checkMoongen()
   Setup.killMoongen()
   local cmd = CommandLine.getRunInstance(settings:isLocal()).create()
@@ -172,6 +187,7 @@ function Setup.checkMoongen()
   end
 end
 
+--- Checks if the test setup is ready with checkOpenFlow() and checkMoongen().
 function Setup.isReady()
   local of = Setup.checkOpenFlow()
   if (not of and not settings.config.simulate) then logger.print("Make sure the OpenFlow device is configured appropriate and that the settings file contains valid values!") end
