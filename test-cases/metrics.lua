@@ -32,7 +32,7 @@ Metrics.config = {
     getData = function(test)
         local latency = FileContent.create("latency")
         local hist = Statistic.readHistogram(test:getOutputPath() .. "test_" .. test:getId() .. "_latency.csv", 2048)
-        latency:addCsvData(hist)
+        latency:addCsvList(hist)
         local rx = FileContent.create("rx")
         rx:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_load_rx.csv", false)
         local tx = FileContent.create("tx")
