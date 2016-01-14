@@ -35,7 +35,8 @@ end
 
 function importFeature(name)
   feature = require(name)
-  settings = feature.settings
+  settings = feature.getDefaultSettings()
+  for k,v in pairs(feature.settings) do settings[k] = v end
   settings.batchSize = settings.bufSize * settings.loops
 end
 
@@ -126,24 +127,24 @@ function createPacket(buf, ethType, proto)
   return buf:getEthPacket()
 end
 
-function fillPacket(buf, len)
-  local pkt = createPacket(buf, feature.pkt.ETH_TYPE, feature.pkt.PROTO)
+function fillPacket(buf, prototype, len)
+  local pkt = createPacket(buf, prototype.ETH_TYPE, prototype.PROTO)
   pkt:fill{
-    ethType = feature.pkt.ETH_TYPE,
-    ethSrc  = feature.pkt.SRC_MAC,
-    ethDst  = feature.pkt.DST_MAC,
-    ip4TOS  = feature.pkt.TOS,
-    ip4TTL  = feature.pkt.TTL,
-    ip4Src  = feature.pkt.SRC_IP4,
-    ip4Dst  = feature.pkt.DST_IP4, 
-    ip6TrafficClass = feature.pkt.TOS,
-    ip6TTL  = feature.pkt.TTL,
-    ip6Src  = feature.pkt.SRC_IP6,
-    ip6Dst  = feature.pkt.DST_IP6,
-    udpSrc  = feature.pkt.SRC_PORT,
-    udpDst  = feature.pkt.DST_PORT,
-    tcpSrc  = feature.pkt.SRC_PORT,
-    tcpDst  = feature.pkt.DST_PORT,
+    ethType = prototype.ETH_TYPE,
+    ethSrc  = prototype.SRC_MAC,
+    ethDst  = prototype.DST_MAC,
+    ip4TOS  = prototype.TOS,
+    ip4TTL  = prototype.TTL,
+    ip4Src  = prototype.SRC_IP4,
+    ip4Dst  = prototype.DST_IP4, 
+    ip6TrafficClass = prototype.TOS,
+    ip6TTL  = prototype.TTL,
+    ip6Src  = prototype.SRC_IP6,
+    ip6Dst  = prototype.DST_IP6,
+    udpSrc  = prototype.SRC_PORT,
+    udpDst  = prototype.DST_PORT,
+    tcpSrc  = prototype.SRC_PORT,
+    tcpDst  = prototype.DST_PORT,
     pktLength = len
   }
 end
@@ -224,7 +225,7 @@ function retrievePacket(packet, dev, ports)
   return pkt
 end
 
--- Creates fixed UDP packets
+-- Creates fixed packets
 function featureTxSlave(featureName, txDevs, ports)
   importFeature(featureName)
   local txQueues = {}
@@ -237,24 +238,22 @@ function featureTxSlave(featureName, txDevs, ports)
   for i=1,#txDevs do txQueues[i] = txDevs[i]:getTxQueue(0) end
   local txDump = io.open("../results/feature_" .. featureName .. "_tx-dump", "w")
 
-  local learnPkt = feature.getPkt(feature.pkt)
-  local learningFrames = settings.learnFrames or 0
-  if (learningFrames > 0) then 
+  local learnFrames = settings.learnFrames or 0
+  if (learnFrames > 0) then
+    local learnPkt = feature.getPkt(feature.pkt)
+    local learnTime = settings.learnTime or 500
     -- send learning packet for the switch
     for n=1,txSteps do
-      local ip6 = feature.isIPv6(learnPkt)
       local mempool = memory.createMemPool(function(buf)
-          fillPacket(buf, settings.pktSize)
+          fillPacket(buf, learnPkt, settings.pktSize)
         end)
-      local learningFrames = settings.learnFrames or 0
-      local learnBuf = mempool:bufArray(learningFrames)
-      print("Sending " .. tostring(learningFrames) ..  " learning Frames in " .. settings.learnTime .. " msec")
+      local learnBuf = mempool:bufArray(learnFrames)
+      print("Sending " .. tostring(learnFrames) ..  " learning Frames in " .. learnTime .. " msec")
       learnBuf:alloc(settings.pktSize)
-      txQueues[settings.txDev]:send(learnBuf)
+      txQueues[learnPkt.TX_DEV]:send(learnBuf)
       feature.modifyPkt(learnPkt, n)
     end
-    importFeature(featureName)
-    dpdk.sleepMillis(settings.learnTime)
+    dpdk.sleepMillis(learnTime)
   end
 
   -- start actual feature traffic
@@ -263,9 +262,9 @@ function featureTxSlave(featureName, txDevs, ports)
   for n=1,txSteps do
     local ip6 = feature.isIPv6(txPkt)
     local mempool = memory.createMemPool(function(buf)
-        fillPacket(buf, settings.pktSize)
+        fillPacket(buf, txPkt, settings.pktSize)
       end)    
-    txCtrs[settings.txDev] = stats:newDevTxCounter(txDevs[settings.txDev], "plain") 
+    txCtrs[txPkt.TX_DEV] = stats:newDevTxCounter(txDevs[txPkt.TX_DEV], "plain") 
       
     -- start actual feature traffic
     local txBuf = mempool:bufArray(settings.bufSize)
@@ -282,10 +281,10 @@ function featureTxSlave(featureName, txDevs, ports)
       elseif (txPkt.PROTO == feature.enum.PROTO.tcp) then
         txBuf:offloadTcpChecksums(not ip6)
       end
-      txQueues[settings.txDev]:send(txBuf)
+      txQueues[txPkt.TX_DEV]:send(txBuf)
     end
-    txCtrs[settings.txDev]:finalize()
-    feature.modifyPkt(learnPkt, n)
+    txCtrs[txPkt.TX_DEV]:finalize()
+    feature.modifyPkt(txPkt, n)
   end
   io.close(txDump)
 end
@@ -294,7 +293,7 @@ end
 function featureRxSlave(featureName, rxDevs, ports)
   importFeature(featureName)
   local mempool = memory.createMemPool(function(buf)
-    fillPacket(buf, settings.pktSize)
+    fillPacket(buf, feature.pkt, settings.pktSize)
   end)
   local rxBuf = mempool:bufArray()
   local firstRxDev = settings.firstRxDev or 1
@@ -303,13 +302,14 @@ function featureRxSlave(featureName, rxDevs, ports)
   for i=firstRxDev,#rxDevs do rxQueues[i] = rxDevs[i]:getRxQueue(0) end 
   
   --wait until the learning packets are received and discarded
-  local learningFrames = settings.learnFrames or 0
-  if (learningFrames > 0) then 
+  local learnFrames = settings.learnFrames or 0
+  if (learnFrames > 0) then 
     local learnBuf = mempool:bufArray()
-    dpdk.sleepMillis(settings.learnTime)
+    dpdk.sleepMillis(settings.learnTime or 500)
     for i=settings.firstRxDev,#rxDevs do 
       local rx = rxQueues[i]:tryRecv(learnBuf, 0)
-      print("Discarded " .. tostring(rx) .. "/" .. tiostring(learningFrames) .. " learning frames on device " .. tostring(ports[i]))
+      local discard = learnFrames * (settings.txIterations or 1)
+      print("Discarded " .. tostring(rx) .. "/" .. tostring(discard) .. " learning frames on device " .. tostring(ports[i]))
     end
   end
   

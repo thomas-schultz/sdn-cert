@@ -11,20 +11,20 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1"
     
 Feature.pkt = Feature.getDefaultPkt()
+
+Feature.settings = {
+  firstRxDev = 1,
+}
 
 Feature.flowEntries = function(flowData)
     table.insert(flowData.flows, "actions=output:IN_PORT")
   end
 
-Feature.config{
-  firstRxDev = 1,
-} 
-
-FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.devId == Feature.settings.txDev) end,
+Feature.pktClassifier = {
+    function(pkt) return (pkt.devId == Feature.pkt.TX_DEV) end,
   }
 
 return Feature

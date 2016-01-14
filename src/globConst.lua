@@ -3,9 +3,11 @@ Global.__index = Global
 
 global = {}
 
+  --- output style 
   global.headline1 = "bold"
   global.headline2 = "white"
 
+  --- path and file settings
   global.configFile       = "settings.cfg"
   global.featureList      = "feature_list.cfg"
   global.featureFile      = "features.cfg"
@@ -14,33 +16,37 @@ global = {}
   global.featureFolder    = "feature-tests"
   global.tempdir          = "/tmp"
   global.cfgFiletype      = ".cfg"
-  
   global.testLibrary     = "testcase_lib"
   global.featureLibrary  = "feature_config"
   
+  --- MoonGen preferences
   global.moongenRepo      = "https://github.com/emmericp/MoonGen"
   global.ofVersion        = "openflow"
   global.sshTimeOut       = 5
+  global.ofResetTimeOut   = 1
+  global.ofSetupTime      = 2
   
-  -- logger
+  --- LaTeX
+  global.tex = "pdflatex"
+  
+  --- logger file
   global.logFile = "sdn-cert.log"
   
-  -- path settings
+  --- path settings
   global.results = "results"
   global.archive = "archive"
   global.scripts = "scripts"
-  global.timeout = 2
   
-  -- Keywords are stored lower-case and without underscore
+  --- Keywords are stored lower-case and without underscore
   
-  --settings.cfg keywords:
+  --- settings.cfg keywords:
   global.loadgenHost = "loadgenhost"
   global.loadgenWd   = "loadgenwd"
   global.switchIP    = "switchip"
   global.switchPort  = "switchport"
   global.phyLinks    = "links"
   
-  --benchmark keywords
+  --- benchmark keywords
   global.include         = {"include", "import"}
   global.requires        = "require"
   global.prepare         = "prepare"
@@ -53,7 +59,7 @@ global = {}
   global.link            = "link"
   global.state           = "state"
   
-  --special characters
+  --- special characters
   global.ch_var     = "%$"
   global.ch_comment = "#"
   global.ch_equal   = "="

@@ -1,12 +1,18 @@
 CommonTest = {}
 CommonTest.__index = CommonTest
 
+--------------------------------------------------------------------------------
+--  Superclass for arbitrary tests
+--------------------------------------------------------------------------------
+
+--- Creates a new CommonTest.
 function CommonTest.create()
   local self = setmetatable({}, CommonTest)
   return self
 end
 
-
+--- Prints all data from the the configuration. If dump is specified,
+-- the output is written to this file
 function CommonTest.print(config, dump)
   local t = {}
   for key,value in pairs(config) do
@@ -24,7 +30,8 @@ function CommonTest.print(config, dump)
   else logger.print(out) end
 end
 
-
+--- Exports all data from the the configuration. If dump is specified,
+-- the output is written to this file
 function CommonTest.export(config, dump)
   local t = {}
   for key,value in pairs(config) do
@@ -49,6 +56,9 @@ function CommonTest.export(config, dump)
   end
 end
 
+--- Parsing function to read in arguments from a configuration file.
+-- Lists are parsed with commas or spaces. Data can be stored in
+-- existing table t otherwise a new one is created.
 function CommonTest.readInArgs(args, t)
   if (type(args) == 'string') then
     args = string.replaceAll(args, ", ", " ")
@@ -63,6 +73,8 @@ function CommonTest.readInArgs(args, t)
   end
   return t 
 end
+
+--- Maps variables names to their values.
 function CommonTest.mapArgs(test, args, type, asTable, isFeature)
   local asTable = asTable ~= nil and asTable
   local isFeature = isFeature ~= nil and isFeature
@@ -91,6 +103,8 @@ function CommonTest.mapArgs(test, args, type, asTable, isFeature)
   else return line end
 end
 
+--- Returns a list of link-ids from a given configuration string.
+-- Checks if the numbers are possible or exceed the available link count. 
 function CommonTest.getLinks(test, arg, type, isFeature)
   local isLink = string.find(arg, global.link)
   if (not isLink) then return nil end
@@ -103,6 +117,7 @@ function CommonTest.getLinks(test, arg, type, isFeature)
   return string.trim(links)
 end
 
+--- Checks if the numbers are possible or exceed the available link count.
 function CommonTest.checkLinkCount(test, arg, isFeature)
   local msg = "Disabled test"
   if (isFeature) then msg = "Disabled feature" end
@@ -110,12 +125,15 @@ function CommonTest.checkLinkCount(test, arg, isFeature)
   local linkId = tonumber(select(2, string.getKeyValue(arg)))
   if (linkId and linkId > #settings.ports) then
     local msg = msg or "Disabled test"
-    logger.print(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports), "WARN")
+    logger.warn(msg .. " '" .. test:getName() .. "', link number out of range: " .. tostring(linkId) .. " of " .. tostring(#settings.ports))
     test.disabled = true
+    return -1
   end
   return linkId
 end
 
+--- Reads the file-field of the configuration. Checks if the files are
+-- existent in the according path.
 function CommonTest.readInFiles(test, folder, files, isFeature)
   local msg = "Disabled test"
   local files = files or {}
@@ -134,3 +152,5 @@ function CommonTest.readInFiles(test, folder, files, isFeature)
   end
   return files
 end
+
+return CommonTest

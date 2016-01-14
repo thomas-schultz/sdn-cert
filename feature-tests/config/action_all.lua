@@ -1,5 +1,5 @@
 --[[
-  Feature test for flooding packets
+  Feature test for all out-ports packets
 ]]
 
 require "feature_config"
@@ -7,7 +7,7 @@ require "feature_config"
 local Feature = FeatureConfig.new()
 
 Feature.require = "OpenFlow10"
-Feature.state   = "optional"
+Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
@@ -20,7 +20,7 @@ Feature.settings = {
 }
 
 Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "actions=FLOOD")
+    table.insert(flowData.flows, "actions=ALL")
   end
 
 return Feature

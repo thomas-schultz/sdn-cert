@@ -7,6 +7,7 @@ OpenFlow Switch certification tool (work in progress)
 	ssh keys for root@loadgen_host
 	link moongen to ./build/MoonGen in moongen directory
 	LaTeX: texlive + pdfplots, csvsimple
+	for example apt-get install texlive-base texlive-latex-extra
 
 # start:	
 	make changes in settings.conf
@@ -41,7 +42,8 @@ OpenFlow Switch certification tool (work in progress)
 		moongen scripts: invidual scripts for generating and evaluating the result
 			
 # Feature-Test
-	uses nearly the same structure as benchmarks, but without Layer 1
+	Layer 1:
+		feature-test/feature_list.cfg: List of feature-tests
 	Layer 2:
 		stored in feature-tests/config/<name>.lua
 		See feature-tests/feature_template.lua for details

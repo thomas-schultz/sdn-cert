@@ -11,27 +11,26 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
-Feature.ofArgs  = "$link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=1 $link=2"
   	
 Feature.pkt = Feature.getDefaultPkt()
 
-Feature.flowEntries = function(flowData, ...)
-    local action = "ALL"
-    for i,v in pairs({...}) do
-      table.insert(flowData.flows, "in_port=" .. v .. ", actions=" .. action)
-      action = "DROP"
-    end
-  end
+Feature.settings = {
+  txIterations  = 2,
+  learnFrames   = 0,
+  firstRxDev    = 1,
+  new_TX_DEV = 2,
+}
+local conf = Feature.settings
 
-Feature.config{
-  firstRxDev = 1,
-  txIterations = 2,
-  learnFrames = 0,
-} 
+Feature.flowEntries = function(flowData, inPort, outPort)
+    table.insert(flowData.flows, string.format("in_port=%s, actions=output:%s", inPort, outPort))  
+    table.insert(flowData.flows, string.format("in_port=%s, actions=DROP", outPort))  
+  end
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.set("txDev", 2)
+    pkt.TX_DEV = conf.new_TX_DEV
   end
 
 

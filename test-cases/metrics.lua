@@ -31,7 +31,8 @@ Metrics.config = {
     },
     getData = function(test)
         local latency = FileContent.create("latency")
-        latency:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_latency.csv")
+        local hist = Statistic.readHistogram(test:getOutputPath() .. "test_" .. test:getId() .. "_latency.csv", 2048)
+        latency:addCsvData(hist)
         local rx = FileContent.create("rx")
         rx:addCsvFile(test:getOutputPath() .. "test_" .. test:getId() .. "_load_rx.csv", false)
         local tx = FileContent.create("tx")
@@ -48,7 +49,7 @@ Metrics.config = {
         -- TODO get total and los values from csv files
         --loss:add(Graphs.pktLoss(0, 0))
         local hist = TexFigure.create("ht")
-        hist:add(Graphs.histogram({x="latency in [ns]", y="occurrence"}, "latency.csv"))
+        hist:add(Graphs.histogram({x="latency in [$\\mu$s]", y="occurrence"}, "latency.csv"))
         return {mpps, mbps, hist}
     end,
     advanced = function(parameter, testcases, ids)

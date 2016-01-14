@@ -11,22 +11,24 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-local new_TOS = FeatureConfig.enum.TOS.mod
+Feature.settings = {
+  txIterations = 2,
+  new_TOS = FeatureConfig.enum.TOS.mod,
+}
+local conf = Feature.settings
 
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "ip, nw_tos=" .. Feature.pkt.TOS .. ", actions=ALL")
-    table.insert(flowData.flows, "ip, nw_tos=" .. new_TOS .. ", actions=DROP")
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("ip, nw_tos=%s, actions=DROP", Feature.pkt.TOS))
+    table.insert(flowData.flows, string.format("ip, nw_tos=%s, actions=output:%s", conf.new_TOS, outPort))  
   end
-
-Feature.config{
-} 
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.pkt.TOS = new_TOS
+    pkt.TOS = conf.new_TOS
   end
   
   

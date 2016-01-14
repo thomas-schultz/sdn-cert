@@ -29,6 +29,14 @@ function FileContent:addCsvFile(data, noHeader)
   io.close(dataFile)
 end
 
+function FileContent:addCsvList(data)
+  if (not data) then return end
+  self.type = ".csv"
+  for _, line in pairs(data) do
+    table.insert(self.lines, line)
+  end
+end
+
 function FileContent:addCsvLine(line)
   self.type = ".csv"
   if (line) then table.insert(self.lines, line) end

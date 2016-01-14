@@ -11,24 +11,26 @@ Feature.state   = "required"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-local new_SRC_MAC = "aa:00:00:00:00:a2"
-local new_DST_MAC = "aa:aa:aa:aa:aa:aa"
+Feature.settings = {
+  txIterations = 2,
+  new_SRC_MAC = "aa:00:00:00:00:a2",
+  new_DST_MAC = "aa:aa:aa:aa:aa:aa",
+}
+local conf = Feature.settings
 
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "dl_src=" .. Feature.pkt.SRC_MAC .. ", dl_dst=" .. Feature.pkt.DST_MAC .. ", actions=ALL")
-    table.insert(flowData.flows, "dl_src=" .. new_SRC_MAC .. ", dl_dst=" .. new_DST_MAC .. ", actions=DROP")
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=DROP", Feature.pkt.SRC_MAC, Feature.pkt.DST_MAC))
+    table.insert(flowData.flows, string.format("dl_src=%s, dl_dst=%s, actions=output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
   end
-
-Feature.config{
-} 
   
 Feature.modifyPkt = function(pkt, iteration)
-    Feature.pkt.SRC_MAC = new_SRC_MAC 
-    Feature.pkt.DST_MAC = new_DST_MAC
+    pkt.SRC_MAC = conf.new_SRC_MAC 
+    pkt.DST_MAC = conf.new_DST_MAC
   end
   
   

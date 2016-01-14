@@ -11,22 +11,23 @@ Feature.state   = "recommended"
   
 Feature.loadGen = "moongen"
 Feature.files   = "feature_test.lua"
-Feature.lgArgs  = "$file=1 $name $link*"
+Feature.lgArgs  = "$file=1 $name $link=1 $link=2"
+Feature.ofArgs  = "$link=2"
     
 Feature.pkt = Feature.getDefaultPkt()
 
-local new_SRC_MAC = "aa:00:00:00:00:a2"
-local new_DST_MAC = "aa:aa:aa:aa:aa:aa" 
+Feature.settings = {
+  new_SRC_MAC = "aa:00:00:00:00:a2",
+  new_DST_MAC = "aa:aa:aa:aa:aa:aa",
+}
+local conf = Feature.settings
 
-Feature.flowEntries = function(flowData)
-    table.insert(flowData.flows, "actions=mod_dl_src=" .. new_SRC_MAC .. ", mod_dl_dst=" .. new_DST_MAC .. ", ALL")
+Feature.flowEntries = function(flowData, outPort)
+    table.insert(flowData.flows, string.format("actions=mod_dl_src=%s, mod_dl_dst=%s, output:%s", conf.new_SRC_MAC, conf.new_DST_MAC, outPort))
   end
-
-Feature.config{
-} 
  
-FeatureConfig.pktClassifier = {
-    function(pkt) return (pkt.src_mac == new_SRC_MAC and pkt.dst_mac == new_DST_MAC) end
+Feature.pktClassifier = {
+    function(pkt) return (pkt.src_mac == conf.new_SRC_MAC and pkt.dst_mac == conf.new_DST_MAC) end
   }
 
 return Feature

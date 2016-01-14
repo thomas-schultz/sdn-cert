@@ -1,10 +1,15 @@
 Feature = {}
 Feature.__index = Feature
 
+-- package path modifications to import feature definitions
 package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
 package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
 
+--------------------------------------------------------------------------------
+--  Superclass for feature-tests
+--------------------------------------------------------------------------------
  
+--- Creates a new feature from given name.
 function Feature.create(name)
   local self = setmetatable({}, Feature)
   setmetatable(Feature,{__index = Feature})
@@ -15,6 +20,7 @@ function Feature.create(name)
   return self
 end
 
+--- Reads in the fetauire configuration from its file.
 function Feature:readConfig()
   local configFile = "config/" .. self.name .. ".lua"
   if (not localfileExists(global.featureFolder .. "/" .. configFile)) then
@@ -22,9 +28,10 @@ function Feature:readConfig()
     self.disabled = true
     return
   end
-  local config = require(self.name)
-  self.config = config
-  self.settings = config.settings
+  local feature = require(self.name)
+  self.config = feature
+  self.settings = table.deepcopy(feature.defaultSettings)
+  self.settings = table.deepcopy(feature.settings, self.settings)
 
   if (Settings:isTestFeature() and Settings:getTestFeature() ~= self:getName()) then return end
   local ver_comp = compareVersion(self:getRequiredOFVersion(), Settings:getOFVersion())
@@ -42,6 +49,7 @@ function Feature:readConfig()
   self.ofArgs = CommonTest.mapArgs(self, self.config.ofArgs, "of", true, true)
 end
 
+--- Executes the feature-test. Determines if the feature is supported or not.
 function Feature:runTest()
   if (settings.config.verbose) then self:print() end
   -- copying files
@@ -53,17 +61,20 @@ function Feature:runTest()
     cmd:execute(settings.config.verbose)
   end
   -- configure open-flow device
-  logger.print("Configuring OpenFlow device (~" .. global.timeout .. " sec)", 1, global.headline2)
+  local dur = global.ofSetupTime + global.ofResetTimeOut
+  logger.print("Configuring OpenFlow device (~" .. dur .. " sec)", 1, global.headline2)
   local path = settings:getLocalPath() .. "/" .. global.results .. "/features"
   Setup.createFolder(path)
   local template = path .. "/feature_" .. self:getName()
   local ofDev = OpenFlowDevice.create(settings.config[global.switchIP], settings.config[global.switchPort], self.config[global.requires])
   ofDev:reset()
+  -- wait for reset process to finish
+  sleep(global.ofResetTimeOut)
   local flowData = ofDev:getFlowData(self)
   ofDev:createAllFiles(flowData, template)
   ofDev:installAllFiles(template, "_ovs-output")
   ofDev:dumpAll(template .. "_flowdump-before")
-  if (not settings.config.simulate) then sleep(global.timeout) end
+  if (not settings.config.simulate) then sleep(global.ofSetupTime) end
   
   -- start loadgen
   logger.print("Starting feature test (~10 sec)", 1, global.headline2)
@@ -101,26 +112,32 @@ function Feature:runTest()
   ofDev:reset()
 end
 
+--- Checks if the feature is disabled.
 function Feature:isDisabled()
   return self.disabled
 end
 
+--- Returns the name of the feature. 
 function Feature:getName()
   return self.name
 end
 
+--- Returns the OpenFlow protocol version required by this feature.
 function Feature:getRequiredOFVersion()
   return self.config.require
 end
 
+--- Returns the state of the feature, for example required or optional.
 function Feature:getState()
   return self.config.state
 end
 
+--- Checks if the feature test was successful and it is supported.
 function Feature:isSupported()
   return self.supported
 end
 
+--- Returns the status of the test.
 function Feature:getStatus(noColor)
   local color
   if (noColor) then color = Logger.noColorCode
@@ -134,6 +151,7 @@ function Feature:getStatus(noColor)
   end
 end
 
+--- Returns the status in LaTeX representation.
 function Feature:getTexStatus()
   if (self:isSupported()) then
     return "{\\color{darkgreen} supported}"
@@ -142,14 +160,17 @@ function Feature:getTexStatus()
   end
 end
 
+--- Returns the specified load-generator.
 function Feature:getLoadGen()
   return self.config.loadGen
 end
 
+--- Returns the list of needed files for the load-generator.
 function Feature:getLoadGenFiles()
   return self.files
 end
 
+--- Dumps the current configuration.
 function Feature:print(dump)
   CommonTest.print(self.settings, dump)
 end

@@ -30,34 +30,31 @@ FeatureConfig.enum = {
   }
   
 -- default settings
-FeatureConfig.settings = {
+FeatureConfig.defaultSettings = {
     pktSize       = 80,       -- default packet size in bytes, without CRC
     bufSize       = 32,       -- number of packets in one buffer
     loops         = 1,        -- loop count, each is sending bufSize packets
     maxDeviation  = 0.05,     -- percentage of allowed deviation for received packets
     threshold     = 5,         -- lower bound for the maximum number of deviating packets
     learnTime     = 500,      -- time in milliseconds, where learning packets are generated and discarded by the receiver
-    learnPkts     = 2,        -- number of packets, that will be generated for learning
+    learnFrames   = 2,        -- number of packets, that will be generated for learning
     timeout       = 2,        -- timeout in seconds until the receiving loop is stopped
     txIterations  = 1,        -- number of sending steps, modifyPkt is called after each, nil means number of devices
-    txDev         = 1,        -- number of sending devices
     firstRxDev    = 2,        -- first device for receiving
     ctrType       = "any",    -- counter type specified in logicalOps
     desiredCtr    = 1.0,      -- factor for received packet, applies to batch size (bufSize*loops)
   }
 
--- append given settings to default values    
-FeatureConfig.config = function(settings)
-    for k,v in pairs(settings) do FeatureConfig.settings[k] = v end
-  end
- 
--- overrides given settings concrete values    
-FeatureConfig.set = function(key, value)
-    settings[key] = value
-  end
+-- returns copy of the default settings
+FeatureConfig.getDefaultSettings = function()
+  local _settings = {}
+  for k,v in pairs(FeatureConfig.defaultSettings) do _settings[k] = v end
+  return _settings
+end
 
 -- default packet
 FeatureConfig.defaultPkt = {
+    TX_DEV    = 1,
     ETH_TYPE  = FeatureConfig.enum.ETH_TYPE.ip4,
     SRC_MAC   = "aa:00:00:00:00:a1",
     DST_MAC   = "ff:ff:ff:ff:ff:ff", 
