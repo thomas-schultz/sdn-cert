@@ -49,7 +49,6 @@ function Statistic.readHistogram(hist, resolution)
   table.sort(collapsedTimes)
   for _,t in pairs(collapsedTimes) do 
     local line = string.replace(""..t, ",", ".") .. "," ..collapsedOccurrence[t]
-    print(line)
     table.insert(result, line)
   end
   return result
