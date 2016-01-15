@@ -1,9 +1,15 @@
 Reports = {}
 Reports.__index = Reports
 
+--------------------------------------------------------------------------------
+--  class for generating the LaTeX reports
+--------------------------------------------------------------------------------
+
 Reports.allReports = {}
 Reports.frontReport = 1
 
+--- Adds a report to the list. The list has two points for adding new elements
+-- Either at the end, or if front is specified to the priority position.
 function Reports.addReport(doc, title, front)
   if (front == nil) then fron = false end
   local item = {
@@ -18,7 +24,7 @@ function Reports.addReport(doc, title, front)
   end
 end
 
-
+--- Generates the single-test reports and the accumulated advanced reports
 function Reports.generate(benchmark)
   for id,test in pairs(benchmark.testcases) do
     logger.printlog("Generating reports ( " .. id .. " / " .. #benchmark.testcases .. " ): " .. test:getName(true), nil, global.headline1)
@@ -70,7 +76,7 @@ function Reports.generate(benchmark)
     for par,report in pairs(reports) do
       report:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. currentTestName .. "/eval", "parameter_" .. par)
       report:generatePDF()
-      Reports.addReport(report, currentTestName .. " - " .. par, true)
+      Reports.addReport(report, "Advanced Report " .. currentTestName .. "-" .. par, true)
     end
   end
   if (not benchmark:checkExit()) then
@@ -79,7 +85,7 @@ function Reports.generate(benchmark)
   logger.printBar()
 end
 
-
+--- Generates the feature report.
 function Reports.generateFeatureReport(featureList)
   local doc = TexDocument.create()
   local colorDef = TexText.create()
@@ -103,7 +109,7 @@ function Reports.generateFeatureReport(featureList)
   Reports.addReport(doc, "Feature-Tests", true)
 end
 
-
+--- Creates a single test report from a testcase.
 function Reports.createTestReport(testcase, error)
   local metric = require("metrics")
   local config = metric.config[testcase:getMetric()]
@@ -131,9 +137,11 @@ function Reports.createTestReport(testcase, error)
   end 
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results .. "/" .. testcase:getName(true) .. "/eval", testcase:getName())
   doc:generatePDF()
-  Reports.addReport(doc, "Test " .. testcase:getId() .. " " .. testcase:getName(true))
+  Reports.addReport(doc, "Single Test " .. testcase:getId())
 end
 
+--- Creates an advanced report and adds it to the list of reports for
+-- the current parameter.
 function Reports.generateCombined(benchmark, doc, currentParameter, ids)
   local test = benchmark.testcases[ids[1]]
   local metric = require("metrics")
@@ -149,6 +157,7 @@ function Reports.generateCombined(benchmark, doc, currentParameter, ids)
   doc:addClearPage()
 end
 
+--- Creates the full sumary report containing all existing reports.
 function Reports.summarize()
   logger.printlog("Generating full report, may take a while", nil, global.headline1)
   local doc = TexDocument.create()
@@ -168,3 +177,5 @@ function Reports.summarize()
   doc:saveToFile(settings:getLocalPath() .. "/" .. global.results, "Report")
   doc:generatePDF()
 end
+
+return Reports

@@ -2,7 +2,7 @@ CommonTest = {}
 CommonTest.__index = CommonTest
 
 --------------------------------------------------------------------------------
---  Superclass for arbitrary tests
+--  superclass for arbitrary tests
 --------------------------------------------------------------------------------
 
 --- Creates a new CommonTest.

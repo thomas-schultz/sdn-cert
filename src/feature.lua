@@ -6,7 +6,7 @@ package.path = package.path .. ';' .. global.featureFolder .. '/?.lua'
 package.path = package.path .. ';' .. global.featureFolder .. '/config/?.lua'
 
 --------------------------------------------------------------------------------
---  Superclass for feature-tests
+--  class for feature-tests
 --------------------------------------------------------------------------------
  
 --- Creates a new feature from given name.

@@ -5,8 +5,7 @@ package.path = package.path .. ';' .. global.benchmarkFolder .. '/?.lua'
 package.path = package.path .. ';' .. global.benchmarkFolder .. '/config/?.lua'
 
 
--- creates a new Benchmark object by
--- reading in a config file
+--- Creates a new Benchmark object by reading in a config file.
 function Benchmark.create(config)
   local self = setmetatable({}, Benchmark)
   self.testcases = {}
@@ -20,7 +19,7 @@ function Benchmark.create(config)
   return self
 end
 
--- reads in the benchmark configuration
+--- Reads in the benchmark configuration.
 function Benchmark:readConfig(config)
   if (settings.config.testfeature) then return end
   local fh = io.open(config)
@@ -70,14 +69,13 @@ function Benchmark:readConfig(config)
   if (self:checkExit()) then exit() end
 end
 
--- check if there are no tests to perform
+--- Checks if there are no tests to perform.
 function Benchmark:checkExit()
   if (#self.testcases == 0) then return true
   else return false end
 end
 
--- reads the feature list files
--- creates the feature objects
+--- Reads the feature list files, creates the feature objects.
 function Benchmark:getFeatures(force)
   logger.log("retrieving features") 
   local force = force or false
@@ -110,7 +108,7 @@ function Benchmark:getFeatures(force)
   end
 end
 
--- exports features and their states to make it persistent
+--- Exports features and their states to make it persistent.
 function Benchmark:exportFeatures()
   logger.log("exporting features") 
   if (settings.config.skipfeature or settings.config.simulate) then return end
@@ -128,7 +126,7 @@ function Benchmark:exportFeatures()
   io.close(file)
 end
 
--- imports features and their states from a previous run
+--- Imports features and their states from a previous run.
 function Benchmark:importFeatures()
   logger.log("importing features") 
   self:getFeatures(true) 
@@ -152,7 +150,7 @@ function Benchmark:importFeatures()
   if (not settings.config.testfeature and not settings.config.skipfeature) then printBar() end
 end
 
--- returns the state of the given feature
+--- Returns the state of the given feature.
 function Benchmark:isFeatureSupported(name)
   if (not self.features[name]) then
     logger.warn("Feature '" .. name .. "' disabled or not found, check log")
@@ -161,7 +159,7 @@ function Benchmark:isFeatureSupported(name)
   return self.features[name]:isSupported()
 end
 
--- performs the feature tests for all available features
+--- Performs the feature tests for all available features.
 function Benchmark:testFeatures()
   if settings.config.skipfeature then
     self:importFeatures() 
@@ -192,9 +190,8 @@ function Benchmark:testFeatures()
   logger.printBar()
 end
 
--- prepares all testcases by coping necessary files
--- if disabled, the test is skipped 
--- only if prepared, the testcases have a valid id
+--- Prepares all test-cases by coping necessary files. If disabled, the test
+-- is skipped. Only after this step the test-cases have a valid id.
 function Benchmark:prepare()
   if (settings.config.testfeature) then return end
   local testcases = {}
@@ -236,7 +233,7 @@ function Benchmark:prepare()
   logger.printBar()
 end
 
--- exports the configuration of all testcases to a file
+--- Exports the configuration of all test-cases to a file.
 function Benchmark:exportTestCases()
   local file = io.open(global.results .. "/all_tests.txt", "w")
   for id,test in pairs(self.testcases) do
@@ -245,7 +242,7 @@ function Benchmark:exportTestCases()
   io.close(file)
 end
 
--- performs the measurement for every testcase
+--- Performs the measurement for every test-case
 function Benchmark:run()
   if (settings.config.testfeature) then return end
   if (self:checkExit()) then logger.printlog("No test left") end
