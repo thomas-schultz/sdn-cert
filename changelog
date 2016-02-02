@@ -1,0 +1,10 @@
+SDN-Cert - A testbench for SDN-device certification
+Author: Thomas Schultz (thomas.schultz@tum.de)
+Developed at the Technische Universität München
+
+Changelog
+=========
+
+v.1.0.0 - Initial release:
+	basic beature-tests and test-cases
+	based on OpenvSwitch

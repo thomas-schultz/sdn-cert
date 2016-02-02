@@ -15,6 +15,7 @@ require "reports"
 require "setup"
 require "settings"
 require "testcase"
+require "version"
 require "tools/general"
 require "tex/document"
 
@@ -47,10 +48,12 @@ local function main()
   parser:addOption("--testfeature=feature", "tests specific feature, nothing more will be done")
   parser:addOption("--verbose", "shows further information")
   parser:addOption("-O=OpenFlowVersion", "specifies the OpenFlow protocol version")
+  parser:addOption("--version", "prints version information")
   parser:addOption("--help", "prints this help")
   
   parser:parse(arg)
   if (parser:hasOption("--help")) then parser:printHelp() exit() end
+  if (parser:hasOption("--version")) then logger.print(Version.getVersion()) exit() end
   if (parser:hasOption("--verbose")) then settings.config.verbose = true end
   if (parser:hasOption("--sim")) then settings.config.simulate = true end
   if (parser:hasOption("--nocolor")) then logger.disableColor() end
