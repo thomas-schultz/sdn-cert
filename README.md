@@ -1,13 +1,11 @@
-# sdn-cert
-OpenFlow Switch certification tool (work in progress)
-
+# SDN-cert
+OpenFlow capable device certification framework
 
 # dependencies:
 	packages: lua, gcc, cmake, openvwitch
-	ssh keys for root@loadgen_host
+	ssh keys for root auf dem measuremnt host
 	link moongen to ./build/MoonGen in moongen directory
-	LaTeX: texlive + pdfplots, csvsimple
-	for example apt-get install texlive-base texlive-latex-extra
+	LaTeX: texlive + pdfplots, csvsimple, (texlive-base texlive-latex-extra)
 
 # start:	
 	make changes in settings.conf
@@ -17,7 +15,7 @@ OpenFlow Switch certification tool (work in progress)
 	start benchmark ./run.sh <benchmark.cfg>
 	(start with --verbose and/or look at sdn-cert.log)
 	
-# Benchmarks
+# Benchmarks and Test-Cases
 	Testcases are defined in multiple layers:
 	Layer 1:
 		benchmark.cfg: List of testcases with name and variables in form of key=value
@@ -41,7 +39,7 @@ OpenFlow Switch certification tool (work in progress)
 	layer 3:
 		moongen scripts: invidual scripts for generating and evaluating the result
 			
-# Feature-Test
+# Feature-Tests
 	Layer 1:
 		feature-test/feature_list.cfg: List of feature-tests
 	Layer 2:
